@@ -1,0 +1,461 @@
+synagogue_name,street_address,neighborhood,city,state,full_address,is_current,address_order
+A.M. Burd's Shul,Westview & Wissahickon Ave,Mount Airy,Philadelphia,PA,"Westview & Wissahickon Ave, Philadelphia, PA",True,0
+Abraham Potash Shtiebl [Reverend],1031 Wyoming Ave,Logan,Philadelphia,PA,"1031 Wyoming Ave, Philadelphia, PA",True,0
+"Achdus B'nai Israel. See, B'nai Israel @ E. Erie",540 W. Erie Ave,North Philly,Philadelphia,PA,"540 W. Erie Ave, Philadelphia, PA",True,0
+Adas Moishe Montefiore,2911 N.9th St,North Philly,Philadelphia,PA,"2911 N.9th St, Philadelphia, PA",True,0
+"Adat Beyt Mosheh
+Also, [The] Colored Hebrew Community",1700 W. Girard Ave,North Philly,Philadelphia,PA,"1700 W. Girard Ave, Philadelphia, PA",True,0
+Adath Israel,832 N. Marshall St,Northern Liberties,Philadelphia,PA,"832 N. Marshall St, Philadelphia, PA",True,0
+Adath Israel Nusach Sfard,224 Christian St,South Philly,Philadelphia,PA,"224 Christian St, Philadelphia, PA",True,0
+Adath Israel of the Main Line,250 North Highland Ave,Main Line,Philadelphia,PA,"250 North Highland Ave, Philadelphia, PA",True,0
+Adath Israel of the Main Line,(at Old Lancaster Rd),,Philadelphia,PA,"(at Old Lancaster Rd), Philadelphia, PA",False,1
+Adath Jeshurun,7763 Old York Rd,Elkins Park North Philly,Philadelphia,PA,"7763 Old York Rd, Philadelphia, PA",True,0
+Adath Jeshurun,2109 N Broad St (at Diamond St),Marshall St,Philadelphia,PA,"2109 N Broad St (at Diamond St), Philadelphia, PA",False,1
+Adath Jeshurun,7th St & Columbia Ave,North Philly,Philadelphia,PA,"7th St & Columbia Ave, Philadelphia, PA",False,2
+Adath Jeshurun,Juliana St,Northern Liberties,Philadelphia,PA,"Juliana St, Philadelphia, PA",False,3
+Adath Jeshurun,New Market &            Noble Sts,Northern Liberties,Philadelphia,PA,"New Market &            Noble Sts, Philadelphia, PA",False,4
+Adath Jeshurun,3rd & Brown Sts,Northern Liberties,Philadelphia,PA,"3rd & Brown Sts, Philadelphia, PA",False,5
+Adath Jeshurun Havurah,7763 Old York Rd,Elkins Park,Philadelphia,PA,"7763 Old York Rd, Philadelphia, PA",True,0
+"Adath Jeshurun Talmud Torah Congregation. Also, Ezras Israel; [The] Carpenter's Shul",2113 S. 6th St (at Cantrell St),South Philly,Philadelphia,PA,"2113 S. 6th St (at Cantrell St), Philadelphia, PA",True,0
+Adath Shalom,8022 Rugby St,Mount Airy,Philadelphia,PA,"8022 Rugby St, Philadelphia, PA",True,0
+Adath Shalom.,607 Ritner St          (at Marshall St),South Philly,Philadelphia,PA,"607 Ritner St          (at Marshall St), Philadelphia, PA",True,0
+Adath Tikvah - Montefiore,1630 Hoffnagle St,Northeast Philly,Philadelphia,PA,"1630 Hoffnagle St, Philadelphia, PA",True,0
+Adath Tikvah of Whitaker Ave,7838 Whitaker Ave,Northeast,Philadelphia,PA,"7838 Whitaker Ave, Philadelphia, PA",True,0
+"Adath Zion Synagogue. See, Frankford Hebrew Congregation",7101 Pennway St (@ Friendship St),Northeast Philly,Philadelphia,PA,"7101 Pennway St (@ Friendship St), Philadelphia, PA",True,0
+"Adath Zion Synagogue. See, Frankford Hebrew Congregation",4334 Paul St,,Philadelphia,PA,"4334 Paul St, Philadelphia, PA",False,1
+"Agudas Achim Rumanian Congregation. Also see, Or Chudosh; Or Chodash-Agudas Achim; Or Chudosh- Agudas Achim -- Rumanian American Congregation",512 S. 3rd St,South Philly,Philadelphia,PA,"512 S. 3rd St, Philadelphia, PA",True,0
+Agudas Israel,2401 N. 59th St,Wynnefield,Philadelphia,PA,"2401 N. 59th St, Philadelphia, PA",True,0
+Agudath Achim,5944 Catherine St,West Philly,Philadelphia,PA,"5944 Catherine St, Philadelphia, PA",True,0
+Agudath Israel,4735 Old York Rd,Logan,Philadelphia,PA,"4735 Old York Rd, Philadelphia, PA",True,0
+Ahavas Achim Anshe Vitebsk,1929 S. 6th St.,South Philly,Philadelphia,PA,"1929 S. 6th St., Philadelphia, PA",True,0
+Ahavas Achim Anshe Vitebsk,(At Mercy St),,Philadelphia,PA,"(At Mercy St), Philadelphia, PA",False,1
+"Ahavas Achim Podolier Verein Anshe Sfard. Also, [Chevra] Ahavas Achim",320 Catherine St.,South Philly,Philadelphia,PA,"320 Catherine St., Philadelphia, PA",True,0
+"Ahavas Achim Talmud Torah Congregation. Also, Island Road Synagogue",3012 S. 80th St,SW Philly,Philadelphia,PA,"3012 S. 80th St, Philadelphia, PA",True,0
+"Ahavas Achim Talmud Torah Congregation. Also, Island Road Synagogue",(at Harley),,Philadelphia,PA,"(at Harley), Philadelphia, PA",False,1
+Ahavas Chesed Anshe Shavel [Chevra],322 Bainbridge St,South Philly,Philadelphia,PA,"322 Bainbridge St, Philadelphia, PA",True,0
+Ahavas Israel,29 W. Rittenhouse St,Germantown,Philadelphia,PA,"29 W. Rittenhouse St, Philadelphia, PA",True,0
+Ahavas Israel,322 Bainbridge St,South Philly,Philadelphia,PA,"322 Bainbridge St, Philadelphia, PA",True,0
+"Ahavas Israel Anshe Kensington. Also, Ahavath Israel of Kensington",2302-4 N. Mascher St,Kensington,Philadelphia,PA,"2302-4 N. Mascher St, Philadelphia, PA",True,0
+"Ahavas Israel.                                                                 Also, [Chevra] Ahavas Israel Anshe Sfard",3900/1 Brown St,West Philly,Philadelphia,PA,"3900/1 Brown St, Philadelphia, PA",True,0
+Ahavas Torah,1425 Rhawn St,Northeast Philly,Philadelphia,PA,"1425 Rhawn St, Philadelphia, PA",True,0
+Ahavas Torah,7525 Loretta St,Northeast Philly,Philadelphia,PA,"7525 Loretta St, Philadelphia, PA",False,1
+Ahavas Torah Congregation,1937 Franklin St,North Philly,Philadelphia,PA,"1937 Franklin St, Philadelphia, PA",True,0
+Ahavath Zion,815 S. 4th St,South Philly,Philadelphia,PA,"815 S. 4th St, Philadelphia, PA",True,0
+Aitz Chaim,1420 Walnut Sts,Center City,Philadelphia,PA,"1420 Walnut Sts, Philadelphia, PA",True,0
+Aitz Chaim,7th & Dickinson Sts,South Philly,Philadelphia,PA,"7th & Dickinson Sts, Philadelphia, PA",True,0
+Aitz Chaim Synagogue Center,7600 Summerdale Ave,Northeast Philly,Philadelphia,PA,"7600 Summerdale Ave, Philadelphia, PA",True,0
+Aitz Chaim VeZichron Jacob,3209 Cumberland St,Strawberry Mansion,Philadelphia,PA,"3209 Cumberland St, Philadelphia, PA",True,0
+"Aitz Chaim. Also, Heiner Fiscal ""chicken foot"" Shul; Kaiserman Shul",4166 Viola St,West Philly,Philadelphia,PA,"4166 Viola St, Philadelphia, PA",True,0
+"Anshe Birz. See, [Chevra] Poale Zedek-Anshe Birz",6th and South Sts,South Philly,Philadelphia,PA,"6th and South Sts, Philadelphia, PA",True,0
+"Anshe Emeth. Also, Aitz Chaim",1537 S. 7th St,South Philly,Philadelphia,PA,"1537 S. 7th St, Philadelphia, PA",True,0
+"Anshe Emeth. See, B'nai Halberstam",New Market St above Poplar St,Northern Liberties,Philadelphia,PA,"New Market St above Poplar St, Philadelphia, PA",True,0
+"Anshe Hisan. Also, Chevra Heisner; Heisinger Congregation; Hesiner Independent Young Men's Society",1729 S.6th St,South Philly,Philadelphia,PA,"1729 S.6th St, Philadelphia, PA",True,0
+"Anshe Kuppel Vohliner. Also, Chevra Vohliner Anshe Kuppel",928 S. 6th St,South Philly,Philadelphia,PA,"928 S. 6th St, Philadelphia, PA",True,0
+"Anshe Lubowitz nusach Ari [Chevra]                           Also, Chevra Mishnais Anshe Lubavitch",951 N. Franklin St,Marshall St,Philadelphia,PA,"951 N. Franklin St, Philadelphia, PA",True,0
+Anshe Ostropolier,916 N. Franklin St,Marshall St,Philadelphia,PA,"916 N. Franklin St, Philadelphia, PA",True,0
+Anshe Sholem,1924-6 Germantown Ave,North Philly,Philadelphia,PA,"1924-6 Germantown Ave, Philadelphia, PA",True,0
+Anshe Shulamit,4th & Poplar Sts,Marshall St,Philadelphia,PA,"4th & Poplar Sts, Philadelphia, PA",True,0
+Anshe Wohliner,322 Bainbridge St,South Philly,Philadelphia,PA,"322 Bainbridge St, Philadelphia, PA",True,0
+Atereth Israel of Overbrook,1243 N. 60th St,West Philly,Philadelphia,PA,"1243 N. 60th St, Philadelphia, PA",True,0
+"Atereth Israel.                                                                  Also, [Chevra] Ateres Anshe Brohin V'Choimetsh",1638 S. 6th St,South Philly,Philadelphia,PA,"1638 S. 6th St, Philadelphia, PA",True,0
+"Atereth Israel.                                                                  Also, [Chevra] Ateres Anshe Brohin V'Choimetsh",(at Morris St),,Philadelphia,PA,"(at Morris St), Philadelphia, PA",False,1
+"Atereth Israel. (Previously B'nai Aruyh Moshel) Also, Jewish Farmers' Shul",3119 S. 84th St,SW Philly,Philadelphia,PA,"3119 S. 84th St, Philadelphia, PA",True,0
+"Atereth Israel. (Previously B'nai Aruyh Moshel) Also, Jewish Farmers' Shul",(at Harley St),,Philadelphia,PA,"(at Harley St), Philadelphia, PA",False,1
+"Austrian Galizianer Shul. Also, Ohavas Achim Ostreicher",507 Tasker St,South Philly,Philadelphia,PA,"507 Tasker St, Philadelphia, PA",True,0
+"Austro-Hungarian Congregation.                                Also, [Chevra] Re'im Ahuvim",5884 Overbrook Ave.,Wynnefield SW Philly,Philadelphia,PA,"5884 Overbrook Ave., Philadelphia, PA",True,0
+"Austro-Hungarian Congregation.                                Also, [Chevra] Re'im Ahuvim",NE corner 59th St & Cedar Ave,,Philadelphia,PA,"NE corner 59th St & Cedar Ave, Philadelphia, PA",False,1
+Beit Harambam,9981 Verree Rd,Northeast,Philadelphia,PA,"9981 Verree Rd, Philadelphia, PA",True,0
+Bessarbier Talmud Torah,1627 S. 6th St (nr Mountain St),South Philly,Philadelphia,PA,"1627 S. 6th St (nr Mountain St), Philadelphia, PA",True,0
+Beth Abraham,3040 N. 22nd St,North Philly,Philadelphia,PA,"3040 N. 22nd St, Philadelphia, PA",True,0
+Beth Ahavah,615 N Broad St 8 Leticia St,Center City,Philadelphia,PA,"615 N Broad St 8 Leticia St, Philadelphia, PA",True,0
+Beth Am Israel,1301 Hagys Ford Rd,Main Line SW Philly,Philadelphia,PA,"1301 Hagys Ford Rd, Philadelphia, PA",True,0
+Beth Am Israel,58th & Warrington Sts,,Philadelphia,PA,"58th & Warrington Sts, Philadelphia, PA",False,1
+Beth Ami,9201 Bustleton Ave,Northeast Philly,Philadelphia,PA,"9201 Bustleton Ave, Philadelphia, PA",True,0
+Beth Chaim,350 East Street Rd,Feasterville,Philadelphia,PA,"350 East Street Rd, Philadelphia, PA",True,0
+Beth Chaim Reform Congregation,389 Conestoga Rd,Malvern,Philadelphia,PA,"389 Conestoga Rd, Philadelphia, PA",True,0
+Beth David,328 Catherine St,South Philly South Philly,Philadelphia,PA,"328 Catherine St, Philadelphia, PA",True,0
+Beth David,528 Bainbridge St,,Philadelphia,PA,"528 Bainbridge St, Philadelphia, PA",False,1
+Beth David Reform,1130 Vaughans Lane,Main Line,Philadelphia,PA,"1130 Vaughans Lane, Philadelphia, PA",True,0
+Beth David Reform,5220 Wynnefield Ave,Wynnefield,Philadelphia,PA,"5220 Wynnefield Ave, Philadelphia, PA",False,1
+Beth El,Maryland & Lowber Sts,Oak Lane,Philadelphia,PA,"Maryland & Lowber Sts, Philadelphia, PA",True,0
+Beth El: Also Rothschild Memorial Synagogue,58th & Walnut Sts,West Philly,Philadelphia,PA,"58th & Walnut Sts, Philadelphia, PA",True,0
+Beth El Emeth,Franklin St above Green St,Northern Liberties,Philadelphia,PA,"Franklin St above Green St, Philadelphia, PA",True,0
+Beth El of Bucks County,375 Stony Hill Rd,Yardley,Philadelphia,PA,"375 Stony Hill Rd, Philadelphia, PA",True,0
+"Beth El, Suburban",715 Paxon Hollow Rd,Main Line,Philadelphia,PA,"715 Paxon Hollow Rd, Philadelphia, PA",True,0
+Beth El-Ner Tamid,715 Paxon Hollow,Main Line,Philadelphia,PA,"715 Paxon Hollow, Philadelphia, PA",True,0
+Beth El-Ner Tamid,Rd,,Philadelphia,PA,"Rd, Philadelphia, PA",False,1
+Beth Elohim,16th St & Columbia Ave,North Philly,Philadelphia,PA,"16th St & Columbia Ave, Philadelphia, PA",True,0
+"Beth Elohim. Also, Krakauer-Beth Elohim Beneficial Association; [The] Hollander Shul; B'nai Israel",510 S. 5th St,South Philly,Philadelphia,PA,"510 S. 5th St, Philadelphia, PA",True,0
+Beth Emeth.,Bustleton & Unruh Aves,Northeast Philly,Philadelphia,PA,"Bustleton & Unruh Aves, Philadelphia, PA",True,0
+Beth Emeth.,5217 Woodland Ave,SW Philly,Philadelphia,PA,"5217 Woodland Ave, Philadelphia, PA",True,0
+Beth HaKeneseth,900 N. 7th St,Marshall St,Philadelphia,PA,"900 N. 7th St, Philadelphia, PA",True,0
+Beth HaKeneseth Ben Markowitz,SW corner 5th & Moore Sts,South Philly,Philadelphia,PA,"SW corner 5th & Moore Sts, Philadelphia, PA",True,0
+Beth HaKeneseth Brezofsky,3221 Clifford St,Strawberry Mansion,Philadelphia,PA,"3221 Clifford St, Philadelphia, PA",True,0
+Beth HaKeneseth Northern Hungarian,415 N.4th St,Old City,Philadelphia,PA,"415 N.4th St, Philadelphia, PA",True,0
+"Beth HaKeneseth Reb Eichler. Also see, Beth HaKenesses Reb Hirshel",417 Monroe St,South Philly,Philadelphia,PA,"417 Monroe St, Philadelphia, PA",True,0
+Beth HaKneseth-Beth Shalom,2302 S. 6th St,South Philly,Philadelphia,PA,"2302 S. 6th St, Philadelphia, PA",True,0
+Beth Hakneseth-Talmud,2340 N. 30th St,Strawberry Mansion,Philadelphia,PA,"2340 N. 30th St, Philadelphia, PA",True,0
+Torah Anshe Sfard,(nr. York),,Philadelphia,PA,"(nr. York), Philadelphia, PA",True,0
+Beth HaMedrash,200 Haverford Rd,Main Line,Philadelphia,PA,"200 Haverford Rd, Philadelphia, PA",True,0
+Beth HaMedrash,7505 Brookhaven Rd,Overbrook Park,Philadelphia,PA,"7505 Brookhaven Rd, Philadelphia, PA",False,1
+Beth HaMedrash Anshe Kaneau,1924-6 S. 6th St,South Philly,Philadelphia,PA,"1924-6 S. 6th St, Philadelphia, PA",True,0
+Beth HaMedrash Dorshe Sholom,3046-8 Berks St,Strawberry Mansion,Philadelphia,PA,"3046-8 Berks St, Philadelphia, PA",True,0
+"Beth HaMedrash HaGadol Nusach Ashkenaz.         Also see, [The] Khelmer Shul",4th & Wharton Sts,South Philly,Philadelphia,PA,"4th & Wharton Sts, Philadelphia, PA",True,0
+"Beth HaMedrash Hangdog Anshe Ashkenaz.         See, Jewish Rumanian Congregation -               Agudas Achim",426 Spruce St,South Philly,Philadelphia,PA,"426 Spruce St, Philadelphia, PA",True,0
+Beth HaMedrash Hare,5601 Woodcrest Ave,Wynnefield,Philadelphia,PA,"5601 Woodcrest Ave, Philadelphia, PA",True,0
+Beth HaMedrash Reb Sofronski,3rd & McKean Sts,South Philly,Philadelphia,PA,"3rd & McKean Sts, Philadelphia, PA",True,0
+Beth HaMedrosh (mid- town Chapel),1211 Chestnut St,Center City,Philadelphia,PA,"1211 Chestnut St, Philadelphia, PA",True,0
+Beth HaMedrosh Hagodol-Beth Yaacov,6018 Larchwood Ave,SW Philly,Philadelphia,PA,"6018 Larchwood Ave, Philadelphia, PA",True,0
+Beth Hillel-Beth El,1001 Rimmington Rd,Wynnewood,Philadelphia,PA,"1001 Rimmington Rd, Philadelphia, PA",True,0
+Beth Israel,417 Pine St,Old City,Philadelphia,PA,"417 Pine St, Philadelphia, PA",True,0
+Beth Israel,Balwynne Park,Wynnefield,Philadelphia,PA,"Balwynne Park, Philadelphia, PA",True,0
+Beth Israel,32nd St & Montgomery Ave,Strawberry Mansion,Philadelphia,PA,"32nd St & Montgomery Ave, Philadelphia, PA",True,0
+Beth Israel Congregation of Chester County,385 Pottstown Pike,Eagle Coatesville,Philadelphia,PA,"385 Pottstown Pike, Philadelphia, PA",True,0
+Beth Israel Congregation of Chester County,5th Ave & Harmony St,,Philadelphia,PA,"5th Ave & Harmony St, Philadelphia, PA",False,1
+Beth Israel of Media,542 S New,Media,Philadelphia,PA,"542 S New, Philadelphia, PA",True,0
+Beth Israel of Media,Middleton Rd,,Philadelphia,PA,"Middleton Rd, Philadelphia, PA",False,1
+Beth Jacob,1706-8 South St.,South Philly,Philadelphia,PA,"1706-8 South St., Philadelphia, PA",True,0
+Beth Jacob,6027-9 Chestnut St,West Philly,Philadelphia,PA,"6027-9 Chestnut St, Philadelphia, PA",True,0
+Beth Jacob Anshe Dadmoor,6th & Wolf St (SW corner),South Philly,Philadelphia,PA,"6th & Wolf St (SW corner), Philadelphia, PA",True,0
+Beth Jacob Anshe,414 Christian St,South Philly,Philadelphia,PA,"414 Christian St, Philadelphia, PA",True,0
+Beth Jacob of West Philadelphia [Chevra],4008-10 Poplar St,West Philly,Philadelphia,PA,"4008-10 Poplar St, Philadelphia, PA",True,0
+Beth Judah,4820 N. 11th St,Logan,Philadelphia,PA,"4820 N. 11th St, Philadelphia, PA",True,0
+Beth Judah,232 Lombard St,Old City,Philadelphia,PA,"232 Lombard St, Philadelphia, PA",True,0
+"Beth Judah. Also, Hebrew Congregation of West Philadelphia",5426 Sansom St,West Philly,Philadelphia,PA,"5426 Sansom St, Philadelphia, PA",True,0
+Beth Or Reform Congregation,239 Welsh Rd.,Maple Glen Spring House,Philadelphia,PA,"239 Welsh Rd., Philadelphia, PA",True,0
+Beth Or Reform Congregation,Pennilyn Pike & Dager Rd.,Mount Airy,Philadelphia,PA,"Pennilyn Pike & Dager Rd., Philadelphia, PA",False,1
+Beth Or Reform Congregation,500 E. Mt Pleasant Ave,,Philadelphia,PA,"500 E. Mt Pleasant Ave, Philadelphia, PA",False,2
+"Beth Schmuel. Also, Beth Samuel; Bes Schmuel",Ritner & Marshall Sts,South Philly,Philadelphia,PA,"Ritner & Marshall Sts, Philadelphia, PA",True,0
+"Beth Sholom.                                                                       Also, Logan Congregation Ahavas Israel",8231 Old York Rd.,Elkins Park Logan,Philadelphia,PA,"8231 Old York Rd., Philadelphia, PA",True,0
+"Beth Sholom.                                                                       Also, Logan Congregation Ahavas Israel",Broad & Cortland Sts,,Philadelphia,PA,"Broad & Cortland Sts, Philadelphia, PA",False,1
+Beth Solomon,601 E. Mt Pleasant Ave,Mount Airy,Philadelphia,PA,"601 E. Mt Pleasant Ave, Philadelphia, PA",True,0
+Beth Solomon Suburban (of Somerton),198 Tomlinson Rd,Northeast Philly,Philadelphia,PA,"198 Tomlinson Rd, Philadelphia, PA",True,0
+"Beth Solomon.                                                                  Also, Beth Shloime Rumanian Congregation",601 E Sedgewick St 2300 S. 6th St,Mount Airy South Philly,Philadelphia,PA,"601 E Sedgewick St 2300 S. 6th St, Philadelphia, PA",True,0
+"Beth Solomon.                                                                  Also, Beth Shloime Rumanian Congregation",(at Wolf St),,Philadelphia,PA,"(at Wolf St), Philadelphia, PA",False,1
+Beth Tefilath Israel,3911 Powelton Ave,West Philly,Philadelphia,PA,"3911 Powelton Ave, Philadelphia, PA",True,0
+Beth Tfilla of Overbrook Park,7630 Woodbine Ave,Overbrook Park,Philadelphia,PA,"7630 Woodbine Ave, Philadelphia, PA",True,0
+Beth Tikvah-B'nai,1001 Paper Mill Rd,Erdenheim,Philadelphia,PA,"1001 Paper Mill Rd, Philadelphia, PA",True,0
+Beth Torah [Temple],608 Welsh Rd,Northeast Philly,Philadelphia,PA,"608 Welsh Rd, Philadelphia, PA",True,0
+Beth Tovim,NE Corner 59th St & Drexel Rd,Wynnefield,Philadelphia,PA,"NE Corner 59th St & Drexel Rd, Philadelphia, PA",True,0
+Beth Uziel,41 E. Wyoming Ave,Feltonville,Philadelphia,PA,"41 E. Wyoming Ave, Philadelphia, PA",True,0
+Beth Zion-Beth Israel [Temple],300 South 18th St,Center City,Philadelphia,PA,"300 South 18th St, Philadelphia, PA",True,0
+Bialostotski Minyan,1410 S 5th St,South Philly,Philadelphia,PA,"1410 S 5th St, Philadelphia, PA",True,0
+Bikur Cholim [Chevra ],"Mercantile Hall,",Marshall St,Philadelphia,PA,"Mercantile Hall,, Philadelphia, PA",True,0
+Bikur Cholim [Chevra ],Franklin & Poplar Sts,,Philadelphia,PA,"Franklin & Poplar Sts, Philadelphia, PA",False,1
+Birchas Shalom,5820 Woodcrest Ave,Wynnefield,Philadelphia,PA,"5820 Woodcrest Ave, Philadelphia, PA",True,0
+B'nai Aaron,53rd & Euclid Sts 1713 Georges Lane,Wynnefield Wynnefield,Philadelphia,PA,"53rd & Euclid Sts 1713 Georges Lane, Philadelphia, PA",True,0
+B'nai Aaron of Parkside,1713 N. 42nd St,West Philly,Philadelphia,PA,"1713 N. 42nd St, Philadelphia, PA",True,0
+B'nai Abraham,3040 N.22nd St,West Philly,Philadelphia,PA,"3040 N.22nd St, Philadelphia, PA",True,0
+"B'nai Abraham- Anshe Russ.                                       Also, [Chevra] B'nai Abraham; Di Rusishe Shul;",521-27 Lombard St,Old City,Philadelphia,PA,"521-27 Lombard St, Philadelphia, PA",True,0
+B'nai Abraham Jewish Center,9037 Eastview St,Northeast Philly,Philadelphia,PA,"9037 Eastview St, Philadelphia, PA",True,0
+B'nai David Congregation,418 Lombard St,Old City,Philadelphia,PA,"418 Lombard St, Philadelphia, PA",True,0
+B'nai David,3221 W. Clifford St,Strawberry Mansion,Philadelphia,PA,"3221 W. Clifford St, Philadelphia, PA",True,0
+B'nai Ephraim,715 Fairmount Ave,Marshall St,Philadelphia,PA,"715 Fairmount Ave, Philadelphia, PA",True,0
+"B'nai Halberstam.                                                              Also, Anshe Emet; B'nai Israel-Halberstam; B'nai Israel-Ohev Zedek; B'nai Israel-Ohev Zedek-B'nai Halberstam
+",610 N. 6th St (at Green),Northern Liberties,Philadelphia,PA,"610 N. 6th St (at Green), Philadelphia, PA",True,0
+B'nai Israel,942 Ruscomb St,Logan,Philadelphia,PA,"942 Ruscomb St, Philadelphia, PA",True,0
+B'nai Israel,1709 N. 22nd St,North Philly,Philadelphia,PA,"1709 N. 22nd St, Philadelphia, PA",True,0
+B'nai Israel,SW corner Tulip & Auburn Sts,Port Richmond,Philadelphia,PA,"SW corner Tulip & Auburn Sts, Philadelphia, PA",True,0
+B'nai Israel,1214 S. 3rd St,South Philly,Philadelphia,PA,"1214 S. 3rd St, Philadelphia, PA",True,0
+B'nai Israel,"NE Corner, 3rd & Manton Sts",South Philly,Philadelphia,PA,"NE Corner, 3rd & Manton Sts, Philadelphia, PA",True,0
+B'nai Israel,922 S. 4th St,South Philly,Philadelphia,PA,"922 S. 4th St, Philadelphia, PA",True,0
+B'nai Israel,4024 Lancaster Ave,West Philly,Philadelphia,PA,"4024 Lancaster Ave, Philadelphia, PA",True,0
+B'nai Israel Anshe Polin,324 Fitzwater St,South Philly,Philadelphia,PA,"324 Fitzwater St, Philadelphia, PA",True,0
+B'nai Israel of Olney,307 W. Tabor Rd,Olney,Philadelphia,PA,"307 W. Tabor Rd, Philadelphia, PA",True,0
+"B'nai Israel. Also, Ahdus B'nai Israel",540 E. Erie Ave,North Philly,Philadelphia,PA,"540 E. Erie Ave, Philadelphia, PA",True,0
+"B'nai Israel-Ohev Zedek. See, B'nai Halberstam",8201 Castor Ave,Northeast Philly,Philadelphia,PA,"8201 Castor Ave, Philadelphia, PA",True,0
+B'nai Jacob,Starr & Manavon Sts,Phoenixville,Philadelphia,PA,"Starr & Manavon Sts, Philadelphia, PA",True,0
+B'nai Jacob,1927-9 N. 31st St,Strawberry Mansion,Philadelphia,PA,"1927-9 N. 31st St, Philadelphia, PA",True,0
+B'nai Jacob - Dirshu Tov,1147 Gilham St,Northeast Philly,Philadelphia,PA,"1147 Gilham St, Philadelphia, PA",True,0
+B'nai Jacob Anshe Sfard,323 N. 2nd St,Northern Liberties,Philadelphia,PA,"323 N. 2nd St, Philadelphia, PA",True,0
+"B'nai Jacob. Also, Kesher Israel",418 Lombard S,Old City,Philadelphia,PA,"418 Lombard S, Philadelphia, PA",True,0
+"B'nai Jeshurun. Also, B'nai Jeshurun of Mount Airy","33rd & Parkway Sts., (between Diamond St & Susquehanna Ave)",Strawberry Mansion,Philadelphia,PA,"33rd & Parkway Sts., (between Diamond St & Susquehanna Ave), Philadelphia, PA",True,0
+B'nai Joseph,525 Bainbridge St,South Philly,Philadelphia,PA,"525 Bainbridge St, Philadelphia, PA",True,0
+B'nai Joshua,5343 Berks St,Wynnefield,Philadelphia,PA,"5343 Berks St, Philadelphia, PA",True,0
+B'nai Menasha,722 N. 38th St,West Philly,Philadelphia,PA,"722 N. 38th St, Philadelphia, PA",True,0
+"B'nai Menasha. Also, The White Shul",2339 N. 31st St (at Arizona St),Strawberry Mansion,Philadelphia,PA,"2339 N. 31st St (at Arizona St), Philadelphia, PA",True,0
+B'nai Moishe,3836 N. 18th St,North Philly,Philadelphia,PA,"3836 N. 18th St, Philadelphia, PA",True,0
+"B'nai Moishe Anshe Sefard. Also, B'nai Moshe - Poale Zedek",1711 S. 5th St (at Watkins),South Philly,Philadelphia,PA,"1711 S. 5th St (at Watkins), Philadelphia, PA",True,0
+B'nai Moses Montefiore Anshe Polin,342 Queen St,South Philly,Philadelphia,PA,"342 Queen St, Philadelphia, PA",True,0
+B'nai Moshe Gomel Chesed Shel Emes,314 Catherine St,South Philly,Philadelphia,PA,"314 Catherine St, Philadelphia, PA",True,0
+"B'nai Nahum. Also, B'nai Nachman",2126 N. 16th St,North Philly,Philadelphia,PA,"2126 N. 16th St, Philadelphia, PA",True,0
+B'nai Reuben Anshe Sephard [Chevra],615 S. 6th St (at Kater St),South Philly,Philadelphia,PA,"615 S. 6th St (at Kater St), Philadelphia, PA",True,0
+B'nai Sholom,4858 N. 7th St,Logan,Philadelphia,PA,"4858 N. 7th St, Philadelphia, PA",True,0
+B'nai Shram,521 Lombard St,Old City,Philadelphia,PA,"521 Lombard St, Philadelphia, PA",True,0
+B'nai Torah,11082 Knights Rd,Northeast Philly,Philadelphia,PA,"11082 Knights Rd, Philadelphia, PA",True,0
+B'nai Yehoshua,5343 Berks St,Wynnefield,Philadelphia,PA,"5343 Berks St, Philadelphia, PA",True,0
+B'nai Yitzchok,243 E. Roosevelt Blvd,Feltonville,Philadelphia,PA,"243 E. Roosevelt Blvd, Philadelphia, PA",True,0
+B'nai Zion,532 Pine St,Old City,Philadelphia,PA,"532 Pine St, Philadelphia, PA",True,0
+B'nai Zwi,5821 Upland Way (at Wanamaker St),Wynnefield,Philadelphia,PA,"5821 Upland Way (at Wanamaker St), Philadelphia, PA",True,0
+Boulevard Temple. Also Temple Beth Torah,Tyson & Brous Sts,Northeast Philly,Philadelphia,PA,"Tyson & Brous Sts, Philadelphia, PA",True,0
+Bristol Jewish Center,216 Pond St,Bristol,Philadelphia,PA,"216 Pond St, Philadelphia, PA",True,0
+Brith Achim,481 South Gulph Rd,King of,Philadelphia,PA,"481 South Gulph Rd, Philadelphia, PA",True,0
+Brith Israel Congregation,524 W. Roosevelt Blvd,Feltonville,Philadelphia,PA,"524 W. Roosevelt Blvd, Philadelphia, PA",True,0
+"Brith Sholem Synagogue of Paschall Ave. Also see, Brith Sholom Community Center",6842 Paschall Ave,SW Philly,Philadelphia,PA,"6842 Paschall Ave, Philadelphia, PA",True,0
+Brith Sholom,571 N. 5th St,North Philly,Philadelphia,PA,"571 N. 5th St, Philadelphia, PA",True,0
+Brith Sholom Chevra Kedusha.,604 Girard Ave,Marshall St,Philadelphia,PA,"604 Girard Ave, Philadelphia, PA",True,0
+"Brith Sholom Community Center. Also see, Brith Sholem Synagogue of Paschall Ave.",63rd & Greenway Sts,SW Philly,Philadelphia,PA,"63rd & Greenway Sts, Philadelphia, PA",True,0
+"Brith Sholom. See, Brith Sholom (@ N.5th)",201 Poplar St,Northern Liberties,Philadelphia,PA,"201 Poplar St, Philadelphia, PA",True,0
+Brothers of Israel,530 Washington Crossing Rd,Newtown,Philadelphia,PA,"530 Washington Crossing Rd, Philadelphia, PA",True,0
+Bukier Congregation,1527 S. 6th St.  (at Cross St),South Philly,Philadelphia,PA,"1527 S. 6th St.  (at Cross St), Philadelphia, PA",True,0
+Bustleton-Somerton Synagogue,Ferndale & Tomlinson Rds,Northeast Philly,Philadelphia,PA,"Ferndale & Tomlinson Rds, Philadelphia, PA",True,0
+Central Talmud Torah,314-20 Catherine St,South Philly,Philadelphia,PA,"314-20 Catherine St, Philadelphia, PA",True,0
+Chevra Ahavas Chesed,1209 N Hutchinson St,North Philly,Philadelphia,PA,"1209 N Hutchinson St, Philadelphia, PA",True,0
+Chevra Kuvier,243 Christian St,South Philly,Philadelphia,PA,"243 Christian St, Philadelphia, PA",True,0
+Chevra Mishnais,1028 Wyoming Ave,Logan,Philadelphia,PA,"1028 Wyoming Ave, Philadelphia, PA",True,0
+"Chevra Mishnayos Kehilas Kodesh Anshe Sodo Lovon. Also, Anshe Sodo Lovon; Anshe Sude Luvin Biela Ziercow",2024 S. 5th St.            (at Mercy),South Philly,Philadelphia,PA,"2024 S. 5th St.            (at Mercy), Philadelphia, PA",True,0
+Chevra Northern Hungarian,3rd & Brown Sts,Northern Liberties,Philadelphia,PA,"3rd & Brown Sts, Philadelphia, PA",True,0
+Chevra Ohev Sholom,1926 S. 26th St,South Philly,Philadelphia,PA,"1926 S. 26th St, Philadelphia, PA",True,0
+Chevra Schlansky,8th & Shunk Sts,South Philly,Philadelphia,PA,"8th & Shunk Sts, Philadelphia, PA",True,0
+Chevra Shas,932 Philadelphia [?],,Philadelphia,PA,"932 Philadelphia [?], Philadelphia, PA",True,0
+"Chevra Tahzuka Mishnoyis. Also, HaRav Ravi Moshe-Kelle Shlita Synagogue",1910 Moyamensing Ave,South Philly,Philadelphia,PA,"1910 Moyamensing Ave, Philadelphia, PA",True,0
+Chevra Tehilim,2244 William St,Port Richmond,Philadelphia,PA,"2244 William St, Philadelphia, PA",True,0
+Chevra Tehilim Mishnayos,NE Corner Auburn & Tulip Sts,Port Richmond,Philadelphia,PA,"NE Corner Auburn & Tulip Sts, Philadelphia, PA",True,0
+"Chevra Tehilim Zikhron Yaakov. Also, Zikhron Yaakov",3012 W Cumberland St,Strawberry Mansion,Philadelphia,PA,"3012 W Cumberland St, Philadelphia, PA",True,0
+"Chevra Tehilim. See, Beth HaKeneseth Reb Eichler",715 S. 4th St,South Philly,Philadelphia,PA,"715 S. 4th St, Philadelphia, PA",True,0
+"Chevra Vohliner Anshe Kuppel. See, Anshe Kuppel Vohliner",2016 N. 32nd St,Strawberry Mansion,Philadelphia,PA,"2016 N. 32nd St, Philadelphia, PA",True,0
+Community Torah of Bucks County.,8 Surry Rd,Churchville,Philadelphia,PA,"8 Surry Rd, Philadelphia, PA",True,0
+Daily Minyan and Torah Study,1518 Walnut St,Center City,Philadelphia,PA,"1518 Walnut St, Philadelphia, PA",True,0
+Dirshu Tov. See B'nai Jacob-Dishu Tov,924-6 New Market St,Northern Liberties,Philadelphia,PA,"924-6 New Market St, Philadelphia, PA",True,0
+Dorshe Sholom Congregation,924 New Market St,Northern Liberties,Philadelphia,PA,"924 New Market St, Philadelphia, PA",True,0
+Dorshey Sholem Nusach HaAri,3046-8 Birch St,Strawberry Mansion,Philadelphia,PA,"3046-8 Birch St, Philadelphia, PA",True,0
+"Eastern Women's Talmud Torah. Also, Old Lady Sack's Shul; Vine Street Synagogue",820 N 5th St 205 Vine St,Marshall St Old City,Philadelphia,PA,"820 N 5th St 205 Vine St, Philadelphia, PA",True,0
+Emanu-el Congregation See B'nai Israel-Emanu- el,1524 Champlost Ave,Oak Lane,Philadelphia,PA,"1524 Champlost Ave, Philadelphia, PA",True,0
+"Emunas Israel See, Ahavas Achim",7828 Eastwick Ave,SW Philly,Philadelphia,PA,"7828 Eastwick Ave, Philadelphia, PA",True,0
+"Emunas Israel Ohev Sholom. See, [The] Hungarian Synagogue; Ohev Sholom",515 Gaskill (Wheatley Hall),Old City,Philadelphia,PA,"515 Gaskill (Wheatley Hall), Philadelphia, PA",True,0
+Emunath Israel,7th & South Sts,Old City,Philadelphia,PA,"7th & South Sts, Philadelphia, PA",True,0
+Ezras Israel,2114 S. 6th St,South Philly,Philadelphia,PA,"2114 S. 6th St, Philadelphia, PA",True,0
+Ezrath Israel,69th St & Ogontz Ave,Oak Lane,Philadelphia,PA,"69th St & Ogontz Ave, Philadelphia, PA",True,0
+"Fairmount Jewish Community Center. See, Old Man Miller's Shul","NW Corner, 19th St & Fairmount Ave",North Philly,Philadelphia,PA,"NW Corner, 19th St & Fairmount Ave, Philadelphia, PA",True,0
+Far Northeast Orthodox Synagogue,Tomlinson St & Bustleton Ave,Northeast Philly,Philadelphia,PA,"Tomlinson St & Bustleton Ave, Philadelphia, PA",True,0
+"Fastover Independent Congregation. See also, Kehilos Kodes Anshe Sodo Lovon; Magidei Tehilim; Shivtei Yeshurun",1826 S. 6th St              (at Sigel St),South Philly,Philadelphia,PA,"1826 S. 6th St              (at Sigel St), Philadelphia, PA",True,0
+First Postiver Relief Congregation,621 S. 3rd St,South Philly,Philadelphia,PA,"621 S. 3rd St, Philadelphia, PA",True,0
+"First Romanian Poras Joseph. See, Agudas Achim Rumanian Congregation",754 S. 3rd St (at Fitzwater),South Philly,Philadelphia,PA,"754 S. 3rd St (at Fitzwater), Philadelphia, PA",True,0
+Fitzgerald Street Congregation,5th & Fitzgerald Sts,South Philly,Philadelphia,PA,"5th & Fitzgerald Sts, Philadelphia, PA",True,0
+Fox Chase Jewish Community Center,7816 Halstead St,Northeast Philly,Philadelphia,PA,"7816 Halstead St, Philadelphia, PA",True,0
+Frankford Hebrew Congregation.,4330/4408 Paul St,Frankford,Philadelphia,PA,"4330/4408 Paul St, Philadelphia, PA",True,0
+Gemilas Chesed [Chevra],6th & Brown Sts,Northern Liberties,Philadelphia,PA,"6th & Brown Sts, Philadelphia, PA",True,0
+Gemilath Chesed,916 N. Franklin St,Northern Liberties,Philadelphia,PA,"916 N. Franklin St, Philadelphia, PA",True,0
+Germantown Jewish Center,400 W Eliet Sts (At Lincoln Drive),Mount Airy,Philadelphia,PA,"400 W Eliet Sts (At Lincoln Drive), Philadelphia, PA",True,0
+Gershman YM & YWHA (Congregation),401 S Broad St,Center City,Philadelphia,PA,"401 S Broad St, Philadelphia, PA",True,0
+Geulas Israel Anshe Sefard,843 N. 7th St (at Parrish),Northern Liberties,Philadelphia,PA,"843 N. 7th St (at Parrish), Philadelphia, PA",True,0
+Gomel Chesed Shel Emes,314 Catherine St,South Philly,Philadelphia,PA,"314 Catherine St, Philadelphia, PA",True,0
+Greater Northeast Congregation,Verree & Welsh Rds,Northeast Philly,Philadelphia,PA,"Verree & Welsh Rds, Philadelphia, PA",True,0
+Har Zion Temple,1500 Hagys Ford Rd,Main Line,Philadelphia,PA,"1500 Hagys Ford Rd, Philadelphia, PA",True,0
+Har Zion Temple,54th St & Wynnefield Ave,Wynnewood,Philadelphia,PA,"54th St & Wynnefield Ave, Philadelphia, PA",False,1
+Hebrew West End Jewish Community Center,2402 N 29th St,Strawberry Mansion,Philadelphia,PA,"2402 N 29th St, Philadelphia, PA",True,0
+"Heisiner -Ezras Israel. See, Anshe Hisan; Ezras Israel",2015 S 4th St (at Mercy),South Philly,Philadelphia,PA,"2015 S 4th St (at Mercy), Philadelphia, PA",True,0
+Hesed Shel Emet; Also Haded Shel Emet,575 N Keim St,Pottstown,Philadelphia,PA,"575 N Keim St, Philadelphia, PA",True,0
+"Hillel, University of Pennsylvania",202 S 36th St,West Philly,Philadelphia,PA,"202 S 36th St, Philadelphia, PA",True,0
+Hollander Synagogue,4th & Catherine Sts,South Philly,Philadelphia,PA,"4th & Catherine Sts, Philadelphia, PA",True,0
+Independent Congregation [Chevra Kadisha],809 S 5th St,South Philly,Philadelphia,PA,"809 S 5th St, Philadelphia, PA",True,0
+"Independent Southern Congregation.                         See, Talmud Torah",625 Dickinson St,South Philly,Philadelphia,PA,"625 Dickinson St, Philadelphia, PA",True,0
+"Ivy Ridge Jewish Community Center. See also, Or Ami",Silverwood & Green Lanes,Roxborough,Philadelphia,PA,"Silverwood & Green Lanes, Philadelphia, PA",True,0
+Jewish Congregation of,PO Box 244,Northeast Philly,Philadelphia,PA,"PO Box 244, Philadelphia, PA",True,0
+Jewish Hospital Congregation,Old York & Tabor Rds,Olney,Philadelphia,PA,"Old York & Tabor Rds, Philadelphia, PA",True,0
+Jewish Mute Society Congregation,2213 Natrona St,Strawberry Mansion,Philadelphia,PA,"2213 Natrona St, Philadelphia, PA",True,0
+"Jewish Rumanian Congregation - Agudas Achim. See, Beth HaMedrash HaGodol Anshe Ashkenaz",418-26 Spruce St,South Philly,Philadelphia,PA,"418-26 Spruce St, Philadelphia, PA",True,0
+Jewish War Veterans,52nd & Overbrook Sts,Wynnefield,Philadelphia,PA,"52nd & Overbrook Sts, Philadelphia, PA",True,0
+Joseph Asbell Congregation,511 Mifflin St,South Philly,Philadelphia,PA,"511 Mifflin St, Philadelphia, PA",True,0
+Kahal Kodesh Israel [Chevra],3rd & Christian Sts,South Philly,Philadelphia,PA,"3rd & Christian Sts, Philadelphia, PA",True,0
+Kehilas Adas Israel,843 S 3rd St,South Philly,Philadelphia,PA,"843 S 3rd St, Philadelphia, PA",True,0
+Kehilas B'nai Shalom,2446 Briston Rd,Bensalem,Philadelphia,PA,"2446 Briston Rd, Philadelphia, PA",True,0
+Kehilat Chaverim,4242 Bensalem Blvd,Bensalem,Philadelphia,PA,"4242 Bensalem Blvd, Philadelphia, PA",True,0
+"Kehilat HaNahar Also, [The] Little Shul by the River",85 W Mechanic St,New Hope,Philadelphia,PA,"85 W Mechanic St, Philadelphia, PA",True,0
+Kehilath Israel,520-22 Morris St,South Philly,Philadelphia,PA,"520-22 Morris St, Philadelphia, PA",True,0
+Kehiloth Israel,234 Bainbridge St,South Philly,Philadelphia,PA,"234 Bainbridge St, Philadelphia, PA",True,0
+Keneseth Beth Zion,1514 S 6th St,South Philly,Philadelphia,PA,"1514 S 6th St, Philadelphia, PA",True,0
+Keneseth Israel,8339 Old York Rd,Elkins Park,Philadelphia,PA,"8339 Old York Rd, Philadelphia, PA",True,0
+"Kensington Synagogue & Community Center. Also, Shaare Yishkan",2033 E Allegheny Ave,Kensington,Philadelphia,PA,"2033 E Allegheny Ave, Philadelphia, PA",True,0
+Kerem Israel Anshe Sefard,32nd & Morse Sts (NW Corner),Strawberry Mansion,Philadelphia,PA,"32nd & Morse Sts (NW Corner), Philadelphia, PA",True,0
+"Kesher Israel Also, Rodeph Zedek",412 Lombard St,Old City,Philadelphia,PA,"412 Lombard St, Philadelphia, PA",True,0
+Kesher Israel Congregation,1000 Pottstown Pike,West Chester,Philadelphia,PA,"1000 Pottstown Pike, Philadelphia, PA",True,0
+Kesher Torah,335 Christian St,South Philly,Philadelphia,PA,"335 Christian St, Philadelphia, PA",True,0
+Kesher Torah Anshe Lubliner,610 S 3rd St,South Philly,Philadelphia,PA,"610 S 3rd St, Philadelphia, PA",True,0
+Kesher Torah Anshe Vohliner,324 Catherine St,South Philly,Philadelphia,PA,"324 Catherine St, Philadelphia, PA",True,0
+Kesher Torah Synagogue,5032 Brown St,West Philly,Philadelphia,PA,"5032 Brown St, Philadelphia, PA",True,0
+Kieve Tserkasser Bulgarian Congregation,1815 S 6th St,South Philly,Philadelphia,PA,"1815 S 6th St, Philadelphia, PA",True,0
+Kneses HaSefer- Educational Synagogue of Yardley,1237 Edgewood Rd,Yardley,Philadelphia,PA,"1237 Edgewood Rd, Philadelphia, PA",True,0
+Kneseth Chai,8400 Pine Rd,Northeast Philly,Philadelphia,PA,"8400 Pine Rd, Philadelphia, PA",True,0
+"Knesses Israel Anshe Sefard.                                       Also, Kneses Adas Israel Congregation",984 N. Marshall St,Marshall St,Philadelphia,PA,"984 N. Marshall St, Philadelphia, PA",True,0
+Kol Ami,"Gratz Chapel, Mandell Education Campus",Melrose Park,Philadelphia,PA,"Gratz Chapel, Mandell Education Campus, Philadelphia, PA",True,0
+Kol Emet,19 South Main St,Yardley,Philadelphia,PA,"19 South Main St, Philadelphia, PA",True,0
+Kol Tzedek West Philadelphia Synagogue,Calvary Center for Community & Culture,West Philly,Philadelphia,PA,"Calvary Center for Community & Culture, Philadelphia, PA",True,0
+Kol Tzedek West Philadelphia Synagogue,801 S 48th St,,Philadelphia,PA,"801 S 48th St, Philadelphia, PA",False,1
+Krakauer - Beth Elohim Beneficial Association,417 Pine St,Old City,Philadelphia,PA,"417 Pine St, Philadelphia, PA",True,0
+Kreminitzer Synagogue,1908-10 E,South Philly,Philadelphia,PA,"1908-10 E, Philadelphia, PA",True,0
+Kreminitzer Synagogue,Moyamensing Ave,,Philadelphia,PA,"Moyamensing Ave, Philadelphia, PA",False,1
+Leidy Ave Congregation,4106 Viola St,West Philly,Philadelphia,PA,"4106 Viola St, Philadelphia, PA",True,0
+Lenas HaZedek,542 Queen St,South Philly,Philadelphia,PA,"542 Queen St, Philadelphia, PA",True,0
+"Lenas HaZedek of West Philadelphia. See also, Beth HaMedrosh Hagodol- Beth Yaacov",5944 Larchwood Ave,SW Philly,Philadelphia,PA,"5944 Larchwood Ave, Philadelphia, PA",True,0
+Leyv Ha-Ir Heart of the City; Center City Center City Reconstructionist Synagogue,Ethical Society 1906 S Rittenhouse Sq,Center City,Philadelphia,PA,"Ethical Society 1906 S Rittenhouse Sq, Philadelphia, PA",True,0
+Linath HaZedek Anshe Fairmount,157 Fairmount Ave,Northern Liberties,Philadelphia,PA,"157 Fairmount Ave, Philadelphia, PA",True,0
+Logan Jewish Community,10th & Duncanon Sts,Logan,Philadelphia,PA,"10th & Duncanon Sts, Philadelphia, PA",True,0
+Lowenstein's Shul,2005 W Cambria St,North Philly,Philadelphia,PA,"2005 W Cambria St, Philadelphia, PA",True,0
+Lower Merion Synagogue,123 Old Lancaster Ave,Main Line,Philadelphia,PA,"123 Old Lancaster Ave, Philadelphia, PA",True,0
+Lubavitch House at the University of Pennsylvania,4032 Spruce St,West Philly,Philadelphia,PA,"4032 Spruce St, Philadelphia, PA",True,0
+Lubavitch Synagogue,7622 Castor Ave,Northeast Philly,Philadelphia,PA,"7622 Castor Ave, Philadelphia, PA",True,0
+Machzike Adas - B'nai Moishe [Chevra],943 N 6th St,Marshall St,Philadelphia,PA,"943 N 6th St, Philadelphia, PA",True,0
+Machzike Torah [Chevra],1336 N 7th St,North Philly,Philadelphia,PA,"1336 N 7th St, Philadelphia, PA",True,0
+"Machziknei Har Rov. [Congregation]:                         Also, [Congregation] Agudath Achim Machzikei Har Rov",1336 N 7th St,North Philly,Philadelphia,PA,"1336 N 7th St, Philadelphia, PA",True,0
+"Magidei Tehilim [Chevra]: See, Fastover Independent; Shivtei Yeshurun",2027 S 6th St (at Mercy),South Philly,Philadelphia,PA,"2027 S 6th St (at Mercy), Philadelphia, PA",True,0
+Main Line Reform Temple,410 Montgomery Ave,Main Line,Philadelphia,PA,"410 Montgomery Ave, Philadelphia, PA",True,0
+"Manayunk Hebrew Congregation [The] Also, [Rev.] Fleischer's Shul",4250 Main St,Manayunk,Philadelphia,PA,"4250 Main St, Philadelphia, PA",True,0
+Mekor Baruch,8 Merion Rd,Main Line,Philadelphia,PA,"8 Merion Rd, Philadelphia, PA",True,0
+Mekor Habracha; Center City Synagogue; Formerly Etz Chaim,262 S 16th St,Center City,Philadelphia,PA,"262 S 16th St, Philadelphia, PA",True,0
+Melrose B'nai Israel- Emanu-el,133 W Cheltenham Ave.,Cheltenham,Philadelphia,PA,"133 W Cheltenham Ave., Philadelphia, PA",True,0
+Melrose B'nai Israel- Emanu-el,2nd St Pike & Cheltenham Ave,Melrose Park,Philadelphia,PA,"2nd St Pike & Cheltenham Ave, Philadelphia, PA",False,1
+Mikveh Israel,44 N 4th St,Old City,Philadelphia,PA,"44 N 4th St, Philadelphia, PA",True,0
+Minyan Masorati and Minyan Dorshei Derech,Germantown Jewish Center,Mount Airy,Philadelphia,PA,"Germantown Jewish Center, Philadelphia, PA",True,0
+Minyanim at Penn Hillel,202 S 36th St,West Philly,Philadelphia,PA,"202 S 36th St, Philadelphia, PA",True,0
+Mishkan Israel,1112 N 2nd St,Northern Liberties,Philadelphia,PA,"1112 N 2nd St, Philadelphia, PA",True,0
+"Mishkan Israel [Chevra] Also, Kolker Synagogue (Raim Ahuvim Anshe Kolker)",5th & Dudley Sts,South Philly,Philadelphia,PA,"5th & Dudley Sts, Philadelphia, PA",True,0
+Mishkan Shalom,4101 Freeland St          8836 Crefeld St,Germantown    Chestnut Hill,Philadelphia,PA,"4101 Freeland St          8836 Crefeld St, Philadelphia, PA",True,0
+Mishnayos Anshe Sefard [Chevra],446 N Marshall St,Marshall St,Philadelphia,PA,"446 N Marshall St, Philadelphia, PA",True,0
+Mishnayos Anshe Sefard [Chevra Tehilim],873 N 6th St,Marshall St,Philadelphia,PA,"873 N 6th St, Philadelphia, PA",True,0
+Mishnayos Chesed Ve'Emes [Chevra].,432 N 2nd St,Northern Liberties,Philadelphia,PA,"432 N 2nd St, Philadelphia, PA",True,0
+Mogen Abraham,1709 S 4th St (at Morris),South Philly,Philadelphia,PA,"1709 S 4th St (at Morris), Philadelphia, PA",True,0
+Monastreichner Shul (aka Manestrishtze Shul),5601 Woodcrest Ave,Wynnefield,Philadelphia,PA,"5601 Woodcrest Ave, Philadelphia, PA",True,0
+"Moshav Zekenim. Also, Uptown Home for the Aged",957 N. Franklin St,Marshall St,Philadelphia,PA,"957 N. Franklin St, Philadelphia, PA",True,0
+Mount Airy Jewish Community Center,6400 Johnson St (at Arleigh),Mount Airy,Philadelphia,PA,"6400 Johnson St (at Arleigh), Philadelphia, PA",True,0
+Mount Airy Orthodox Congregation,1201 E Mt. Pleasant Ave,Mount Airy,Philadelphia,PA,"1201 E Mt. Pleasant Ave, Philadelphia, PA",True,0
+Mount Sinai Hospital,5th & Reed Sts,South Philly,Philadelphia,PA,"5th & Reed Sts, Philadelphia, PA",True,0
+"Ner Zedek - Ezrath Israel - Beth Uziel  Also see, Temple Brith Kodesh; Boulevard Park.",Bustleton Ave & Oakmont St,Northeast Philly,Philadelphia,PA,"Bustleton Ave & Oakmont St, Philadelphia, PA",True,0
+"Neziner Congregation Also, Ahavas Achim Anshe Niezhin Nusach HaAri: See Beth Zion-Beth Israel.",771 S. 2nd St (at Fitzwater St),South Philly,Philadelphia,PA,"771 S. 2nd St (at Fitzwater St), Philadelphia, PA",True,0
+North West Religious Association,Natrona St & Columbia Ave,Strawberry Mansion,Philadelphia,PA,"Natrona St & Columbia Ave, Philadelphia, PA",True,0
+Northeast Orthodox Congregation,2117 Bleigh St,Northeast Philly,Philadelphia,PA,"2117 Bleigh St, Philadelphia, PA",True,0
+Northern [ North Eastern?] Talmud Torah Congregation,820 N 5th St,Marshall St,Philadelphia,PA,"820 N 5th St, Philadelphia, PA",True,0
+Northern Chevra Kadisha,930 N. Franklin St,Marshall St,Philadelphia,PA,"930 N. Franklin St, Philadelphia, PA",True,0
+Northern Liberties Hospital Chapel,7th & Brown Sts,Northern Liberties,Philadelphia,PA,"7th & Brown Sts, Philadelphia, PA",True,0
+Ohel Jacob,1705 N.7th St. (at Columbia Ave),North Philly,Philadelphia,PA,"1705 N.7th St. (at Columbia Ave), Philadelphia, PA",True,0
+Ohev Itzchok,2440 S 9th St               (at Porter St),South Philly,Philadelphia,PA,"2440 S 9th St               (at Porter St), Philadelphia, PA",True,0
+Ohev Shalom,2 Chester Rd,Wallingford,Philadelphia,PA,"2 Chester Rd, Philadelphia, PA",True,0
+Ohev Sholom,5164 Columbia Ave,West Philly,Philadelphia,PA,"5164 Columbia Ave, Philadelphia, PA",True,0
+Ohev Sholom of Bucks County,944 Second Street Pike,Richboro,Philadelphia,PA,"944 Second Street Pike, Philadelphia, PA",True,0
+Ohev Zedek,322 Bainbridge St,South Philly,Philadelphia,PA,"322 Bainbridge St, Philadelphia, PA",True,0
+Ohev Zedek Anshe Sefard [Chevra],322 Christian St,South Philly,Philadelphia,PA,"322 Christian St, Philadelphia, PA",True,0
+"Ohev Zedek: Also, Samuel Rosa Nathan Ohev Zedek",1535 N 7th St (at Oxford Ave),North Philly,Philadelphia,PA,"1535 N 7th St (at Oxford Ave), Philadelphia, PA",True,0
+"Ohr Achaim Anshe Golitzer: Also see, [The] Galicianer Shul; Ohr Achaim",1517 S 5th St,South Philly,Philadelphia,PA,"1517 S 5th St, Philadelphia, PA",True,0
+"Old Man Miller's Shul. Also, B'nai Israel of Fairmount; Fairmount Jewish Community Center",2223/5 Wallace St,North Philly,Philadelphia,PA,"2223/5 Wallace St, Philadelphia, PA",True,0
+Old York Road Temple- Beth Am,971 Old York Rd,Abington,Philadelphia,PA,"971 Old York Rd, Philadelphia, PA",True,0
+"Or Ami. See also, Ivy Ridge Jewish Community Center",708 Ridge Pike,Lafayette Hills,Philadelphia,PA,"708 Ridge Pike, Philadelphia, PA",True,0
+Or HaChayim Anshe Ostreich,479-481 N 3rd St,Northern Liberties,Philadelphia,PA,"479-481 N 3rd St, Philadelphia, PA",True,0
+Or Hadash,190 Camp Hill Rd,Fort,Philadelphia,PA,"190 Camp Hill Rd, Philadelphia, PA",True,0
+Or Shalom,835 Darby-Paoli Rd,Main Line,Philadelphia,PA,"835 Darby-Paoli Rd, Philadelphia, PA",True,0
+Otik Moliver,922 S 4th St,South Philly,Philadelphia,PA,"922 S 4th St, Philadelphia, PA",True,0
+Oxford Circle Jewish Community Center-                  Beth Israel,1009 Unruh Ave,Northeast Philly,Philadelphia,PA,"1009 Unruh Ave, Philadelphia, PA",True,0
+Perry's Shul,5350 W Market St,West Philly,Philadelphia,PA,"5350 W Market St, Philadelphia, PA",True,0
+Philadelphia General Hospital,38th St & Woodland Ave,SW Philly,Philadelphia,PA,"38th St & Woodland Ave, Philadelphia, PA",True,0
+Philadelphia Tailor's Congregation,Hutchinson St & Girard Ave,Northern Liberties,Philadelphia,PA,"Hutchinson St & Girard Ave, Philadelphia, PA",True,0
+Pnai Or Religious Fellowship of Philadelphia-Jewish Renewal,6757 Green St              310 Wellesley Rd,Mount Airy,Philadelphia,PA,"6757 Green St              310 Wellesley Rd, Philadelphia, PA",True,0
+Poale Zedek Sharith Israel,1011 S 5th St,South Philly,Philadelphia,PA,"1011 S 5th St, Philadelphia, PA",True,0
+Podolier Gubernia Lodge,1514 S 6th St,South Philly,Philadelphia,PA,"1514 S 6th St, Philadelphia, PA",True,0
+Po'el Zedek,716-8 Lombard St,Old City,Philadelphia,PA,"716-8 Lombard St, Philadelphia, PA",True,0
+Poneviezher Lodge Congregation,4th & Reed Sts,South Philly,Philadelphia,PA,"4th & Reed Sts, Philadelphia, PA",True,0
+Progressive Geulas Israel,5th & Green Sts,Northern Liberties,Philadelphia,PA,"5th & Green Sts, Philadelphia, PA",True,0
+"Prushzveer Shershow Congregation:                         Also, Lenas HaZedek",542 Queen St,South Philly,Philadelphia,PA,"542 Queen St, Philadelphia, PA",True,0
+Raim Ahuvim,5854 Drexel Rd 59th St & Cedar Ave,Wynnefield SW Philly South Philly,Philadelphia,PA,"5854 Drexel Rd 59th St & Cedar Ave, Philadelphia, PA",True,0
+Raim Ahuvim,343 Monroe St,,Philadelphia,PA,"343 Monroe St, Philadelphia, PA",False,1
+"Raim Ahuvim Anshe Kolker. [Chevra] See also, [Chevra] Mishkan Israel; Kolker Synagogue",1929 S 5th St (at Dudley),South Philly,Philadelphia,PA,"1929 S 5th St (at Dudley), Philadelphia, PA",True,0
+Reb Heschel Shul,417 Monroe St,South Philly,Philadelphia,PA,"417 Monroe St, Philadelphia, PA",True,0
+Rhawnhurst Jewish Center,Hoffnagle & Summerdale Aves,Northeast Philly,Philadelphia,PA,"Hoffnagle & Summerdale Aves, Philadelphia, PA",True,0
+Rodeph Shalom,615 North Broad St,Northern Liberties,Philadelphia,PA,"615 North Broad St, Philadelphia, PA",True,0
+Rodeph Shalom Suburban,8201 High School Rd,Elkins Park,Philadelphia,PA,"8201 High School Rd, Philadelphia, PA",True,0
+"Rodeph Zedek Anshe Szager: See, Kesher Israel",788 S 2nd St,South Philly,Philadelphia,PA,"788 S 2nd St, Philadelphia, PA",True,0
+Rodeph Zedek [Temple],10th & Ruscomb Sts,Logan,Philadelphia,PA,"10th & Ruscomb Sts, Philadelphia, PA",True,0
+Rudiviler Lubliner Lodge Congregation,410 Christian St,South Philly,Philadelphia,PA,"410 Christian St, Philadelphia, PA",True,0
+Russian Synagogue,98 Tomlinson Rd,Northeast Philly,Philadelphia,PA,"98 Tomlinson Rd, Philadelphia, PA",True,0
+Sabato Morais Congregation,502 N 4th St,Northern Liberties,Philadelphia,PA,"502 N 4th St, Philadelphia, PA",True,0
+Samuel Rosenwald Lodge Congregation,1635 S 6th St (at Morris),South Philly,Philadelphia,PA,"1635 S 6th St (at Morris), Philadelphia, PA",True,0
+Shaare Eliyhu,8th & Morris Sts,South Philly,Philadelphia,PA,"8th & Morris Sts, Philadelphia, PA",True,0
+"Shaare Shamayim See Beth Judah, Rodeph Zedek, and Beth Chaim",23 & Wharton Sts.           9768 Verree Rd.,    South Philly                                  Northeast Philly,Philadelphia,PA,"23 & Wharton Sts.           9768 Verree Rd., Philadelphia, PA",True,0
+Shaare Torah,728 W.             Moyamensing Ave,South Philly,Philadelphia,PA,"728 W.             Moyamensing Ave, Philadelphia, PA",True,0
+Shaare Tzedek of Philadelphia Geriatric Center,5301 Old York Rd,Olney,Philadelphia,PA,"5301 Old York Rd, Philadelphia, PA",True,0
+Shaare Yitzchok Congregation,2033 E Allegheny Ave,Kensington,Philadelphia,PA,"2033 E Allegheny Ave, Philadelphia, PA",True,0
+Shaare Zedek.,SW Corner 52nd St & Columbia Ave,West Philly,Philadelphia,PA,"SW Corner 52nd St & Columbia Ave, Philadelphia, PA",True,0
+Shaarei Eli,8th & Porter Sts,South Philly,Philadelphia,PA,"8th & Porter Sts, Philadelphia, PA",True,0
+Shaari Israel,2509 S 4th St (at Porter),South Philly,Philadelphia,PA,"2509 S 4th St (at Porter), Philadelphia, PA",True,0
+"Shari Zedek Anshe Reisicher: Also, Shaare Hatzedek Cong. Of Rezistchev",1212 S 3rd St (at Manton),South Philly,Philadelphia,PA,"1212 S 3rd St (at Manton), Philadelphia, PA",True,0
+Sharith Israel,4th & Gaskill Sts,Old City,Philadelphia,PA,"4th & Gaskill Sts, Philadelphia, PA",True,0
+Shearith Israel,27th St & Girard Ave,North Philly,Philadelphia,PA,"27th St & Girard Ave, Philadelphia, PA",True,0
+Shearith Israel Talmud Torah,2132 S 8th St,South Philly,Philadelphia,PA,"2132 S 8th St, Philadelphia, PA",True,0
+Sheinfeld's Shul,Cambridge & Poplar Sts,West Philly,Philadelphia,PA,"Cambridge & Poplar Sts, Philadelphia, PA",True,0
+Shel Emeth [Chevra Chesed],515 S 9th St,South Philly,Philadelphia,PA,"515 S 9th St, Philadelphia, PA",True,0
+Shir Ami-Bucks County Jewish Congregation,101 Richboro Rd,Newtown,Philadelphia,PA,"101 Richboro Rd, Philadelphia, PA",True,0
+Shir Shalom (Society for Humanistic,116 Yew Rd,Cheltenham,Philadelphia,PA,"116 Yew Rd, Philadelphia, PA",True,0
+"Shivtei Yeshurun: Also, Shivtei Yeshurun Anshe Philadelphia; Adath Jeshurun Talmud Torah",2015 S 4th St (at Mercy),South Philly,Philadelphia,PA,"2015 S 4th St (at Mercy), Philadelphia, PA",True,0
+Sholom Eswill [Chevra],518 Mifflin St,South Philly,Philadelphia,PA,"518 Mifflin St, Philadelphia, PA",True,0
+"Shomre Emuno Anshe Kelem: Also, Khelmer Shul; Beth HaMedrash Hagodol",718 S 5th St,South Philly,Philadelphia,PA,"718 S 5th St, Philadelphia, PA",True,0
+Shomre Shabbas,232 Lombard St,Old City,Philadelphia,PA,"232 Lombard St, Philadelphia, PA",True,0
+Shomre Shabbas,4th & Gaskill Sts (NW corner),Old City,Philadelphia,PA,"4th & Gaskill Sts (NW corner), Philadelphia, PA",True,0
+Shomre Shabbas,442 Dickinson St,South Philly,Philadelphia,PA,"442 Dickinson St, Philadelphia, PA",True,0
+Shomre Shabbas,414 Christian St,South Philly,Philadelphia,PA,"414 Christian St, Philadelphia, PA",True,0
+Shomre Shabbas [Chevra],442 Jackson St,South Philly,Philadelphia,PA,"442 Jackson St, Philadelphia, PA",True,0
+"Shomre Shabbas: See also, Emunas Israel Ohev Sholom",518 S 3rd St,South Philly,Philadelphia,PA,"518 S 3rd St, Philadelphia, PA",True,0
+"Shomre Shabes UMachzikei HaDath: Also, Beth HaKeneseth Kaiserman",4194 Viola St,West Philly,Philadelphia,PA,"4194 Viola St, Philadelphia, PA",True,0
+Sinai Temple (Aka Temple Sinai),1908 S 6th St,South Philly,Philadelphia,PA,"1908 S 6th St, Philadelphia, PA",True,0
+Soble Family Congregation [The],5th & Champlost Sts,Olney,Philadelphia,PA,"5th & Champlost Sts, Philadelphia, PA",True,0
+Society Hill Synagogue,418 Spruce St,Old City,Philadelphia,PA,"418 Spruce St, Philadelphia, PA",True,0
+Suburban Jewish Community Center-B'nai Aaron,560 Mill Rd,Main Line,Philadelphia,PA,"560 Mill Rd, Philadelphia, PA",True,0
+"Tacony Hebrew Congregation. Also see, Temple Menorah",Torresdale Ave & Longshore Ave,Northeast Philly,Philadelphia,PA,"Torresdale Ave & Longshore Ave, Philadelphia, PA",True,0
+Talmudical Yeshiva of Philadelphia,6063 Drexel Rd,Wynnefield,Philadelphia,PA,"6063 Drexel Rd, Philadelphia, PA",True,0
+Temple Beth Ami,9201 Bustelton Ave,Northeast Philly,Philadelphia,PA,"9201 Bustelton Ave, Philadelphia, PA",True,0
+"Temple Brith Kodesh. Also see, Ner Zedek - Ezrath Israel",2106 Longshore Ave,Northeast Philly,Philadelphia,PA,"2106 Longshore Ave, Philadelphia, PA",True,0
+Temple Isaiah,8900 Roosevelt Blvd,Northeast,Philadelphia,PA,"8900 Roosevelt Blvd, Philadelphia, PA",True,0
+Temple Israel,59th St & Woodbine Ave                                    1981 Upland Way,Wynnefield ,Philadelphia,PA,"59th St & Woodbine Ave                                    1981 Upland Way, Philadelphia, PA",True,0
+Temple Israel of Upper Darby,Bywood Ave & Walnut St,Upper Darby,Philadelphia,PA,"Bywood Ave & Walnut St, Philadelphia, PA",True,0
+Temple Judea,6929 N. Broad St,Oak Lane,Philadelphia,PA,"6929 N. Broad St, Philadelphia, PA",True,0
+Temple Judea of Bucks County,300 Swamp Rd,Doylestown,Philadelphia,PA,"300 Swamp Rd, Philadelphia, PA",True,0
+"Temple Menorah Kneseth Chai See also, Tacony Hebrew Congregation; The Northeast Jewish Community Center",4301 Tyson Ave,Northeast Philly,Philadelphia,PA,"4301 Tyson Ave, Philadelphia, PA",True,0
+Temple Shalom,2901 Edgely Rd,Levittown,Philadelphia,PA,"2901 Edgely Rd, Philadelphia, PA",True,0
+Temple Sholom of Broomall,55 N Church Lane,Broomall,Philadelphia,PA,"55 N Church Lane, Philadelphia, PA",True,0
+"Temple Sholom: Also, Upper Northwood Jewish Community Center",Large St & Roosevelt Blvd,Northeast Philly,Philadelphia,PA,"Large St & Roosevelt Blvd, Philadelphia, PA",True,0
+Temple Sinai,Limekiln Pike & Dillon Rd,Dresher Oak Lane,Philadelphia,PA,"Limekiln Pike & Dillon Rd, Philadelphia, PA",True,0
+Temple Sinai,Limekiln Pike & Washington Lane,,Philadelphia,PA,"Limekiln Pike & Washington Lane, Philadelphia, PA",False,1
+Temple Zion,1620 Pine Rd,Huntingdon Valley,Philadelphia,PA,"1620 Pine Rd, Philadelphia, PA",True,0
+"Temple Zion: Also see, Parker's Place",[The Mcfadden Estate],Northeast Philly,Philadelphia,PA,"[The Mcfadden Estate], Philadelphia, PA",True,0
+Teshuath Israel,1518 Columbia Ave,North Philly,Philadelphia,PA,"1518 Columbia Ave, Philadelphia, PA",True,0
+Tiferes B'nai Israel,2478 Street Rd,Warrington,Philadelphia,PA,"2478 Street Rd, Philadelphia, PA",True,0
+"Tiferes Israel Anshe Zitomir-Gubernia Wohlin Nusach Sfard: Also, Anshe Zhitomir nusach Sfard",2300 S 6th St 604 Dickinson St,South Philly South Philly,Philadelphia,PA,"2300 S 6th St 604 Dickinson St, Philadelphia, PA",True,0
+Tiferet Bet Israel,1920 Skippack Pike,Blue Bell,Philadelphia,PA,"1920 Skippack Pike, Philadelphia, PA",True,0
+Tiferet Israel of Lower Bucks County,2909 Bristol Rd,Bensalem,Philadelphia,PA,"2909 Bristol Rd, Philadelphia, PA",True,0
+Tiferet Joseph,31st & Berks Sts,Strawberry Mansion,Philadelphia,PA,"31st & Berks Sts, Philadelphia, PA",True,0
+Tifereth Israel,40th St & Powelton Ave,West Philly,Philadelphia,PA,"40th St & Powelton Ave, Philadelphia, PA",True,0
+Tifereth Israel Anshe Lita,827 N 4th St,Northern Liberties,Philadelphia,PA,"827 N 4th St, Philadelphia, PA",True,0
+Tifereth Israel of Parkside,3940 W Girard Ave,West Philly,Philadelphia,PA,"3940 W Girard Ave, Philadelphia, PA",True,0
+Tikvas Israel,41st & Viola Sts.,West Philly,Philadelphia,PA,"41st & Viola Sts., Philadelphia, PA",True,0
+Tikvas Zion,505 Lombard St,Old City,Philadelphia,PA,"505 Lombard St, Philadelphia, PA",True,0
+Tikvoh Chadoshoh,5364 W Chew Ave.,Germantown,Philadelphia,PA,"5364 W Chew Ave., Philadelphia, PA",True,0
+"Toras Israel. Also, Bialik Congregation; Beth Zion",2453-5 Phillip St (nr. Porter),South Philly ,Philadelphia,PA,"2453-5 Phillip St (nr. Porter), Philadelphia, PA",True,0
+"Toras Israel. Also, Bialik Congregation; Beth Zion",Congregation; Beth Zion,,Philadelphia,PA,"Congregation; Beth Zion, Philadelphia, PA",False,1
+"Toras Israel. Also, Bialik Congregation; Beth Zion",2455 S American St,,Philadelphia,PA,"2455 S American St, Philadelphia, PA",False,2
+Touro Hall Free Synagogue,10th & Carpenter Sts,South Philly,Philadelphia,PA,"10th & Carpenter Sts, Philadelphia, PA",True,0
+Tzedek V'Shalom,314 Washington Crossing Rd.,Newtown,Philadelphia,PA,"314 Washington Crossing Rd., Philadelphia, PA",True,0
+"Vilna Congregation. Also, [Beis HaKnesses] Anshe Vilno.",509 Pine St,Old City,Philadelphia,PA,"509 Pine St, Philadelphia, PA",True,0
+"Vine Street Synagogue: Also see, Eastern Women's Talmud Torah",201 Vine St,Old City,Philadelphia,PA,"201 Vine St, Philadelphia, PA",True,0
+West Oak Lane Jewish Community Center,Sedgwick & Thouron Sts,Oak Lane,Philadelphia,PA,"Sedgwick & Thouron Sts, Philadelphia, PA",True,0
+West Philadelphia Hebrew Congregation (Beth Judah),5426 Sansom St,West Philly,Philadelphia,PA,"5426 Sansom St, Philadelphia, PA",True,0
+West Philadelphia Jewish Community Center,Ludlow St & Cobb's Creek Blvd,West Philly,Philadelphia,PA,"Ludlow St & Cobb's Creek Blvd, Philadelphia, PA",True,0
+West Philadelphia Talmud Torah,6003 Larchwood St,SW Philly,Philadelphia,PA,"6003 Larchwood St, Philadelphia, PA",True,0
+Wilner Congregation,314 Lombard St,Old City,Philadelphia,PA,"314 Lombard St, Philadelphia, PA",True,0
+Winitzer Congregation: Also Beneficial Sons of David,302 Lombard St,Old City,Philadelphia,PA,"302 Lombard St, Philadelphia, PA",True,0
+Woodside Park Congregation,Cranston & Conshocken Rd,West Philly,Philadelphia,PA,"Cranston & Conshocken Rd, Philadelphia, PA",True,0
+Wynnefield Jewish Center,5820 Overbrook Ave.,Wynnefield,Philadelphia,PA,"5820 Overbrook Ave., Philadelphia, PA",True,0
+Yagdil Torah,630 N 6th St,Northern Liberties,Philadelphia,PA,"630 N 6th St, Philadelphia, PA",True,0
+Yagdil Torah,5701 N 13th St,Oak Lane,Philadelphia,PA,"5701 N 13th St, Philadelphia, PA",True,0
+Yardley Synagogue (Beth El),375 Stoney Hill Rd,Yardley,Philadelphia,PA,"375 Stoney Hill Rd, Philadelphia, PA",True,0
+Yavneh Synagogue,2222 N 53rd St,Wynnefield,Philadelphia,PA,"2222 N 53rd St, Philadelphia, PA",True,0
+Young Israel of Elkins Park,7715 Montgomery Ave,Elkins Park,Philadelphia,PA,"7715 Montgomery Ave, Philadelphia, PA",True,0
+Young Israel of Oxford Circle,6427 Large St,Northeast Philly,Philadelphia,PA,"6427 Large St, Philadelphia, PA",True,0
+Young Israel of Strawberry Mansion,1939 N 31st St             (3rd Floor),Strawberry Mansion,Philadelphia,PA,"1939 N 31st St             (3rd Floor), Philadelphia, PA",True,0
+Young Israel of the Main Line,273 Montgomery Ave,Main Line Wynnefield,Philadelphia,PA,"273 Montgomery Ave, Philadelphia, PA",True,0
+Young Israel of the Main Line,5300 Wynnefield Ave,,Philadelphia,PA,"5300 Wynnefield Ave, Philadelphia, PA",False,1
+"Young People's B'nai Moishe: See, Adath Shalom",5th & Watkins Sts,South Philly,Philadelphia,PA,"5th & Watkins Sts, Philadelphia, PA",True,0
+Young People's Congregation - Shaare Israel; Also Adath Shalom,342 Porter St,South Philly,Philadelphia,PA,"342 Porter St, Philadelphia, PA",True,0
+Young People's Congregation - Shari Eli.,728 W              Moyamensing Ave,South Philly,Philadelphia,PA,"728 W              Moyamensing Ave, Philadelphia, PA",True,0
+"Zeiras Israel: Also, Catherine St. Shul",343 Christian St,South Philly,Philadelphia,PA,"343 Christian St, Philadelphia, PA",True,0
+Zemach David nusach Sfard,1437 S 6th St (nr Dickinson),South Philly,Philadelphia,PA,"1437 S 6th St (nr Dickinson), Philadelphia, PA",True,0
+Zemach David of Logan,7976 Summerdale Ave (at Rhawn St),Northeast Philly,Philadelphia,PA,"7976 Summerdale Ave (at Rhawn St), Philadelphia, PA",True,0
+Zemach David of Logan,6735 N 16th St,Oak Lane,Philadelphia,PA,"6735 N 16th St, Philadelphia, PA",True,0
+Zikne Zedek,516 S 4th St,South Philly,Philadelphia,PA,"516 S 4th St, Philadelphia, PA",True,0
+Ziknei Israel [Chevra],432 Dickinson St,South Philly,Philadelphia,PA,"432 Dickinson St, Philadelphia, PA",True,0
