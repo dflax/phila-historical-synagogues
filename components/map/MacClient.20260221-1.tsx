@@ -27,12 +27,12 @@ type MapClientProps = {
 
 export default function MapClient({ synagogues }: MapClientProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const [map, setMap] = useState<any>(null)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  const markersRef = useRef<any[]>([])
-  const infoWindowRef = useRef<any>(null)
+  const markersRef = useRef<google.maps.Marker[]>([])
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null)
 
   // Get year range
   const years = synagogues
@@ -49,7 +49,7 @@ export default function MapClient({ synagogues }: MapClientProps) {
           version: 'weekly',
         })
 
-        const google = await loader.load()
+        await loader.load()
 
         if (!mapRef.current) return
 
@@ -109,10 +109,6 @@ export default function MapClient({ synagogues }: MapClientProps) {
         synagogue.status === 'closed' ? '#ef4444' :  // red
         synagogue.status === 'merged' ? '#f59e0b' :  // amber
         '#6b7280'  // gray
-
-      // Access google from window after it's loaded
-      const google = (window as any).google
-      if (!google) return
 
       const marker = new google.maps.Marker({
         position: { lat: address.latitude, lng: address.longitude },
