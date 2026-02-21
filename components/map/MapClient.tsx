@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface Address {
   id: string;
@@ -51,6 +52,10 @@ export default function MapClient({ synagogues }: MapClientProps) {
   const [visibleCount, setVisibleCount] = useState(0);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const searchParams = useSearchParams();
+  const focusLat = searchParams ? parseFloat(searchParams.get('lat') || '') : NaN;
+  const focusLng = searchParams ? parseFloat(searchParams.get('lng') || '') : NaN;
+  const hasFocus = !isNaN(focusLat) && !isNaN(focusLng);
 
   useEffect(() => {
     if (!apiKey) {
@@ -98,8 +103,8 @@ export default function MapClient({ synagogues }: MapClientProps) {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
     mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-      center: { lat: 39.9526, lng: -75.1652 }, // Philadelphia
-      zoom: 12,
+      center: hasFocus ? { lat: focusLat, lng: focusLng } : { lat: 39.9526, lng: -75.1652 },
+      zoom: hasFocus ? 16 : 12, // zoom 16 ≈ 1 mile wide
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: true,
