@@ -3,9 +3,9 @@ const nextConfig = {
   images: {
     domains: [
       // Supabase storage domains
-      'xxxxxxxxxxxxx.supabase.co',
+      'iocyggibgtvsujxmajhn.supabase.co',
       // Add your Supabase project ID here after setup
-      
+
       // External image sources (add as needed)
       'jewishphiladelphia.org',
       'phillyjewisharchives.org',
