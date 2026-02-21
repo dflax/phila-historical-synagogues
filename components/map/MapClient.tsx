@@ -1,260 +1,229 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState } from 'react'
-import { Loader } from '@googlemaps/js-api-loader'
+import { useCallback, useState, useEffect, useRef } from 'react';
 
-type Address = {
-  id: string
-  street_address: string
-  neighborhood: string | null
-  latitude: number
-  longitude: number
-  geocode_quality: string
+interface Synagogue {
+  id: number;
+  name: string;
+  status: string | null;
+  year_founded: number | null;
+  year_closed: number | null;
+  neighborhood: string | null;
+  address: {
+    latitude: number;
+    longitude: number;
+    formatted_address: string | null;
+  } | null;
 }
 
-type Synagogue = {
-  id: string
-  name: string
-  status: string
-  founded_year: number | null
-  closed_year: number | null
-  addresses: Address[]
+interface MapClientProps {
+  synagogues: Synagogue[];
 }
 
-type MapClientProps = {
-  synagogues: Synagogue[]
+const STATUS_COLORS: Record<string, string> = {
+  active: '#22c55e',    // green
+  closed: '#ef4444',   // red
+  merged: '#f59e0b',   // amber
+  unknown: '#6b7280',  // gray
+};
+
+declare global {
+  interface Window {
+    google: typeof google;
+    initMap: () => void;
+  }
 }
 
 export default function MapClient({ synagogues }: MapClientProps) {
-  const mapRef = useRef<HTMLDivElement>(null)
-  const [map, setMap] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  const markersRef = useRef<any[]>([])
-  const infoWindowRef = useRef<any>(null)
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
-  // Get year range
-  const years = synagogues
-    .map(s => s.founded_year)
-    .filter((y): y is number => y !== null)
-  const minYear = Math.min(...years, 1745)
-  const maxYear = new Date().getFullYear()
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [yearFilter, setYearFilter] = useState<number>(2024);
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   useEffect(() => {
-    const initMap = async () => {
-      try {
-        const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-          version: 'weekly',
-        })
-
-        const google = await loader.load()
-
-        if (!mapRef.current) return
-
-        // Center on Philadelphia
-        const philadelphia = { lat: 39.9526, lng: -75.1652 }
-
-        const mapInstance = new google.maps.Map(mapRef.current, {
-          center: philadelphia,
-          zoom: 11,
-          styles: [
-            {
-              featureType: 'poi',
-              elementType: 'labels',
-              stylers: [{ visibility: 'off' }]
-            }
-          ]
-        })
-
-        setMap(mapInstance)
-        infoWindowRef.current = new google.maps.InfoWindow()
-        setLoading(false)
-      } catch (err) {
-        setError('Failed to load Google Maps')
-        setLoading(false)
-        console.error(err)
-      }
+    if (!apiKey) {
+      setLoadError('Google Maps API key is missing. Check NEXT_PUBLIC_GOOGLE_MAPS_API_KEY environment variable.');
+      return;
     }
 
-    initMap()
-  }, [])
+    // If already loaded (e.g. hot reload), initialize immediately
+    if (window.google?.maps) {
+      setIsLoaded(true);
+      return;
+    }
 
+    // Check if script already being added
+    if (document.getElementById('google-maps-script')) {
+      // Wait for it to load
+      const checkLoaded = setInterval(() => {
+        if (window.google?.maps) {
+          setIsLoaded(true);
+          clearInterval(checkLoaded);
+        }
+      }, 100);
+      return () => clearInterval(checkLoaded);
+    }
+
+    // Load the script
+    const script = document.createElement('script');
+    script.id = 'google-maps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`;
+    script.async = true;
+    script.defer = true;
+
+    script.onload = () => setIsLoaded(true);
+    script.onerror = () => setLoadError('Failed to load Google Maps script. Check your API key and network connection.');
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Don't remove the script on unmount - causes issues with remounting
+    };
+  }, [apiKey]);
+
+  // Initialize map once loaded
   useEffect(() => {
-    if (!map) return
+    if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
+
+    mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+      center: { lat: 39.9526, lng: -75.1652 }, // Philadelphia
+      zoom: 12,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: true,
+    });
+
+    infoWindowRef.current = new window.google.maps.InfoWindow();
+  }, [isLoaded]);
+
+  // Update markers when map is ready or year filter changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
 
     // Clear existing markers
-    markersRef.current.forEach(marker => marker.setMap(null))
-    markersRef.current = []
+    markersRef.current.forEach(m => m.setMap(null));
+    markersRef.current = [];
 
-    // Filter synagogues by selected year
-    const filteredSynagogues = selectedYear
-      ? synagogues.filter(syn => {
-          if (!syn.founded_year) return false
-          if (syn.founded_year > selectedYear) return false
-          if (syn.closed_year && syn.closed_year < selectedYear) return false
-          return true
-        })
-      : synagogues
+    const filtered = synagogues.filter(s => {
+      if (!s.address) return false;
+      const founded = s.year_founded ?? 0;
+      const closed = s.year_closed ?? 9999;
+      return founded <= yearFilter && closed >= yearFilter;
+    });
 
-    // Add markers for each synagogue
-    filteredSynagogues.forEach(synagogue => {
-      const address = synagogue.addresses[0]
-      if (!address.latitude || !address.longitude) return
+    filtered.forEach(s => {
+      if (!s.address) return;
 
-      // Different colors for different statuses
-      const markerColor = 
-        synagogue.status === 'active' ? '#22c55e' :  // green
-        synagogue.status === 'closed' ? '#ef4444' :  // red
-        synagogue.status === 'merged' ? '#f59e0b' :  // amber
-        '#6b7280'  // gray
+      const status = s.status ?? 'unknown';
+      const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown;
 
-      // Access google from window after it's loaded
-      const google = (window as any).google
-      if (!google) return
-
-      const marker = new google.maps.Marker({
-        position: { lat: address.latitude, lng: address.longitude },
-        map: map,
-        title: synagogue.name,
+      const marker = new window.google.maps.Marker({
+        position: { lat: s.address.latitude, lng: s.address.longitude },
+        map: mapInstanceRef.current!,
+        title: s.name,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
+          path: window.google.maps.SymbolPath.CIRCLE,
           scale: 8,
-          fillColor: markerColor,
-          fillOpacity: 0.8,
+          fillColor: color,
+          fillOpacity: 0.9,
           strokeColor: '#ffffff',
           strokeWeight: 2,
-        }
-      })
+        },
+      });
 
       marker.addListener('click', () => {
         const content = `
-          <div style="padding: 8px; max-width: 300px;">
-            <h3 style="font-size: 16px; font-weight: bold; margin: 0 0 8px 0;">
-              ${synagogue.name}
-            </h3>
-            <div style="font-size: 14px; color: #666; margin-bottom: 4px;">
-              ${address.street_address}
-              ${address.neighborhood ? `<br>${address.neighborhood}` : ''}
-            </div>
-            <div style="font-size: 12px; color: #888; margin-top: 8px;">
-              <strong>Status:</strong> ${synagogue.status}
-              ${synagogue.founded_year ? `<br><strong>Founded:</strong> ${synagogue.founded_year}` : ''}
-              ${synagogue.closed_year ? `<br><strong>Closed:</strong> ${synagogue.closed_year}` : ''}
-            </div>
-            <a href="/synagogues/${synagogue.id}" 
-               style="display: inline-block; margin-top: 8px; color: #2563eb; text-decoration: underline;">
-              View Details →
-            </a>
+          <div style="max-width:220px;font-family:sans-serif;">
+            <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">${s.name}</h3>
+            ${s.address?.formatted_address ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${s.address.formatted_address}</p>` : ''}
+            <p style="margin:0;font-size:12px;">
+              ${s.year_founded ? `Founded: ${s.year_founded}` : ''}
+              ${s.year_founded && s.year_closed ? ' · ' : ''}
+              ${s.year_closed ? `Closed: ${s.year_closed}` : ''}
+            </p>
+            ${s.neighborhood ? `<p style="margin:4px 0 0;font-size:12px;color:#777;">${s.neighborhood}</p>` : ''}
+            <p style="margin:4px 0 0;font-size:11px;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px;vertical-align:middle;"></span>
+              ${status.charAt(0).toUpperCase() + status.slice(1)}
+            </p>
           </div>
-        `
-        infoWindowRef.current?.setContent(content)
-        infoWindowRef.current?.open(map, marker)
-      })
+        `;
+        infoWindowRef.current?.setContent(content);
+        infoWindowRef.current?.open(mapInstanceRef.current!, marker);
+      });
 
-      markersRef.current.push(marker)
-    })
-  }, [map, synagogues, selectedYear])
+      markersRef.current.push(marker);
+    });
 
-  if (loading) {
+    setVisibleCount(filtered.length);
+  }, [isLoaded, synagogues, yearFilter]);
+
+  if (loadError) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading map...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center h-full bg-red-50 rounded-lg p-8 text-center">
+        <div className="text-red-500 text-xl mb-2">⚠️ Map Error</div>
+        <p className="text-red-700 text-sm max-w-md">{loadError}</p>
+        <p className="text-gray-500 text-xs mt-4">
+          API Key present: {apiKey ? 'Yes (' + apiKey.substring(0, 8) + '...)' : 'No'}
+        </p>
       </div>
-    )
+    );
   }
 
-  if (error) {
+  if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p className="font-bold">Error:</p>
-          <p>{error}</p>
-        </div>
+      <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-lg">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
+        <p className="text-gray-500 text-sm">Loading map...</p>
+        <p className="text-gray-400 text-xs mt-2">
+          API Key: {apiKey ? apiKey.substring(0, 10) + '...' : 'MISSING'}
+        </p>
       </div>
-    )
+    );
   }
-
-  const activeCount = selectedYear
-    ? synagogues.filter(syn => {
-        if (!syn.founded_year) return false
-        if (syn.founded_year > selectedYear) return false
-        if (syn.closed_year && syn.closed_year < selectedYear) return false
-        return true
-      }).length
-    : synagogues.length
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header with controls */}
-      <div className="bg-white border-b shadow-sm p-4">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Philadelphia Historical Synagogues Map
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Showing {activeCount} of {synagogues.length} synagogues
-                {selectedYear && ` in ${selectedYear}`}
-              </p>
-            </div>
+    <div className="relative w-full h-full">
+      {/* Map container */}
+      <div ref={mapRef} className="w-full h-full rounded-lg" />
 
-            {/* Legend */}
-            <div className="flex gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                <span>Active</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                <span>Closed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-amber-500"></div>
-                <span>Merged</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-gray-500"></div>
-                <span>Unknown</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Year filter */}
-          <div className="mt-4">
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-700">
-                Filter by Year:
-              </label>
-              <input
-                type="range"
-                min={minYear}
-                max={maxYear}
-                value={selectedYear || maxYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="flex-1 max-w-md"
-              />
-              <span className="text-sm font-medium text-gray-900 w-16">
-                {selectedYear || 'All'}
-              </span>
-              <button
-                onClick={() => setSelectedYear(null)}
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
+      {/* Year filter */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg px-4 py-3 z-10 min-w-[300px]">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-xs font-medium text-gray-600">Year: {yearFilter}</span>
+          <span className="text-xs text-gray-400">{visibleCount} synagogues</span>
+        </div>
+        <input
+          type="range"
+          min={1745}
+          max={2024}
+          value={yearFilter}
+          onChange={e => setYearFilter(Number(e.target.value))}
+          className="w-full accent-blue-600"
+        />
+        <div className="flex justify-between text-xs text-gray-400 mt-1">
+          <span>1745</span>
+          <span>2024</span>
         </div>
       </div>
 
-      {/* Map */}
-      <div ref={mapRef} className="flex-1" />
+      {/* Legend */}
+      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md px-3 py-2 z-10 text-xs">
+        <p className="font-semibold text-gray-700 mb-1">Status</p>
+        {Object.entries(STATUS_COLORS).map(([status, color]) => (
+          <div key={status} className="flex items-center gap-2 mb-1">
+            <span style={{ background: color }} className="inline-block w-3 h-3 rounded-full" />
+            <span className="capitalize text-gray-600">{status}</span>
+          </div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
