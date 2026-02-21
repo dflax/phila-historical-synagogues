@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import SynagoguesClient from '@/components/synagogues/SynagoguesClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'Browse Synagogues - Philadelphia Historical Synagogues',
   description: 'Browse and search the complete database of Philadelphia-area synagogues',

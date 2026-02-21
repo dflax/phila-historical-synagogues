@@ -55,6 +55,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
   const searchParams = useSearchParams();
   const focusLat = searchParams ? parseFloat(searchParams.get('lat') || '') : NaN;
   const focusLng = searchParams ? parseFloat(searchParams.get('lng') || '') : NaN;
+  const focusId  = searchParams ? (searchParams.get('id') || null) : null;
   const hasFocus = !isNaN(focusLat) && !isNaN(focusLng);
 
   useEffect(() => {
@@ -135,12 +136,22 @@ function MapClientInner({ synagogues }: MapClientProps) {
 
       const status = s.status ?? 'unknown';
       const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown;
+      const isFocused = focusId ? s.id === focusId : false;
 
       const marker = new window.google.maps.Marker({
         position: { lat: addr.latitude, lng: addr.longitude },
         map: mapInstanceRef.current!,
         title: s.name,
-        icon: {
+        // Focused marker: large star, black border, high z-index
+        // Regular marker: small circle
+        icon: isFocused ? {
+          path: 'M 0,-1 0.588,0.809 -0.951,-0.309 0.951,-0.309 -0.588,0.809 Z', // 5-pointed star path
+          scale: 18,
+          fillColor: '#facc15',   // bright yellow — visible to most color blindness types
+          fillOpacity: 1,
+          strokeColor: '#1e293b', // near-black border for contrast
+          strokeWeight: 2.5,
+        } : {
           path: window.google.maps.SymbolPath.CIRCLE,
           scale: 8,
           fillColor: color,
@@ -148,28 +159,38 @@ function MapClientInner({ synagogues }: MapClientProps) {
           strokeColor: '#ffffff',
           strokeWeight: 2,
         },
+        zIndex: isFocused ? 9999 : 1,
+        animation: isFocused ? window.google.maps.Animation.BOUNCE : undefined,
       });
 
+      const infoContent = `
+        <div style="max-width:220px;font-family:sans-serif;">
+          <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">${s.name}</h3>
+          ${addr.street_address ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${addr.street_address}</p>` : ''}
+          <p style="margin:0;font-size:12px;">
+            ${s.founded_year ? `Founded: ${s.founded_year}` : ''}
+            ${s.founded_year && s.closed_year ? ' · ' : ''}
+            ${s.closed_year ? `Closed: ${s.closed_year}` : ''}
+          </p>
+          ${addr.neighborhood ? `<p style="margin:4px 0 0;font-size:12px;color:#777;">${addr.neighborhood}</p>` : ''}
+          <p style="margin:4px 0 0;font-size:11px;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px;vertical-align:middle;"></span>
+            ${status.charAt(0).toUpperCase() + status.slice(1)}
+          </p>
+        </div>
+      `;
+
       marker.addListener('click', () => {
-        const content = `
-          <div style="max-width:220px;font-family:sans-serif;">
-            <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">${s.name}</h3>
-            ${addr.street_address ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${addr.street_address}</p>` : ''}
-            <p style="margin:0;font-size:12px;">
-              ${s.founded_year ? `Founded: ${s.founded_year}` : ''}
-              ${s.founded_year && s.closed_year ? ' · ' : ''}
-              ${s.closed_year ? `Closed: ${s.closed_year}` : ''}
-            </p>
-            ${addr.neighborhood ? `<p style="margin:4px 0 0;font-size:12px;color:#777;">${addr.neighborhood}</p>` : ''}
-            <p style="margin:4px 0 0;font-size:11px;">
-              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px;vertical-align:middle;"></span>
-              ${status.charAt(0).toUpperCase() + status.slice(1)}
-            </p>
-          </div>
-        `;
-        infoWindowRef.current?.setContent(content);
+        infoWindowRef.current?.setContent(infoContent);
         infoWindowRef.current?.open(mapInstanceRef.current!, marker);
       });
+
+      // Auto-open info window for focused marker, stop bouncing after 3s
+      if (isFocused) {
+        infoWindowRef.current?.setContent(infoContent);
+        infoWindowRef.current?.open(mapInstanceRef.current!, marker);
+        setTimeout(() => marker.setAnimation(null), 3000);
+      }
 
       markersRef.current.push(marker);
     });
