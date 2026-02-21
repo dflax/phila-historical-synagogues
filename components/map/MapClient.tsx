@@ -37,12 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   unknown: '#6b7280',  // gray
 };
 
-declare global {
-  interface Window {
-    google: typeof google;
-    initMap: () => void;
-  }
-}
+
 
 export default function MapClient({ synagogues }: MapClientProps) {
   const mapRef = useRef<HTMLDivElement>(null);
