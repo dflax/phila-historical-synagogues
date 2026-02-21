@@ -2,18 +2,28 @@
 
 import { useCallback, useState, useEffect, useRef } from 'react';
 
+interface Address {
+  id: string;
+  street_address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  latitude: number;
+  longitude: number;
+  geocode_quality: string | null;
+  start_year: number | null;
+  end_year: number | null;
+  is_current: boolean | null;
+  address_order: number | null;
+}
+
 interface Synagogue {
-  id: number;
+  id: string;
   name: string;
   status: string | null;
-  year_founded: number | null;
-  year_closed: number | null;
-  neighborhood: string | null;
-  address: {
-    latitude: number;
-    longitude: number;
-    formatted_address: string | null;
-  } | null;
+  founded_year: number | null;
+  closed_year: number | null;
+  addresses: Address[];
 }
 
 interface MapClientProps {
@@ -112,20 +122,22 @@ export default function MapClient({ synagogues }: MapClientProps) {
     markersRef.current = [];
 
     const filtered = synagogues.filter(s => {
-      if (!s.address) return false;
-      const founded = s.year_founded ?? 0;
-      const closed = s.year_closed ?? 9999;
+      const addr = s.addresses?.[0];
+      if (!addr) return false;
+      const founded = s.founded_year ?? 0;
+      const closed = s.closed_year ?? 9999;
       return founded <= yearFilter && closed >= yearFilter;
     });
 
     filtered.forEach(s => {
-      if (!s.address) return;
+      const addr = s.addresses?.[0];
+      if (!addr) return;
 
       const status = s.status ?? 'unknown';
       const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown;
 
       const marker = new window.google.maps.Marker({
-        position: { lat: s.address.latitude, lng: s.address.longitude },
+        position: { lat: addr.latitude, lng: addr.longitude },
         map: mapInstanceRef.current!,
         title: s.name,
         icon: {
@@ -142,13 +154,13 @@ export default function MapClient({ synagogues }: MapClientProps) {
         const content = `
           <div style="max-width:220px;font-family:sans-serif;">
             <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">${s.name}</h3>
-            ${s.address?.formatted_address ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${s.address.formatted_address}</p>` : ''}
+            ${addr.street_address ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${addr.street_address}</p>` : ''}
             <p style="margin:0;font-size:12px;">
-              ${s.year_founded ? `Founded: ${s.year_founded}` : ''}
-              ${s.year_founded && s.year_closed ? ' · ' : ''}
-              ${s.year_closed ? `Closed: ${s.year_closed}` : ''}
+              ${s.founded_year ? `Founded: ${s.founded_year}` : ''}
+              ${s.founded_year && s.closed_year ? ' · ' : ''}
+              ${s.closed_year ? `Closed: ${s.closed_year}` : ''}
             </p>
-            ${s.neighborhood ? `<p style="margin:4px 0 0;font-size:12px;color:#777;">${s.neighborhood}</p>` : ''}
+            ${addr.neighborhood ? `<p style="margin:4px 0 0;font-size:12px;color:#777;">${addr.neighborhood}</p>` : ''}
             <p style="margin:4px 0 0;font-size:11px;">
               <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px;vertical-align:middle;"></span>
               ${status.charAt(0).toUpperCase() + status.slice(1)}

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { createClient } from '@supabase/supabase-js'
 import MapClient from '@/components/map/MapClient'
 
 export const metadata = {
@@ -6,9 +6,14 @@ export const metadata = {
   description: 'Interactive map of Philadelphia-area synagogues past and present',
 }
 
+// Server-side Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export default async function MapPage() {
-  // Fetch all synagogues with addresses
-  const { data: synagogues, error } = await supabase
+  const { data, error } = await supabase
     .from('synagogues')
     .select(`
       id,
@@ -25,7 +30,6 @@ export default async function MapPage() {
         geocode_quality
       )
     `)
-    .not('addresses', 'is', null)
     .order('name')
 
   if (error) {
@@ -40,12 +44,38 @@ export default async function MapPage() {
   }
 
   // Filter to only include synagogues with valid coordinates
-  const mappableSynagogues = synagogues?.filter(syn => 
-    syn.addresses && 
-    syn.addresses.length > 0 && 
-    syn.addresses[0].latitude && 
-    syn.addresses[0].longitude
-  ) || []
+  const mappableSynagogues = (data ?? [])
+    .filter(syn =>
+      Array.isArray(syn.addresses) &&
+      syn.addresses.length > 0 &&
+      syn.addresses[0].latitude &&
+      syn.addresses[0].longitude
+    )
+    .map(syn => ({
+      id: syn.id,
+      name: syn.name,
+      status: syn.status,
+      founded_year: syn.founded_year,
+      closed_year: syn.closed_year,
+      addresses: (syn.addresses as any[]).map(a => ({
+        id: a.id,
+        street_address: a.street_address,
+        neighborhood: a.neighborhood,
+        latitude: Number(a.latitude),
+        longitude: Number(a.longitude),
+        geocode_quality: a.geocode_quality,
+        start_year: null,
+        end_year: null,
+        is_current: null,
+        address_order: null,
+        city: null,
+        state: null,
+      })),
+    }))
 
-  return <MapClient synagogues={mappableSynagogues} />
+  return (
+    <div style={{ height: '100vh', width: '100%' }}>
+      <MapClient synagogues={mappableSynagogues} />
+    </div>
+  )
 }
