@@ -2,6 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import SynagogueDetail from '@/components/synagogues/SynagogueDetail'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -47,15 +50,6 @@ export default async function SynagoguePage({ params }: { params: { id: string }
 
   if (error || !synagogue) notFound()
 
-  console.log('RAW SYNAGOGUE DATA:', JSON.stringify({
-    name: synagogue.name,
-    addresses_count: Array.isArray(synagogue.addresses) ? synagogue.addresses.length : typeof synagogue.addresses,
-    history_count: Array.isArray(synagogue.history_entries) ? synagogue.history_entries.length : typeof synagogue.history_entries,
-    rabbis_count: Array.isArray(synagogue.rabbis) ? synagogue.rabbis.length : typeof synagogue.rabbis,
-    raw_addresses: synagogue.addresses,
-    raw_history: synagogue.history_entries,
-    raw_rabbis: synagogue.rabbis,
-  }, null, 2))
   const normalize = (val: any) =>
     Array.isArray(val) ? val : val ? [val] : []
 
