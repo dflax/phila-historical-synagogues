@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface Address {
@@ -40,7 +40,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 
 
-export default function MapClient({ synagogues }: MapClientProps) {
+function MapClientInner({ synagogues }: MapClientProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -237,5 +237,18 @@ export default function MapClient({ synagogues }: MapClientProps) {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function MapClient({ synagogues }: MapClientProps) {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-lg">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
+        <p className="text-gray-500 text-sm">Loading map...</p>
+      </div>
+    }>
+      <MapClientInner synagogues={synagogues} />
+    </Suspense>
   );
 }
