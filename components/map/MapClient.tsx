@@ -142,15 +142,31 @@ function MapClientInner({ synagogues }: MapClientProps) {
         position: { lat: addr.latitude, lng: addr.longitude },
         map: mapInstanceRef.current!,
         title: s.name,
-        // Focused marker: large star, black border, high z-index
-        // Regular marker: small circle
+        // Focused marker: Star of David, bright yellow, black border
         icon: isFocused ? {
-          path: 'M 0,-1 0.588,0.809 -0.951,-0.309 0.951,-0.309 -0.588,0.809 Z', // 5-pointed star path
-          scale: 18,
-          fillColor: '#facc15',   // bright yellow — visible to most color blindness types
-          fillOpacity: 1,
-          strokeColor: '#1e293b', // near-black border for contrast
-          strokeWeight: 2.5,
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+              <!-- Shadow for depth -->
+              <polygon points="20,4 23.5,14 34,14 25.5,20 29,30 20,24 11,30 14.5,20 6,14 16.5,14" 
+                fill="rgba(0,0,0,0.15)" transform="translate(1.5,1.5)"/>
+              <!-- Down-pointing triangle -->
+              <polygon points="20,32 6,10 34,10" 
+                fill="#facc15" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
+              <!-- Up-pointing triangle -->
+              <polygon points="20,8 34,30 6,30" 
+                fill="#facc15" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
+              <!-- Center hexagon fill to clean up overlap -->
+              <polygon points="14,20 17,15 23,15 26,20 23,25 17,25" 
+                fill="#facc15"/>
+              <!-- Outer border redraw for crisp edges -->
+              <polygon points="20,32 6,10 34,10" 
+                fill="none" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
+              <polygon points="20,8 34,30 6,30" 
+                fill="none" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+          `)}`,
+          scaledSize: new window.google.maps.Size(40, 40),
+          anchor: new window.google.maps.Point(20, 20),
         } : {
           path: window.google.maps.SymbolPath.CIRCLE,
           scale: 8,
