@@ -32,7 +32,8 @@ export default async function MapPage() {
         latitude,
         longitude,
         geocode_quality
-      )
+      ),
+      rabbis (name, title)
     `)
     .order('name')
 
@@ -75,6 +76,9 @@ export default async function MapPage() {
         city: null,
         state: null,
       })),
+      rabbis: Array.isArray(syn.rabbis)
+        ? (syn.rabbis as any[]).map((r: any) => r.name).filter(Boolean)
+        : [],
     }))
 
   return (
