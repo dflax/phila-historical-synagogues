@@ -155,6 +155,58 @@ function SynagoguePanel({
   );
 }
 
+function RangeSlider({
+  min,
+  max,
+  start,
+  end,
+  onStartChange,
+  onEndChange,
+}: {
+  min: number;
+  max: number;
+  start: number;
+  end: number;
+  onStartChange: (v: number) => void;
+  onEndChange: (v: number) => void;
+}) {
+  const range = max - min;
+  const startPct = ((start - min) / range) * 100;
+  const endPct = ((end - min) / range) * 100;
+
+  return (
+    <div className="relative h-5 flex items-center">
+      {/* Gray track */}
+      <div className="absolute inset-x-0 h-1.5 rounded-full bg-gray-200" />
+      {/* Blue active range */}
+      <div
+        className="absolute h-1.5 bg-blue-500 rounded-full"
+        style={{ left: `${startPct}%`, right: `${100 - endPct}%` }}
+      />
+      {/* Start thumb — raise z-index when pushed to the right so user can drag it back left */}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={start}
+        onChange={e => onStartChange(Math.min(Number(e.target.value), end))}
+        className="range-input"
+        style={{ zIndex: start >= end ? 5 : 3 }}
+      />
+      {/* End thumb */}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={end}
+        onChange={e => onEndChange(Math.max(Number(e.target.value), start))}
+        className="range-input"
+        style={{ zIndex: 4 }}
+      />
+    </div>
+  );
+}
+
 function MapClientInner({ synagogues }: MapClientProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -163,7 +215,8 @@ function MapClientInner({ synagogues }: MapClientProps) {
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [yearFilter, setYearFilter] = useState<number>(2024);
+  const [startYear, setStartYear] = useState<number>(1745);
+  const [endYear, setEndYear] = useState<number>(2024);
   const [visibleCount, setVisibleCount] = useState(0);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -308,7 +361,8 @@ function MapClientInner({ synagogues }: MapClientProps) {
       if (filteredIds !== null && !filteredIds.has(s.id)) return false;
       const founded = s.founded_year ?? 0;
       const closed = s.closed_year ?? 9999;
-      return founded <= yearFilter && closed >= yearFilter;
+      // Show synagogues whose operational period overlaps with [startYear, endYear]
+      return founded <= endYear && closed >= startYear;
     });
 
     filtered.forEach(s => {
@@ -387,7 +441,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
     });
 
     setVisibleCount(filtered.length);
-  }, [isLoaded, synagogues, yearFilter, filteredIds]);
+  }, [isLoaded, synagogues, startYear, endYear, filteredIds]);
 
   function focusOnSynagogue(syn: Synagogue) {
     const addr = syn.addresses[0];
@@ -525,21 +579,22 @@ function MapClientInner({ synagogues }: MapClientProps) {
       <div className="relative flex-1">
         <div ref={mapRef} className="w-full h-full" />
 
-        {/* Year filter overlay */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg px-4 py-3 z-10 min-w-[300px]">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-medium text-gray-600">Year: {yearFilter}</span>
+        {/* Year range filter overlay */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg px-4 py-3 z-10 min-w-[320px]">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-semibold text-gray-700 tabular-nums">{startYear}</span>
             <span className="text-xs text-gray-400">{visibleCount} synagogues</span>
+            <span className="text-xs font-semibold text-gray-700 tabular-nums">{endYear}</span>
           </div>
-          <input
-            type="range"
+          <RangeSlider
             min={1745}
             max={2024}
-            value={yearFilter}
-            onChange={e => setYearFilter(Number(e.target.value))}
-            className="w-full accent-blue-600"
+            start={startYear}
+            end={endYear}
+            onStartChange={setStartYear}
+            onEndChange={setEndYear}
           />
-          <div className="flex justify-between text-xs text-gray-400 mt-1">
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>1745</span>
             <span>2024</span>
           </div>

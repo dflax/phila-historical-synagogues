@@ -57,3 +57,52 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Dual range slider — used by the map year range filter */
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.range-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  background: #1d4ed8;
+}
+
+.range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.range-input::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.range-input::-moz-range-track {
+  background: transparent;
+}
