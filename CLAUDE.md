@@ -18,7 +18,7 @@ A web application documenting 562 synagogues in the Philadelphia area, spanning 
 app/
   page.tsx                        # Homepage with stats and navigation
   layout.tsx                      # Root layout (Inter font, metadata)
-  globals.css                     # Global styles
+  globals.css                     # Global styles + dual-range slider CSS (.range-input)
   map/
     page.tsx                      # Map page (server component, force-dynamic)
   synagogues/
@@ -30,7 +30,8 @@ app/
 
 components/
   map/
-    MapClient.tsx                 # Interactive Google Maps client component
+    MapClient.tsx                 # Interactive Google Maps client component (see below)
+    MiniMap.tsx                   # Non-interactive mini-map for detail page hero
   synagogues/
     SynagoguesClient.tsx          # Browse page with search/filter UI
     SynagogueDetail.tsx           # Detail page UI with history, rabbis, images
@@ -108,10 +109,43 @@ This prevents Next.js from statically caching pages at build time.
 - API key: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (set in Vercel environment variables)
 - MapClient is wrapped in `<Suspense>` to satisfy Next.js useSearchParams() requirement
 - Markers use `google.maps.Marker` (deprecated but functional — migration to AdvancedMarkerElement is a future task)
+- Marker style: SVG circle color-coded by status with ✡️ emoji center; focused marker is yellow/bouncing
+- `streetViewControl: true` — pegman drag-to-streetview is enabled on the full map
 
 ### Map URL Params
 The map page accepts query params for focused view:
 - `?lat=40.07&lng=-75.13&id=<uuid>` — centers map, zooms to level 16, renders focused synagogue as a bouncing Star of David marker (yellow, high contrast for color blindness accessibility)
+- Arriving from a detail page via this URL also auto-populates the sidebar with that synagogue's detail panel
+
+### MapClient.tsx — Full Feature Set
+The map page (`/map`) is a full-screen layout with:
+- **Left sidebar (320px)** with collapsible toggle
+  - Search by synagogue name or rabbi name
+  - Neighborhood dropdown filter
+  - Results list (click → pan + zoom to marker)
+  - `SynagoguePanel` detail view: status badge, founded/closed years, address, rabbis (up to 5 + overflow), Street View link, "View full history →" link
+  - `window.__selectSynagogue(id)` global callback bridges infowindow HTML buttons → React state
+- **Sidebar collapse behavior**
+  - Desktop (≥640px): open by default, collapses inline (map expands to fill)
+  - Mobile (<640px): closed by default, slides in as absolute overlay with semi-transparent backdrop
+  - Hamburger (☰) / close (✕) toggle button anchored top-left of map area
+  - Mobile close button also lives inside the sidebar header (always reachable)
+- **Dual-range year filter** overlay at bottom of map
+  - Two thumbs on a shared track; blue fill shows active range
+  - Filter logic: `founded <= endYear && closed >= startYear` (overlap, not point-in-time)
+  - Defaults to full range (1745–2024) — all data visible
+  - CSS for the custom dual-range slider is in `globals.css` (`.range-input` class)
+- **Status legend** overlay top-right
+
+### MiniMap.tsx
+Non-interactive mini-map embedded in the detail page hero box:
+- Props: `lat`, `lng`, `status`, `mapUrl`
+- Loads the same Google Maps JS API (reuses script tag if already present)
+- `disableDefaultUI: true`, `gestureHandling: 'none'` — pure preview, not interactive
+- Same SVG marker style as the full map, color-coded by status
+- Entire component is a `<Link>` — clicking navigates to full map focused on that synagogue
+- Blue "🗺️ View on Map" bar overlaid at the bottom
+- Falls back to a plain button link when no coordinates exist
 
 ### RLS Policies
 Key policies for anonymous (public) read access:
@@ -155,7 +189,17 @@ Import was done in two phases:
 | Route | Description |
 |-------|-------------|
 | `/` | Homepage with stats (562 synagogues, 83 active, 280+ years) |
-| `/map` | Interactive Google Map with year slider (1745–2024) and status legend |
+| `/map` | Full-screen map with collapsible sidebar (search, filters, detail panel), dual-range year filter, status legend, Street View |
 | `/synagogues` | Browseable list with text search, status filter pills, year range filter, sortable columns, expandable rows |
-| `/synagogues/[id]` | Detail page: header, all addresses, rabbi list, history timeline, photo grid (empty) |
+| `/synagogues/[id]` | Detail page: hero with mini-map, all addresses, rabbi list, history timeline, photo grid (empty) |
 | `/about` | Not yet built |
+
+## Recent Work (session ending 2026-02-22)
+
+All committed to `master` and deployed to Vercel:
+
+- **Map sidebar** — search by name/rabbi, neighborhood dropdown, results list, `SynagoguePanel` detail view with Street View link
+- **Sidebar collapse** — desktop open by default, mobile closed by default with hamburger toggle and backdrop
+- **Dual-range year filter** — replaced single slider; shows synagogues active during any overlap with selected range
+- **MiniMap on detail page** — non-interactive Google Maps preview in hero box, links to full map
+- **Rabbis on map** — `app/map/page.tsx` now fetches `rabbis(name, title)` from Supabase so rabbi search works on the map sidebar
