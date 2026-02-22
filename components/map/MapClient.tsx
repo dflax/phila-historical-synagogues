@@ -38,6 +38,13 @@ const STATUS_COLORS: Record<string, string> = {
   unknown: '#6b7280',  // gray
 };
 
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  active: '#15803d',   // dark green
+  closed: '#991b1b',   // dark red
+  merged: '#92400e',   // dark amber
+  unknown: '#1f2937',  // dark gray
+};
+
 
 
 function MapClientInner({ synagogues }: MapClientProps) {
@@ -136,6 +143,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
 
       const status = s.status ?? 'unknown';
       const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown;
+      const borderColor = STATUS_BORDER_COLORS[status] ?? STATUS_BORDER_COLORS.unknown;
       const isFocused = focusId ? s.id === focusId : false;
 
       const marker = new window.google.maps.Marker({
@@ -145,8 +153,8 @@ function MapClientInner({ synagogues }: MapClientProps) {
         icon: isFocused ? {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">` +
-            `<circle cx="24" cy="24" r="22" fill="#facc15" stroke="#1e293b" stroke-width="2.5"/>` +
-            `<text x="24" y="24" font-size="26" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+            `<circle cx="24" cy="24" r="22" fill="#facc15" stroke="#92400e" stroke-width="3"/>` +
+            `<text x="24" y="24" font-size="20" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
             `</svg>`
           )}`,
           scaledSize: new window.google.maps.Size(48, 48),
@@ -154,8 +162,8 @@ function MapClientInner({ synagogues }: MapClientProps) {
         } : {
           url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
-            `<circle cx="16" cy="16" r="14" fill="${color}" stroke="white" stroke-width="2"/>` +
-            `<text x="16" y="16" font-size="15" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+            `<circle cx="16" cy="16" r="14" fill="${color}" stroke="${borderColor}" stroke-width="3"/>` +
+            `<text x="16" y="16" font-size="11" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
             `</svg>`
           )}`,
           scaledSize: new window.google.maps.Size(32, 32),
