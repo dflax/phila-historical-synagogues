@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import MiniMap from '@/components/map/MiniMap'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -189,12 +190,21 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                 )}
               </div>
             </div>
-            <Link
-              href={mapUrl}
-              className="flex-shrink-0 inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
-            >
-              🗺️ View on Map
-            </Link>
+            {primaryAddr?.latitude && primaryAddr?.longitude ? (
+              <MiniMap
+                lat={primaryAddr.latitude}
+                lng={primaryAddr.longitude}
+                status={synagogue.status}
+                mapUrl={mapUrl}
+              />
+            ) : (
+              <Link
+                href={mapUrl}
+                className="flex-shrink-0 inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
+              >
+                🗺️ View on Map
+              </Link>
+            )}
           </div>
         </div>
 
