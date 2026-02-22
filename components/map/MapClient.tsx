@@ -226,6 +226,9 @@ function MapClientInner({ synagogues }: MapClientProps) {
   const focusId = searchParams ? (searchParams.get('id') || null) : null;
   const hasFocus = !isNaN(focusLat) && !isNaN(focusLng);
 
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 640 : true
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
@@ -283,6 +286,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
   useEffect(() => {
     (window as any).__selectSynagogue = (id: string) => {
       setSelectedId(id);
+      setSidebarOpen(true);
       infoWindowRef.current?.close();
     };
     return () => {
@@ -475,9 +479,28 @@ function MapClientInner({ synagogues }: MapClientProps) {
   }
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar — 320px fixed width */}
-      <div className="w-80 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+    <div className="relative flex h-full">
+      {/* Mobile backdrop — tapping it closes the sidebar */}
+      {sidebarOpen && (
+        <div
+          className="absolute inset-0 bg-black/30 z-10 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar
+          Mobile:  absolute overlay (z-20), slides in/out via width
+          Desktop: inline flex item (sm:relative), pushes map
+      */}
+      <div
+        className={[
+          'flex-col bg-white border-r border-gray-200 flex overflow-hidden',
+          'transition-[width] duration-300 ease-in-out',
+          'absolute inset-y-0 left-0 z-20',
+          'sm:relative sm:z-auto sm:flex-shrink-0',
+          sidebarOpen ? 'w-80' : 'w-0',
+        ].join(' ')}
+      >
         {/* Fixed header: search + neighborhood filter */}
         <div className="p-3 border-b border-gray-100 space-y-2 flex-shrink-0">
           <input
@@ -578,6 +601,23 @@ function MapClientInner({ synagogues }: MapClientProps) {
       {/* Map — fills remaining width */}
       <div className="relative flex-1">
         <div ref={mapRef} className="w-full h-full" />
+
+        {/* Sidebar toggle button — always visible top-left of map area */}
+        <button
+          onClick={() => setSidebarOpen(o => !o)}
+          className="absolute top-3 left-3 z-10 bg-white rounded-lg shadow-md w-9 h-9 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        >
+          {sidebarOpen ? (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M1 1l12 12M13 1L1 13" stroke="#4b5563" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          ) : (
+            <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
+              <path d="M0 1h18M0 7h18M0 13h18" stroke="#4b5563" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          )}
+        </button>
 
         {/* Year range filter overlay */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg px-4 py-3 z-10 min-w-[320px]">
