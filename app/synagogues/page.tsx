@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { Suspense } from 'react'
 import SynagoguesClient from '@/components/synagogues/SynagoguesClient'
 
 export const dynamic = 'force-dynamic'
@@ -87,5 +88,9 @@ export default async function SynagoguesPage() {
     }
   })
 
-  return <SynagoguesClient synagogues={synagogues} />
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" /></div>}>
+      <SynagoguesClient synagogues={synagogues} />
+    </Suspense>
+  )
 }

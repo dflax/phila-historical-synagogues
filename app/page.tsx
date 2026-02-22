@@ -53,14 +53,14 @@ export default function Home() {
 
           {/* Stats */}
           <div className="grid md:grid-cols-3 gap-8 mt-16">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-4xl font-bold text-blue-600 mb-2">562</div>
+            <Link href="/synagogues" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:border-blue-200 border border-transparent transition group">
+              <div className="text-4xl font-bold text-blue-600 mb-2 group-hover:text-blue-700">562</div>
               <div className="text-gray-600">Historic Synagogues</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-4xl font-bold text-green-600 mb-2">83</div>
+            </Link>
+            <Link href="/synagogues?status=active" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:border-green-200 border border-transparent transition group">
+              <div className="text-4xl font-bold text-green-600 mb-2 group-hover:text-green-700">83</div>
               <div className="text-gray-600">Still Active</div>
-            </div>
+            </Link>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="text-4xl font-bold text-purple-600 mb-2">280+</div>
               <div className="text-gray-600">Years of History</div>

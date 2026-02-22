@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 interface Address {
@@ -86,8 +87,9 @@ function ChevronIcon({ open }: { open: boolean }) {
 }
 
 export default function SynagoguesClient({ synagogues }: Props) {
+  const searchParams = useSearchParams()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'all')
   const [yearMin, setYearMin] = useState('')
   const [yearMax, setYearMax] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
