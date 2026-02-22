@@ -1,21 +1,73 @@
 # Philadelphia Historical Synagogues
 
-An interactive web application for exploring the history of Philadelphia-area synagogues, featuring mapping, temporal search, and community-driven data enrichment.
+An interactive web application documenting **562 synagogues** in the Philadelphia area, spanning from 1745 to the present day. Built to preserve and explore Jewish heritage through interactive mapping, temporal filtering, and detailed historical records.
 
-## 🚀 Quick Start
+**Live site:** [phila-historical-synagogues.vercel.app](https://phila-historical-synagogues.vercel.app)
+
+---
+
+## Features
+
+### Interactive Map (`/map`)
+- **Full-screen Google Map** with color-coded Star of David markers (green = active, red = closed, amber = merged, gray = unknown)
+- **Collapsible sidebar** — open by default on desktop, collapsed on mobile with a hamburger toggle
+  - Search by synagogue name or rabbi name
+  - Filter by neighborhood (dropdown)
+  - Results list with status badges — click any result to pan and zoom to its marker
+  - Detail panel showing status, founded/closed years, address, rabbi list, Street View link, and link to full history page
+- **Dual-range year filter** — drag two thumbs to set a start and end year; the map shows all synagogues active during any part of that range
+- **Street View** — drag the pegman onto any street, or use the Street View link in the detail panel
+- **Marker infowindows** — click any marker for a quick summary with a "View Details in Sidebar" button
+- Arriving from a detail page via "View on Map" auto-populates the sidebar with that synagogue's details
+
+### Browse Directory (`/synagogues`)
+- Searchable, sortable table of all 562 synagogues
+- Filter by status (active / closed / merged / unknown)
+- Year range filter
+- Expandable rows with address preview
+
+### Synagogue Detail Pages (`/synagogues/[id]`)
+- Hero section with name, status badge, founding/closing years, neighborhood
+- **Mini-map** — non-interactive Google Maps preview in the hero box, links to full map
+- All historical addresses with years at each location
+- Full rabbi list with tenures
+- History timeline (events, mergers, building notes, ethnic origin)
+- Photo gallery (schema ready — no photos imported yet)
+
+### Homepage (`/`)
+- Summary statistics: 562 synagogues, 83 active, 280+ year span
+- Navigation to map, browse, and detail views
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | [Next.js 14](https://nextjs.org) (App Router) |
+| Language | TypeScript |
+| Database | [Supabase](https://supabase.com) (PostgreSQL) |
+| Maps | Google Maps JavaScript API |
+| Styling | [Tailwind CSS](https://tailwindcss.com) |
+| Hosting | [Vercel](https://vercel.com) (auto-deploys from GitHub) |
+| Font | Inter (Google Fonts) |
+
+---
+
+## Local Development
 
 ### Prerequisites
-- Node.js 18+ installed
-- A GitHub account
-- A Supabase account (free tier is fine)
-- A Google Maps API key
 
-### Local Development Setup
+- Node.js 18+
+- A [Supabase](https://supabase.com) project (free tier works)
+- A [Google Maps API key](https://console.cloud.google.com/) with the **Maps JavaScript API** enabled
 
-1. **Clone this repository**
+### Setup
+
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/philly-synagogues.git
-   cd philly-synagogues
+   git clone https://github.com/dflax/phila-historical-synagogues.git
+   cd phila-historical-synagogues
    ```
 
 2. **Install dependencies**
@@ -23,331 +75,138 @@ An interactive web application for exploring the history of Philadelphia-area sy
    npm install
    ```
 
-3. **Set up environment variables**
-   
-   Copy the example environment file:
+3. **Create a `.env.local` file** in the project root:
    ```bash
-   cp .env.example .env.local
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
    ```
-   
-   Then edit `.env.local` with your values (see Configuration section below).
 
-4. **Set up Supabase database**
-   
-   - Go to [supabase.com](https://supabase.com) and create a new project
-   - Wait for the database to be ready (~2 minutes)
-   - Go to SQL Editor in Supabase dashboard
-   - Copy and paste the contents of `supabase/schema.sql`
-   - Run the SQL to create all tables and functions
-   - Copy and paste the contents of `supabase/seed.sql`
-   - Run to import initial synagogue data
+4. **Set up the Supabase database** (see [Database Setup](#database-setup) below)
 
 5. **Run the development server**
    ```bash
    npm run dev
    ```
-   
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+   Open [http://localhost:3000](http://localhost:3000).
 
-## 📦 Deployment to Vercel
+---
 
-### Option 1: Deploy via Vercel Dashboard (Easiest)
+## Deployment to Vercel
 
-1. Push this code to a GitHub repository
-2. Go to [vercel.com](https://vercel.com)
-3. Click "New Project"
-4. Import your GitHub repository
-5. Vercel will auto-detect Next.js settings
-6. Add environment variables (see Configuration below)
-7. Click "Deploy"
+### Option 1: Vercel Dashboard (recommended)
 
-### Option 2: Deploy via Vercel CLI
+1. Push this repo to GitHub
+2. Go to [vercel.com](https://vercel.com) → New Project → Import your repo
+3. Vercel auto-detects Next.js — no build config needed
+4. Add the three environment variables (Settings → Environment Variables):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+5. Click Deploy
+
+Every push to `master` triggers an automatic redeploy.
+
+### Option 2: Vercel CLI
 
 ```bash
 npm install -g vercel
 vercel login
-vercel
+vercel --prod
 ```
-
-Follow the prompts. Vercel will ask you to add environment variables.
-
-## ⚙️ Configuration
-
-### Required Environment Variables
-
-Create a `.env.local` file (for local development) or add these to Vercel:
-
-```bash
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# Google Maps API Key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
-
-# NextAuth Configuration (for authentication)
-NEXTAUTH_URL=http://localhost:3000  # Change to your domain in production
-NEXTAUTH_SECRET=your-random-secret-string  # Generate with: openssl rand -base64 32
-
-# Email Configuration (for password reset, optional for MVP)
-EMAIL_SERVER_HOST=smtp.example.com
-EMAIL_SERVER_PORT=587
-EMAIL_SERVER_USER=your-email@example.com
-EMAIL_SERVER_PASSWORD=your-password
-EMAIL_FROM=noreply@yourdomain.com
-```
-
-### How to Get API Keys
-
-#### Supabase Keys
-1. Go to your Supabase project dashboard
-2. Click on "Settings" (gear icon) → "API"
-3. Copy the `URL` and `anon/public` key
-
-#### Google Maps API Key
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable these APIs:
-   - Maps JavaScript API
-   - Geocoding API
-   - Places API
-4. Go to "Credentials" → "Create Credentials" → "API Key"
-5. Restrict the key to your domain (in production)
-
-#### NextAuth Secret
-Generate a random secret:
-```bash
-openssl rand -base64 32
-```
-
-## 📁 Project Structure
-
-```
-philly-synagogues/
-├── app/                      # Next.js 14 app directory
-│   ├── (auth)/              # Authentication pages
-│   │   ├── login/
-│   │   └── register/
-│   ├── api/                 # API routes
-│   │   ├── auth/           # NextAuth endpoints
-│   │   ├── synagogues/     # Synagogue CRUD
-│   │   ├── images/         # Image upload/management
-│   │   └── proposals/      # Edit proposals
-│   ├── map/                # Main map view
-│   ├── synagogues/         # Synagogue list & detail pages
-│   │   └── [id]/          # Individual synagogue page
-│   ├── admin/              # Admin dashboard
-│   ├── contribute/         # Community contribution pages
-│   ├── layout.tsx          # Root layout
-│   └── page.tsx            # Home page
-├── components/              # React components
-│   ├── map/
-│   │   ├── MapView.tsx
-│   │   ├── SynagogueMarker.tsx
-│   │   └── InfoWindow.tsx
-│   ├── synagogue/
-│   │   ├── SynagogueCard.tsx
-│   │   ├── SynagogueDetail.tsx
-│   │   └── SynagogueTimeline.tsx
-│   ├── search/
-│   │   ├── LocationSearch.tsx
-│   │   └── TemporalFilter.tsx
-│   ├── images/
-│   │   ├── ImageGallery.tsx
-│   │   └── ImageUpload.tsx
-│   └── ui/                 # Reusable UI components (shadcn/ui)
-├── lib/                     # Utility functions
-│   ├── supabase/
-│   │   ├── client.ts       # Supabase client
-│   │   └── queries.ts      # Database queries
-│   ├── google-maps/
-│   │   └── config.ts
-│   └── utils.ts
-├── supabase/               # Database files
-│   ├── schema.sql          # Database schema
-│   ├── seed.sql            # Initial data import
-│   └── migrations/         # Future schema changes
-├── public/                 # Static files
-│   ├── images/
-│   └── icons/
-├── data/                   # Source data files
-│   ├── synagogues_structured.json
-│   └── geocoded_addresses.csv
-├── .env.example            # Environment variables template
-├── .gitignore
-├── next.config.js          # Next.js configuration
-├── package.json
-├── tailwind.config.js      # Tailwind CSS config
-└── tsconfig.json           # TypeScript config
-```
-
-## 🗄️ Database Setup
-
-### Step 1: Create Supabase Project
-1. Go to [supabase.com](https://supabase.com)
-2. Sign up / log in
-3. Click "New Project"
-4. Choose organization and project name
-5. Generate a secure database password (save it!)
-6. Select region (choose closest to Philadelphia for better performance)
-7. Wait ~2 minutes for project to be ready
-
-### Step 2: Run Schema Migration
-1. In Supabase dashboard, go to "SQL Editor"
-2. Click "New Query"
-3. Copy entire contents of `supabase/schema.sql`
-4. Paste and click "Run"
-5. Verify tables were created in "Table Editor"
-
-### Step 3: Import Initial Data
-1. Still in SQL Editor, create another new query
-2. Copy entire contents of `supabase/seed.sql`
-3. Paste and click "Run"
-4. Check "Table Editor" → "synagogues" to see imported data
-
-### Step 4: Set Up Storage for Images
-1. Go to "Storage" in Supabase dashboard
-2. Click "Create a new bucket"
-3. Name it `synagogue-images`
-4. Make it Public
-5. Set file size limit to 5MB
-6. Click "Create bucket"
-
-### Step 5: Enable Row Level Security (RLS)
-This is done automatically by the schema.sql file, but verify:
-1. Go to "Authentication" → "Policies"
-2. You should see policies for each table
-3. If not, re-run the schema.sql file
-
-## 🎨 Features
-
-### Phase 1 (MVP - Current)
-- ✅ Interactive map with all synagogues
-- ✅ Click markers to see basic info
-- ✅ Search by location
-- ✅ Filter by year (temporal search)
-- ✅ Synagogue detail pages
-- ✅ Image galleries
-- ✅ Basic authentication
-
-### Phase 2 (Coming Soon)
-- ⏳ Community editing workflow
-- ⏳ Admin approval dashboard
-- ⏳ Advanced search (by name, neighborhood, rabbi)
-- ⏳ User profiles and contribution history
-- ⏳ Export data to CSV/PDF
-
-### Phase 3 (Future)
-- 📋 Mobile app
-- 📋 Oral history integration
-- 📋 Timeline visualization
-- 📋 Comparison tool (side-by-side synagogues)
-
-## 🧪 Testing
-
-```bash
-# Run type checking
-npm run type-check
-
-# Run linter
-npm run lint
-
-# Run tests (when added)
-npm test
-```
-
-## 📝 Contributing Data
-
-### Adding a New Synagogue
-1. Log in to the application
-2. Click "Contribute" in navigation
-3. Fill out the synagogue form
-4. Submit for review
-5. An editor will approve or request changes
-
-### Adding Images
-1. Navigate to a synagogue detail page
-2. Click "Add Image"
-3. Choose to upload or link external image
-4. Add metadata (year, people, caption)
-5. Submit for approval
-
-### Data Standards
-- **Addresses**: Use full street addresses when possible
-- **Years**: Use 4-digit years (YYYY)
-- **Names**: Use full official names when known
-- **Images**: Minimum 800px width recommended
-- **Sources**: Always cite sources in notes
-
-## 🔒 Security
-
-- Row Level Security (RLS) enabled on all Supabase tables
-- Authentication required for data editing
-- Admin approval required for all contributions
-- API keys restricted by domain in production
-- HTTPS enforced in production
-
-## 📊 Data Sources
-
-Initial data compiled from:
-- Philadelphia Jewish Archives Center
-- Historical Society of Pennsylvania
-- Community contributions
-- Historical newspaper archives
-
-## 🛠️ Tech Stack
-
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Database**: PostgreSQL (via Supabase) with PostGIS
-- **Authentication**: NextAuth.js
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Maps**: Google Maps JavaScript API
-- **Hosting**: Vercel
-- **Storage**: Supabase Storage
-
-## 🐛 Troubleshooting
-
-### "Module not found" errors
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Database connection issues
-- Verify Supabase URL and keys in `.env.local`
-- Check if Supabase project is paused (free tier auto-pauses after inactivity)
-- Verify you ran the schema.sql file
-
-### Map not loading
-- Check Google Maps API key is valid
-- Verify these APIs are enabled:
-  - Maps JavaScript API
-  - Geocoding API
-  - Places API
-- Check browser console for errors
-
-### Build errors on Vercel
-- Verify all environment variables are set in Vercel dashboard
-- Check build logs for specific errors
-- Ensure Node.js version is 18+ in Vercel settings
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/philly-synagogues/issues)
-- **Email**: your-email@example.com
-- **Documentation**: See `/docs` folder for detailed guides
-
-## 📄 License
-
-MIT License - feel free to use this project as a template for similar historical preservation projects.
-
-## 🙏 Acknowledgments
-
-- Philadelphia Jewish community for preserving this history
-- Contributors and volunteers
-- Historical societies and archives
 
 ---
 
-**Built with ❤️ for Philadelphia's Jewish heritage**
+## Database Setup
+
+The app uses Supabase (PostgreSQL). All tables have Row Level Security (RLS) enabled with public read access for approved records.
+
+### Tables
+
+| Table | Records | Description |
+|-------|---------|-------------|
+| `synagogues` | 562 | Core records with name, status, founded/closed years |
+| `addresses` | 424 | Geocoded locations (lat/lng), multiple per synagogue |
+| `history_entries` | 325 | Timeline events, mergers, building notes, ethnic origins |
+| `rabbis` | 373 | Rabbi names, titles, tenures |
+| `images` | 0 | Schema ready — no photos imported yet |
+| `edit_proposals` | 0 | Schema ready — no submission UI yet |
+
+### Getting API Keys
+
+**Supabase:**
+1. [supabase.com](https://supabase.com) → your project → Settings → API
+2. Copy the **URL** and **anon/public** key
+
+**Google Maps:**
+1. [Google Cloud Console](https://console.cloud.google.com/) → Enable **Maps JavaScript API**
+2. Credentials → Create Credentials → API Key
+3. In production, restrict the key to your Vercel domain
+
+---
+
+## Project Structure
+
+```
+app/
+  page.tsx                  # Homepage
+  layout.tsx                # Root layout (Inter font, metadata)
+  globals.css               # Global styles + dual-range slider CSS
+  map/
+    page.tsx                # Map page — fetches synagogues + addresses + rabbis
+  synagogues/
+    page.tsx                # Browse/list page
+    [id]/
+      page.tsx              # Detail page
+
+components/
+  map/
+    MapClient.tsx           # Full map UI (sidebar, markers, filters, Street View)
+    MiniMap.tsx             # Non-interactive mini-map for detail page hero
+  synagogues/
+    SynagoguesClient.tsx    # Browse page search/filter UI
+    SynagogueDetail.tsx     # Detail page layout
+```
+
+All data-fetching pages are server components with `force-dynamic` to prevent stale caching. Google Maps is loaded via manual script injection (not a library) and reused across components via a shared script tag ID.
+
+---
+
+## Useful Commands
+
+```bash
+npm run dev          # Start development server
+npm run build        # Production build
+npm run lint         # ESLint
+npm run type-check   # TypeScript check (no emit)
+```
+
+---
+
+## Roadmap
+
+- [ ] `/about` page
+- [ ] Image upload workflow (Supabase Storage bucket is ready)
+- [ ] Community edit proposals UI (`edit_proposals` table is ready)
+- [ ] Authentication / admin approval dashboard
+- [ ] Migrate Google Maps markers to `AdvancedMarkerElement` (current `Marker` is deprecated)
+- [ ] Full-text search using `search_vector` tsvector column
+
+---
+
+## Data Source
+
+Original data compiled from historical records into an Excel file (`20260221_Phila_Synagogue_Data.xlsx`) covering 562 synagogues across 875 rows. Imported in two SQL phases:
+
+1. Synagogues + primary geocoded addresses
+2. History entries, rabbis, and historical addresses
+
+---
+
+## License
+
+MIT — feel free to adapt this for similar historical preservation projects.
+
+---
+
+*Built to preserve Philadelphia's Jewish heritage.*
