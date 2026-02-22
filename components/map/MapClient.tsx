@@ -503,6 +503,19 @@ function MapClientInner({ synagogues }: MapClientProps) {
       >
         {/* Fixed header: search + neighborhood filter */}
         <div className="p-3 border-b border-gray-100 space-y-2 flex-shrink-0">
+          {/* Mobile-only close button — sits inside the sidebar so it's always reachable */}
+          <div className="flex items-center justify-between sm:hidden">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Search</span>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Close sidebar"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M1 1l10 10M11 1L1 11" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
           <input
             type="text"
             placeholder="Search by name or rabbi..."
