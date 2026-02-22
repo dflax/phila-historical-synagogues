@@ -142,38 +142,24 @@ function MapClientInner({ synagogues }: MapClientProps) {
         position: { lat: addr.latitude, lng: addr.longitude },
         map: mapInstanceRef.current!,
         title: s.name,
-        // Focused marker: Star of David, bright yellow, black border
         icon: isFocused ? {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-              <!-- Shadow for depth -->
-              <polygon points="20,4 23.5,14 34,14 25.5,20 29,30 20,24 11,30 14.5,20 6,14 16.5,14" 
-                fill="rgba(0,0,0,0.15)" transform="translate(1.5,1.5)"/>
-              <!-- Down-pointing triangle -->
-              <polygon points="20,32 6,10 34,10" 
-                fill="#facc15" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
-              <!-- Up-pointing triangle -->
-              <polygon points="20,8 34,30 6,30" 
-                fill="#facc15" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
-              <!-- Center hexagon fill to clean up overlap -->
-              <polygon points="14,20 17,15 23,15 26,20 23,25 17,25" 
-                fill="#facc15"/>
-              <!-- Outer border redraw for crisp edges -->
-              <polygon points="20,32 6,10 34,10" 
-                fill="none" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
-              <polygon points="20,8 34,30 6,30" 
-                fill="none" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          `)}`,
-          scaledSize: new window.google.maps.Size(40, 40),
-          anchor: new window.google.maps.Point(20, 20),
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">` +
+            `<circle cx="24" cy="24" r="22" fill="#facc15" stroke="#1e293b" stroke-width="2.5"/>` +
+            `<text x="24" y="24" font-size="26" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+            `</svg>`
+          )}`,
+          scaledSize: new window.google.maps.Size(48, 48),
+          anchor: new window.google.maps.Point(24, 24),
         } : {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: color,
-          fillOpacity: 0.9,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
+            `<circle cx="16" cy="16" r="14" fill="${color}" stroke="white" stroke-width="2"/>` +
+            `<text x="16" y="16" font-size="15" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+            `</svg>`
+          )}`,
+          scaledSize: new window.google.maps.Size(32, 32),
+          anchor: new window.google.maps.Point(16, 16),
         },
         zIndex: isFocused ? 9999 : 1,
         animation: isFocused ? window.google.maps.Animation.BOUNCE : undefined,
