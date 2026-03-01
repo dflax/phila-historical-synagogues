@@ -10,6 +10,7 @@ interface Address {
   neighborhood: string | null;
   city: string | null;
   state: string | null;
+  zip_code: string | null;
   latitude: number;
   longitude: number;
   geocode_quality: string | null;
@@ -82,6 +83,26 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
   { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] },
 ];
+
+/**
+ * Formats the address for the map marker popup.
+ * Omits "Philadelphia" and "PA" since that's the implied context.
+ * For non-Philadelphia locations, includes city and state.
+ * Always includes zip when available.
+ *   Philadelphia:  "1234 Broad St, 19147"
+ *   Outside city:  "456 Old York Rd, Cheltenham, PA 19012"
+ */
+function formatPopupAddress(addr: Address): string {
+  const parts: string[] = [];
+  if (addr.street_address) parts.push(addr.street_address);
+  const isPhilly = !addr.city || addr.city.toLowerCase() === 'philadelphia';
+  if (!isPhilly) {
+    if (addr.city) parts.push(addr.city);
+    if (addr.state) parts.push(addr.state);
+  }
+  if (addr.zip_code) parts.push(addr.zip_code);
+  return parts.join(', ');
+}
 
 /**
  * For synagogues sharing the exact same primary address, distribute them in a
@@ -490,16 +511,16 @@ function MapClientInner({ synagogues }: MapClientProps) {
       });
 
       const infoContent = `
-        <div style="max-width:220px;font-family:sans-serif;">
-          <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;">${s.name}</h3>
-          ${addr.street_address ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${addr.street_address}</p>` : ''}
-          <p style="margin:0;font-size:12px;">
+        <div style="max-width:220px;font-family:sans-serif;color:#111;">
+          <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;color:#111;">${s.name}</h3>
+          ${formatPopupAddress(addr) ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${formatPopupAddress(addr)}</p>` : ''}
+          <p style="margin:0;font-size:12px;color:#333;">
             ${s.founded_year ? `Founded: ${s.founded_year}` : ''}
             ${s.founded_year && s.closed_year ? ' · ' : ''}
             ${s.closed_year ? `Closed: ${s.closed_year}` : ''}
           </p>
           ${addr.neighborhood ? `<p style="margin:4px 0 0;font-size:12px;color:#777;">${addr.neighborhood}</p>` : ''}
-          <p style="margin:4px 0 0;font-size:11px;">
+          <p style="margin:4px 0 0;font-size:11px;color:#333;">
             <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:4px;vertical-align:middle;"></span>
             ${status.charAt(0).toUpperCase() + status.slice(1)}
           </p>

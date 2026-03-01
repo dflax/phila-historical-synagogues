@@ -29,6 +29,9 @@ export default async function MapPage() {
         id,
         street_address,
         neighborhood,
+        city,
+        state,
+        zip_code,
         latitude,
         longitude,
         geocode_quality
@@ -66,6 +69,9 @@ export default async function MapPage() {
         id: a.id,
         street_address: a.street_address,
         neighborhood: a.neighborhood,
+        city: a.city,
+        state: a.state,
+        zip_code: a.zip_code,
         latitude: Number(a.latitude),
         longitude: Number(a.longitude),
         geocode_quality: a.geocode_quality,
@@ -73,8 +79,6 @@ export default async function MapPage() {
         end_year: null,
         is_current: null,
         address_order: null,
-        city: null,
-        state: null,
       })),
       rabbis: Array.isArray(syn.rabbis)
         ? (syn.rabbis as any[]).map((r: any) => r.name).filter(Boolean)
@@ -83,20 +87,20 @@ export default async function MapPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <nav className="bg-white shadow-sm border-b flex-shrink-0">
+      <nav className="bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-700 flex-shrink-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-gray-900">
+            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
               Philadelphia Historical Synagogues
             </Link>
             <div className="flex gap-6">
-              <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium transition">
+              <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Home
               </Link>
-              <Link href="/map" className="text-gray-700 hover:text-blue-600 font-medium transition">
+              <Link href="/map" className="text-blue-600 dark:text-blue-400 font-medium border-b-2 border-blue-600 dark:border-blue-400 pb-0.5">
                 Map
               </Link>
-              <Link href="/synagogues" className="text-gray-700 hover:text-blue-600 font-medium transition">
+              <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Browse
               </Link>
             </div>
