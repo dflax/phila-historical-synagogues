@@ -55,11 +55,78 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  active: 'text-green-700 bg-green-50',
-  closed: 'text-red-700 bg-red-50',
-  merged: 'text-amber-700 bg-amber-50',
-  unknown: 'text-gray-600 bg-gray-100',
+  active: 'text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-900/20',
+  closed: 'text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-900/20',
+  merged: 'text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/20',
+  unknown: 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-700',
 };
+
+// Google Maps night-mode style
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
+  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] },
+];
+
+/**
+ * For synagogues sharing the exact same primary address, distribute them in a
+ * small circle (radius ≈ 33m) so each marker is at a unique position.
+ * The focused synagogue stays at its original coordinates so the map centers correctly.
+ */
+function computeDisplayCoords(
+  synagogues: Synagogue[],
+  focusId: string | null
+): Map<string, { lat: number; lng: number }> {
+  const RADIUS = 0.0003; // ~33 metres — invisible at zoom ≤13, distinct at zoom 15+
+  const groupMap = new Map<string, string[]>(); // "lat,lng" → [id, ...]
+
+  synagogues.forEach(s => {
+    const addr = s.addresses?.[0];
+    if (!addr) return;
+    const key = `${addr.latitude},${addr.longitude}`;
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key)!.push(s.id);
+  });
+
+  const displayCoords = new Map<string, { lat: number; lng: number }>();
+
+  synagogues.forEach(s => {
+    const addr = s.addresses?.[0];
+    if (!addr) return;
+    displayCoords.set(s.id, { lat: addr.latitude, lng: addr.longitude });
+  });
+
+  groupMap.forEach((ids, key) => {
+    if (ids.length <= 1) return;
+    const [lat, lng] = key.split(',').map(Number);
+    ids.forEach((id, i) => {
+      // Keep focused marker at original coords so the map centers correctly
+      if (id === focusId) return;
+      const angle = (i / ids.length) * 2 * Math.PI;
+      displayCoords.set(id, {
+        lat: lat + RADIUS * Math.sin(angle),
+        lng: lng + RADIUS * Math.cos(angle),
+      });
+    });
+  });
+
+  return displayCoords;
+}
 
 function StatusBadge({ status }: { status: string | null }) {
   const s = status ?? 'unknown';
@@ -91,10 +158,10 @@ function SynagoguePanel({
   return (
     <div className="p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900 leading-snug">{syn.name}</h2>
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white leading-snug">{syn.name}</h2>
         <button
           onClick={onClose}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-700 text-xl leading-none mt-0.5"
+          className="flex-shrink-0 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none mt-0.5"
           aria-label="Close panel"
         >
           ×
@@ -103,7 +170,7 @@ function SynagoguePanel({
 
       <StatusBadge status={syn.status} />
 
-      <div className="text-sm text-gray-600 space-y-1">
+      <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
         {syn.founded_year && (
           <p><span className="font-medium">Founded:</span> {syn.founded_year}</p>
         )}
@@ -113,22 +180,22 @@ function SynagoguePanel({
       </div>
 
       {addr && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {addr.street_address && <p>{addr.street_address}</p>}
-          {addr.neighborhood && <p className="text-gray-500">{addr.neighborhood}</p>}
+          {addr.neighborhood && <p className="text-gray-500 dark:text-gray-500">{addr.neighborhood}</p>}
         </div>
       )}
 
       {syn.rabbis.length > 0 && (
         <div className="text-sm">
-          <p className="font-medium text-gray-700 mb-1">Rabbis</p>
-          <ul className="text-gray-600 space-y-0.5">
+          <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Rabbis</p>
+          <ul className="text-gray-600 dark:text-gray-400 space-y-0.5">
             {displayRabbis.map((r, i) => (
               <li key={i} className="truncate">{r}</li>
             ))}
           </ul>
           {extraRabbis > 0 && (
-            <p className="text-gray-400 text-xs mt-1">+ {extraRabbis} more</p>
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">+ {extraRabbis} more</p>
           )}
         </div>
       )}
@@ -139,14 +206,14 @@ function SynagoguePanel({
             href={streetViewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
           >
             Street View ↗
           </a>
         )}
         <Link
           href={`/synagogues/${syn.id}`}
-          className="text-sm text-blue-600 hover:text-blue-800 underline"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
         >
           View full history →
         </Link>
@@ -177,7 +244,7 @@ function RangeSlider({
   return (
     <div className="relative h-5 flex items-center">
       {/* Gray track */}
-      <div className="absolute inset-x-0 h-1.5 rounded-full bg-gray-200" />
+      <div className="absolute inset-x-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700" />
       {/* Blue active range */}
       <div
         className="absolute h-1.5 bg-blue-500 rounded-full"
@@ -341,15 +408,26 @@ function MapClientInner({ synagogues }: MapClientProps) {
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
     mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
       center: hasFocus ? { lat: focusLat, lng: focusLng } : { lat: 39.9526, lng: -75.1652 },
       zoom: hasFocus ? 16 : 12,
       mapTypeControl: false,
       streetViewControl: true,
       fullscreenControl: true,
+      styles: isDark ? DARK_MAP_STYLES : [],
     });
 
     infoWindowRef.current = new window.google.maps.InfoWindow();
+
+    // Listen for OS theme changes and update map style dynamically
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onThemeChange = (e: MediaQueryListEvent) => {
+      mapInstanceRef.current?.setOptions({ styles: e.matches ? DARK_MAP_STYLES : [] });
+    };
+    mq.addEventListener('change', onThemeChange);
+    return () => mq.removeEventListener('change', onThemeChange);
   }, [isLoaded]);
 
   // Update markers when map is ready, year filter, or search filter changes
@@ -369,6 +447,9 @@ function MapClientInner({ synagogues }: MapClientProps) {
       return founded <= endYear && closed >= startYear;
     });
 
+    // Compute display coords — slightly offsets duplicate-location markers
+    const displayCoords = computeDisplayCoords(filtered, focusId);
+
     filtered.forEach(s => {
       const addr = s.addresses?.[0];
       if (!addr) return;
@@ -377,9 +458,10 @@ function MapClientInner({ synagogues }: MapClientProps) {
       const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown;
       const borderColor = STATUS_BORDER_COLORS[status] ?? STATUS_BORDER_COLORS.unknown;
       const isFocused = focusId ? s.id === focusId : false;
+      const display = displayCoords.get(s.id) ?? { lat: addr.latitude, lng: addr.longitude };
 
       const marker = new window.google.maps.Marker({
-        position: { lat: addr.latitude, lng: addr.longitude },
+        position: display,
         map: mapInstanceRef.current!,
         title: s.name,
         icon: isFocused
@@ -450,16 +532,17 @@ function MapClientInner({ synagogues }: MapClientProps) {
   function focusOnSynagogue(syn: Synagogue) {
     const addr = syn.addresses[0];
     if (!addr || !mapInstanceRef.current) return;
+    // Always pan to real coordinates, not the display offset
     mapInstanceRef.current.panTo({ lat: addr.latitude, lng: addr.longitude });
     mapInstanceRef.current.setZoom(16);
   }
 
   if (loadError) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-red-50 rounded-lg p-8 text-center">
-        <div className="text-red-500 text-xl mb-2">⚠️ Map Error</div>
-        <p className="text-red-700 text-sm max-w-md">{loadError}</p>
-        <p className="text-gray-500 text-xs mt-4">
+      <div className="flex flex-col items-center justify-center h-full bg-red-50 dark:bg-red-950 rounded-lg p-8 text-center">
+        <div className="text-red-500 dark:text-red-400 text-xl mb-2">⚠️ Map Error</div>
+        <p className="text-red-700 dark:text-red-300 text-sm max-w-md">{loadError}</p>
+        <p className="text-gray-500 dark:text-gray-400 text-xs mt-4">
           API Key present: {apiKey ? 'Yes (' + apiKey.substring(0, 8) + '...)' : 'No'}
         </p>
       </div>
@@ -468,10 +551,10 @@ function MapClientInner({ synagogues }: MapClientProps) {
 
   if (!isLoaded) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-lg">
+      <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 rounded-lg">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
-        <p className="text-gray-500 text-sm">Loading map...</p>
-        <p className="text-gray-400 text-xs mt-2">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading map...</p>
+        <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">
           API Key: {apiKey ? apiKey.substring(0, 10) + '...' : 'MISSING'}
         </p>
       </div>
@@ -494,7 +577,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
       */}
       <div
         className={[
-          'flex-col bg-white border-r border-gray-200 flex overflow-hidden',
+          'flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex overflow-hidden',
           'transition-[width] duration-300 ease-in-out',
           'absolute inset-y-0 left-0 z-20',
           'sm:relative sm:z-auto sm:flex-shrink-0',
@@ -502,17 +585,17 @@ function MapClientInner({ synagogues }: MapClientProps) {
         ].join(' ')}
       >
         {/* Fixed header: search + neighborhood filter */}
-        <div className="p-3 border-b border-gray-100 space-y-2 flex-shrink-0">
+        <div className="p-3 border-b border-gray-100 dark:border-gray-700 space-y-2 flex-shrink-0">
           {/* Mobile-only close button — sits inside the sidebar so it's always reachable */}
           <div className="flex items-center justify-between sm:hidden">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Search</span>
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Search</span>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400"
               aria-label="Close sidebar"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M1 1l10 10M11 1L1 11" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </button>
           </div>
@@ -524,7 +607,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
               setSearchQuery(e.target.value);
               setSelectedId(null);
             }}
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           />
           <select
             value={neighborhoodFilter ?? ''}
@@ -532,7 +615,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
               setNeighborhoodFilter(e.target.value || null);
               setSelectedId(null);
             }}
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">All neighborhoods</option>
             {neighborhoods.map(n => (
@@ -546,7 +629,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
                 setNeighborhoodFilter(null);
                 setSelectedId(null);
               }}
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
             >
               Clear filters
             </button>
@@ -562,7 +645,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
             />
           ) : hasFilters && filteredSynagogues.length > 0 ? (
             <div>
-              <p className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+              <p className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
                 {filteredSynagogues.length} result{filteredSynagogues.length !== 1 ? 's' : ''}
               </p>
               <ul>
@@ -573,13 +656,13 @@ function MapClientInner({ synagogues }: MapClientProps) {
                         setSelectedId(s.id);
                         focusOnSynagogue(s);
                       }}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors"
                     >
-                      <p className="text-sm font-medium text-gray-900 truncate">{s.name}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{s.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <StatusBadge status={s.status} />
                         {s.addresses[0]?.neighborhood && (
-                          <span className="text-xs text-gray-500 truncate">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {s.addresses[0].neighborhood}
                           </span>
                         )}
@@ -591,19 +674,19 @@ function MapClientInner({ synagogues }: MapClientProps) {
             </div>
           ) : hasFilters && filteredSynagogues.length === 0 ? (
             <div className="px-4 py-8 text-center">
-              <p className="text-gray-500 text-sm">No synagogues match your search.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No synagogues match your search.</p>
               <button
                 onClick={() => {
                   setSearchQuery('');
                   setNeighborhoodFilter(null);
                 }}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               >
                 Clear filters
               </button>
             </div>
           ) : (
-            <div className="px-4 py-8 text-center text-gray-400">
+            <div className="px-4 py-8 text-center text-gray-400 dark:text-gray-500">
               <p className="text-sm">Search by name or rabbi, or filter by neighborhood.</p>
               <p className="text-xs mt-2">Or click any marker on the map.</p>
             </div>
@@ -618,26 +701,26 @@ function MapClientInner({ synagogues }: MapClientProps) {
         {/* Sidebar toggle button — always visible top-left of map area */}
         <button
           onClick={() => setSidebarOpen(o => !o)}
-          className="absolute top-3 left-3 z-10 bg-white rounded-lg shadow-md w-9 h-9 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="absolute top-3 left-3 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-md w-9 h-9 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
         >
           {sidebarOpen ? (
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M1 1l12 12M13 1L1 13" stroke="#4b5563" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           ) : (
             <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true">
-              <path d="M0 1h18M0 7h18M0 13h18" stroke="#4b5563" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M0 1h18M0 7h18M0 13h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           )}
         </button>
 
         {/* Year range filter overlay */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg px-4 py-3 z-10 min-w-[320px]">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 rounded-xl shadow-lg px-4 py-3 z-10 min-w-[320px] border border-transparent dark:border-gray-700">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-semibold text-gray-700 tabular-nums">{startYear}</span>
-            <span className="text-xs text-gray-400">{visibleCount} synagogues</span>
-            <span className="text-xs font-semibold text-gray-700 tabular-nums">{endYear}</span>
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 tabular-nums">{startYear}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">{visibleCount} synagogues</span>
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 tabular-nums">{endYear}</span>
           </div>
           <RangeSlider
             min={1745}
@@ -647,19 +730,19 @@ function MapClientInner({ synagogues }: MapClientProps) {
             onStartChange={setStartYear}
             onEndChange={setEndYear}
           />
-          <div className="flex justify-between text-xs text-gray-400 mt-2">
+          <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-2">
             <span>1745</span>
             <span>2024</span>
           </div>
         </div>
 
         {/* Legend overlay */}
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md px-3 py-2 z-10 text-xs">
-          <p className="font-semibold text-gray-700 mb-1">Status</p>
+        <div className="absolute top-4 right-4 bg-white dark:bg-gray-900 rounded-lg shadow-md px-3 py-2 z-10 text-xs border border-transparent dark:border-gray-700">
+          <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</p>
           {Object.entries(STATUS_COLORS).map(([status, color]) => (
             <div key={status} className="flex items-center gap-2 mb-1">
               <span style={{ background: color }} className="inline-block w-3 h-3 rounded-full" />
-              <span className="capitalize text-gray-600">{status}</span>
+              <span className="capitalize text-gray-600 dark:text-gray-400">{status}</span>
             </div>
           ))}
         </div>
@@ -672,9 +755,9 @@ export default function MapClient({ synagogues }: MapClientProps) {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-lg">
+        <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 rounded-lg">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
-          <p className="text-gray-500 text-sm">Loading map...</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Loading map...</p>
         </div>
       }
     >

@@ -24,6 +24,27 @@ const STATUS_BORDER_COLORS: Record<string, string> = {
   unknown: '#1f2937',
 }
 
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
+  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
+  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] },
+]
+
 export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -63,6 +84,7 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
 
     const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown
     const borderColor = STATUS_BORDER_COLORS[status] ?? STATUS_BORDER_COLORS.unknown
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
     const map = new window.google.maps.Map(mapRef.current, {
       center: { lat, lng },
@@ -71,6 +93,7 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
       gestureHandling: 'none',
       clickableIcons: false,
       keyboardShortcuts: false,
+      styles: isDark ? DARK_MAP_STYLES : [],
     })
 
     new window.google.maps.Marker({
@@ -92,15 +115,15 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
   return (
     <Link
       href={mapUrl}
-      className="block relative rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 w-52 h-40 group shadow-sm"
+      className="block relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 flex-shrink-0 w-52 h-40 group shadow-sm"
       title="View on map"
     >
       {/* Map renders into this div — always mounted so the ref is stable */}
-      <div ref={mapRef} className="w-full h-full bg-gray-100" />
+      <div ref={mapRef} className="w-full h-full bg-gray-100 dark:bg-gray-800" />
 
       {/* Loading spinner shown until map is ready */}
       {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
         </div>
       )}
