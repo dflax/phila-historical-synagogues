@@ -228,9 +228,9 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                       )}
                       <div className="flex flex-wrap gap-2 mt-1">
                         {addr.is_current && (
-                          <span className="text-xs text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">
-                            Current
-                          </span>
+                          synagogue.status === 'active'
+                            ? <span className="text-xs text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">Current</span>
+                            : <span className="text-xs text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">Last</span>
                         )}
                         {(addr.start_year || addr.end_year) && (
                           <span className="text-xs text-gray-400 dark:text-gray-500">

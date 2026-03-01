@@ -365,7 +365,9 @@ export default function SynagoguesClient({ synagogues }: Props) {
                                     <div>
                                       <span className="text-gray-700 dark:text-gray-300">{formatAddress(addr)}</span>
                                       {addr.is_current && (
-                                        <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">Current</span>
+                                        s.status === 'active'
+                                          ? <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">Current</span>
+                                          : <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-medium">Last</span>
                                       )}
                                       {(addr.start_year || addr.end_year) && (
                                         <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
