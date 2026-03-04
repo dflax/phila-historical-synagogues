@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import MiniMap from '@/components/map/MiniMap'
 import SuggestEditButton from '@/components/edit/SuggestEditButton'
+import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,8 +209,12 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
             )}
           </div>
 
-          {/* Suggest edit — auth-aware, sits at bottom of hero card */}
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+          {/* Action row — both buttons are auth-aware client components */}
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <PhotoUploadButton
+              synagogueId={synagogue.id}
+              synagogueName={synagogue.name}
+            />
             <SuggestEditButton
               synagogue={synagogue}
               primaryNeighborhood={primaryAddr?.neighborhood ?? null}

@@ -41,7 +41,8 @@ export default async function SynagoguePage({ params }: { params: { id: string }
         id, name, title, start_year, end_year, notes
       ),
       images (
-        id, url, caption, description, year, circa_year, is_primary, display_order,
+        id, url, storage_path, storage_provider,
+        caption, description, year, circa_year, is_primary, display_order,
         photographer, source, credit_line
       )
     `)
@@ -69,11 +70,33 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     (a.start_year ?? 9999) - (b.start_year ?? 9999)
   )
 
-  const images = normalize(synagogue.images).sort((a: any, b: any) => {
+  const rawImages: any[] = normalize(synagogue.images).sort((a: any, b: any) => {
     if (a.is_primary && !b.is_primary) return -1
     if (!a.is_primary && b.is_primary) return 1
     return (a.display_order ?? 99) - (b.display_order ?? 99)
   })
+
+  // ── Resolve storage_path → full URL ──────────────────────────────────────
+  // Reads base_url from storage_config table (provider = 'supabase').
+  // Falls back to constructing from NEXT_PUBLIC_SUPABASE_URL if the table
+  // doesn't exist yet or has no matching row.
+  let storageBaseUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/synagogue-images`
+  if (rawImages.some((img: any) => img.storage_path)) {
+    const { data: cfg } = await supabase
+      .from('storage_config')
+      .select('base_url')
+      .eq('provider', 'supabase')
+      .maybeSingle()
+    if (cfg?.base_url) storageBaseUrl = cfg.base_url
+  }
+
+  const images = rawImages.map((img: any) => ({
+    ...img,
+    // Prefer storage_path → build URL; fall back to whatever is in url column
+    url: img.storage_path
+      ? `${storageBaseUrl}/${img.storage_path}`
+      : (img.url || null),
+  }))
 
   return (
     <SynagogueDetail
