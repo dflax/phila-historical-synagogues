@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import NavAuth from '@/components/auth/NavAuth'
 
 export default function Home() {
   return (
@@ -10,7 +11,7 @@ export default function Home() {
             <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
               Philadelphia Historical Synagogues
             </Link>
-            <div className="flex gap-6">
+            <div className="flex items-center gap-6">
               <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Home
               </Link>
@@ -20,6 +21,7 @@ export default function Home() {
               <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Browse
               </Link>
+              <NavAuth />
             </div>
           </div>
         </div>
