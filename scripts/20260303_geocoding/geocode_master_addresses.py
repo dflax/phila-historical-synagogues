@@ -16,7 +16,7 @@ import time
 import sys
 
 # Configuration
-API_KEY = "AIzaSyBxqGTP-pITv_Rv0FBXTV48Gi0ms8kTDIU"
+API_KEY = ""
 INPUT_FILE = "master_addresses.csv"
 OUTPUT_FILE = "master_addresses_geocoded.csv"
 FAILED_FILE = "addresses_failed_geocoding.csv"

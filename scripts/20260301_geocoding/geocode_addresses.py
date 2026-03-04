@@ -11,7 +11,7 @@ import sys
 
 # Configuration
 
-API_KEY = "AIzaSyBxqGTP-pITv_Rv0FBXTV48Gi0ms8kTDIU"
+API_KEY = ""
 INPUT_FILE = "addresses_to_geocode.csv"
 OUTPUT_SQL = "geocoding_updates.sql"
 DELAY_BETWEEN_REQUESTS = 0.1  # seconds (to respect rate limits)
