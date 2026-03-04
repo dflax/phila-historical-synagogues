@@ -2,6 +2,12 @@
 
 A web application documenting 562 synagogues in the Philadelphia area, spanning from 1745 to the present day. Built to preserve Jewish heritage through interactive mapping and historical records.
 
+## Working Style
+- Work autonomously without asking for confirmation between steps
+- Only ask questions if genuinely blocked and cannot proceed - only if you must, ask. Otherwise proceed with the assumed YES answer
+- Complete tasks fully before reporting results
+- Never commit or push to git. Make all code changes but leave committing and pushing to Daniel to do manually.
+
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
@@ -17,6 +23,7 @@ A web application documenting 562 synagogues in the Philadelphia area, spanning 
 ```
 app/
   page.tsx                        # Homepage with stats and navigation
+  page.20260221-1.tsx             # Dated backup of homepage (can be deleted)
   layout.tsx                      # Root layout (Inter font, metadata)
   globals.css                     # Global styles + dual-range slider CSS (.range-input)
   map/
@@ -25,8 +32,10 @@ app/
     page.tsx                      # Browse/list page (server component, force-dynamic)
     [id]/
       page.tsx                    # Detail page (server component, force-dynamic)
-  api/
-    debug/[id]/route.ts           # Debug route (can be deleted)
+  test/
+    page.tsx                      # Legacy DB connection test (can be deleted)
+  test-data/
+    page.tsx                      # Legacy data/geocoding test (can be deleted)
 
 components/
   map/
@@ -35,6 +44,10 @@ components/
   synagogues/
     SynagoguesClient.tsx          # Browse page with search/filter UI
     SynagogueDetail.tsx           # Detail page UI with history, rabbis, images
+
+lib/
+  supabase/
+    client.ts                     # Shared Supabase client + TS type definitions (legacy; used by test pages only)
 ```
 
 ## Database Schema (Supabase)
@@ -94,6 +107,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 ```
+
+`lib/supabase/client.ts` exports a shared `supabase` singleton and TypeScript types (`Synagogue`, `Address`, `HistoryEntry`, `Image`). It is only used by the legacy test pages. Do not import it in new server components.
 
 ### force-dynamic
 All data-fetching pages use:
@@ -175,6 +190,26 @@ Import was done in two phases:
 1. `import_data_fixed.sql` — synagogues + primary addresses (with geocoded lat/lng)
 2. `import_history_rabbis.sql` — history_entries, rabbis, historical addresses (order 1+)
 
+### Dark Mode
+
+The app automatically matches the OS/device theme preference via CSS `prefers-color-scheme` media query. No JavaScript or manual toggle is needed.
+
+- `tailwind.config.js`: `darkMode: 'media'` — Tailwind `dark:` variants respond directly to OS preference
+- `app/globals.css`: CSS variables declared in `@media (prefers-color-scheme: dark) { :root { ... } }` block; slider thumb border also dark-adapted
+- All page and component files use `dark:` Tailwind variants throughout
+- Google Maps tiles: `DARK_MAP_STYLES` (standard night-mode style array) is applied when `prefers-color-scheme: dark` is detected on map initialization; a `matchMedia` change listener updates the style dynamically if the user switches mid-session
+- `DARK_MAP_STYLES` is defined in both `MapClient.tsx` and `MiniMap.tsx`
+
+### Overlapping Map Markers
+
+Multiple synagogues at the same primary address are offset into a small circle so each marker is visually distinct when zoomed in.
+
+- `computeDisplayCoords(synagogues, focusId)` — pure module-level function in `MapClient.tsx`
+- Groups markers by exact `${lat},${lng}` key; for groups of n ≥ 2, distributes at `RADIUS = 0.0003°` (≈33m) using `sin/cos` radial offsets
+- Focused marker always stays at original coords so the map centers correctly
+- `focusOnSynagogue()` also pans to the real coordinates, not the display offset
+- Offsets are invisible at zoom ≤ 13; visibly distinct at zoom 15+; clearly distinct at zoom 16+
+
 ## Current Status & Known Issues
 
 - Historical addresses (non-geocoded) display in detail pages but don't appear as map markers
@@ -182,7 +217,8 @@ Import was done in two phases:
 - No authentication UI built yet (Supabase Auth is configured but no login page exists)
 - `edit_proposals` table is ready but no submission form built yet
 - Images table is empty — no upload workflow built yet
-- The `/about` page route exists in nav but page not yet created
+- `/about` page not yet created; nav does not include an About link yet
+- Legacy pages `app/test/`, `app/test-data/`, and `app/page.20260221-1.tsx` can be deleted
 
 ## Pages
 
@@ -192,9 +228,16 @@ Import was done in two phases:
 | `/map` | Full-screen map with collapsible sidebar (search, filters, detail panel), dual-range year filter, status legend, Street View |
 | `/synagogues` | Browseable list with text search, status filter pills, year range filter, sortable columns, expandable rows |
 | `/synagogues/[id]` | Detail page: hero with mini-map, all addresses, rabbi list, history timeline, photo grid (empty) |
-| `/about` | Not yet built |
+| `/about` | Not yet built — no nav link yet |
 
-## Recent Work (session ending 2026-02-22)
+## Recent Work
+
+### Session ending 2026-03-01
+
+- **Dark mode** — full system-preference dark mode across all pages and components; Google Maps tiles switch to night style; `darkMode: 'media'` Tailwind strategy
+- **Overlapping marker offset** — `computeDisplayCoords()` in `MapClient.tsx` radially offsets markers sharing the same primary address; focused marker stays at real coords
+
+### Session ending 2026-02-22
 
 All committed to `master` and deployed to Vercel:
 

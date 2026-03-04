@@ -1,0 +1,371 @@
+id,synagogue_id,name,title,start_year,end_year,notes,created_at,created_by,approved
+ddc5a97b-321c-4cc5-a67a-ca5f5ac646e0,021643bd-330a-48aa-8d5f-dd5e39bf74e1,Meyer Cohen,null,1939,null,null,2026-02-21 22:38:02.468692+00,null,true
+3e7ffeec-088e-4e75-b0cb-c85a146295c0,021643bd-330a-48aa-8d5f-dd5e39bf74e1,Morris Rivkin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ccbc77bd-5ea7-4c02-8366-ff3746069ade,07e9c17a-6599-4aec-8c75-0323ad002d0b,Kenneth Carr,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+aabbbaa6-20d5-4f37-b987-7871a84287bf,07e9c17a-6599-4aec-8c75-0323ad002d0b,Seymour Prystowsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c5bf91c1-1a0f-4d41-a69a-6ab8b21bf7f9,08611b37-f1e0-423b-9e33-1d3366265d15,Nathan Barnett,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1ec11f6f-9dac-401a-89a4-bb8aa4e75e69,08b836bd-4a7d-447f-8bca-124203d6e908,Marcia Prager,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+624ccf1a-cea4-4ff3-9c88-e51a10e8a0e9,08b836bd-4a7d-447f-8bca-124203d6e908,Zalman Schachter-Shalome,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2af261c0-71a1-4ca2-b683-7cfecf64dac4,0d64dd1c-dd88-4d9f-b0b2-f1db79ec1066,Sandy Berliner,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c68d0532-b9a4-4e30-92b1-8fa2fcb13ac0,0d6740ed-88db-4f58-b55b-f1aba9eeca03,M Rivkins,null,1920,null,null,2026-02-21 22:38:02.468692+00,null,true
+c8ce412e-20b2-42fc-add9-3dab34d4900a,0d6740ed-88db-4f58-b55b-f1aba9eeca03,Ephraim E. Yolles,null,1924,null,null,2026-02-21 22:38:02.468692+00,null,true
+55cce1f8-f37f-47b2-a9bb-c1248907643f,0ddcb5ee-73ff-4304-bf31-5b45484e3bbf,Jullie Greenberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+706a0baf-1f4d-4425-8338-440e59d280f5,110371d9-28a6-424a-9e20-1264749325d7,Jack Adler,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5b9040c1-09da-4745-b4c7-7f31dc8c4081,110371d9-28a6-424a-9e20-1264749325d7,Isaac Moseson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+dc3021d1-7f84-4415-8ede-4bf8515881d4,110371d9-28a6-424a-9e20-1264749325d7,Howard Addison,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+72000e65-9cd2-4240-833b-2bf6f96a0f23,1509c426-8c5a-44ca-b58e-580530778917,Meyer Kramer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+cd7badc5-3eca-486a-92df-ff7375bed4bc,1509c426-8c5a-44ca-b58e-580530778917,Barry Blum,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a5d8c0f1-5980-4b3c-af5e-f34758ec3d6d,1526b185-e09b-4c69-ba10-ff227f3f76a3,Samuel Lachs,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+127bcc45-e9c6-4504-bf75-d94df110631b,1526b185-e09b-4c69-ba10-ff227f3f76a3,Hyman Chanover,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+203d383e-32d9-4c41-9463-e56ac42a65fa,16aa6608-9d4d-4b65-aefb-1464c17b102d,Schneiderman,null,1920,null,null,2026-02-21 22:38:02.468692+00,null,true
+9e5f71a6-fc37-44b4-a758-9be6f45d75ea,1883c9fc-cd17-40b2-86e3-572ad87690a6,Maier Fuchs,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+72874101-bd16-4bea-a71d-4c593c478b0c,1bdef080-dc06-4e21-9154-1f79ea8308d8,Margolin,null,1905,null,null,2026-02-21 22:38:02.468692+00,null,true
+58297230-5e9c-4389-886e-cd881ed69e5f,1d14b9cc-63a2-4a29-91c7-ddf79d31dfe0,Abraham Shafrinsky,null,1935,null,null,2026-02-21 22:38:02.468692+00,null,true
+8500e7c6-7c7a-424c-b02f-44197e7d634b,1ef846bd-e5ed-41af-a3ba-bcd5f5d1b4a2,Elias Eppstein,null,1870,1880,null,2026-02-21 22:38:02.468692+00,null,true
+370951b9-020e-40cc-a613-c14d20a85d4c,1ef846bd-e5ed-41af-a3ba-bcd5f5d1b4a2,Max Klein,null,1910,1960,null,2026-02-21 22:38:02.468692+00,null,true
+eff84a07-2489-46fb-9367-82d1b9d0ff02,1ef846bd-e5ed-41af-a3ba-bcd5f5d1b4a2,Seymour Rosenbloom,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d7e70b3b-5b16-4b86-8e5d-077dc1ec0363,1ef846bd-e5ed-41af-a3ba-bcd5f5d1b4a2,S. Breidenbach,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+600440d2-b60a-467c-81ab-d5f67726eefc,1f5396e9-9bb1-4842-92f9-2dc479a5a3bf,Hyman Brodsky,null,1880,null,null,2026-02-21 22:38:02.468692+00,null,true
+3451a5e9-8d4a-46fe-be44-4fe4815f9079,220a3148-6a65-45f5-acf4-a4b37b9fe76a,Bernard L. Levinthal,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2845761b-564c-4967-b284-0b1f320385b1,230a51ce-ca8d-4758-8020-1bdaa9fa13aa,Elias Fried,null,1890,null,null,2026-02-21 22:38:02.468692+00,null,true
+5867b845-c095-46cc-905a-db6a10bbfd6c,230a51ce-ca8d-4758-8020-1bdaa9fa13aa,Moses Weinberger,null,1892,null,null,2026-02-21 22:38:02.468692+00,null,true
+9afba4c4-3741-440e-83b0-dee86225423c,230a51ce-ca8d-4758-8020-1bdaa9fa13aa,Simon Englander - over 50 years,null,1900,null,null,2026-02-21 22:38:02.468692+00,null,true
+3acf8512-1ed0-4d22-b105-4819d3198f85,237f995f-e3a9-4eab-b842-101cf8074580,Rev. Gottliev,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+43cfb742-ba72-4d39-9c28-c446b97cdf13,26b33373-b47b-4a0f-a354-9a07d425b76e,Isaac Leeser,null,1857,null,null,2026-02-21 22:38:02.468692+00,null,true
+9f3f1acb-a3e0-426e-b1c9-add4fc21261c,26b33373-b47b-4a0f-a354-9a07d425b76e,Abraham J. R. Pereira,null,1868,null,null,2026-02-21 22:38:02.468692+00,null,true
+8835d396-16f1-452c-8703-0a9188fa7214,26b33373-b47b-4a0f-a354-9a07d425b76e,George Jacobs,null,1869,null,null,2026-02-21 22:38:02.468692+00,null,true
+25b86b44-7131-4b5a-9acb-8c99e551f49a,26b33373-b47b-4a0f-a354-9a07d425b76e,Joseph H. M. Chumaceiro,null,1885,null,null,2026-02-21 22:38:02.468692+00,null,true
+5c86c207-e9ac-48ac-8c71-dc7f791889a6,293306d4-0f05-4ed4-b519-23d63d8fc781,Israel Wolmark,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+dbbae312-275c-46d9-a26c-4857feb22f62,297e5cdf-dc38-4af7-8ccb-222cef7c7e9b,Snyderman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+7da7d23a-0634-4c29-9ea5-62f92151f0f0,2b1bc9fe-dcdf-4405-92c9-d7c4264348e8,"Boris Berkowitz, founder and rabbi from 1910 until end of congregation",null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+55acf19c-f9a1-4a87-b33a-09c4215b7958,2d8a376e-0863-4ac9-a5dc-36e92bd42916,David Wachtfogel,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+722ba6eb-b1b5-4e92-915e-89ed5d05ff7d,2e9fea45-366d-4cd7-b423-10355ca36d49,Howard Cove,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+486cf52e-d067-4dcd-8d19-abae8d4ab5c9,2ea07b69-c69f-48cc-b70e-b241de38ff36,Joseph Warren,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+34aada89-9f3e-4018-ac80-8cc2ff8e3c57,2ea07b69-c69f-48cc-b70e-b241de38ff36,Maurice Lazowick,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f7a4bf73-d91b-4f7f-ac0c-b15a28789d7e,2ea07b69-c69f-48cc-b70e-b241de38ff36,Max Farber,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+dece511e-d1a9-4a23-b44e-08cfcaae4d05,34857c4e-9bd5-42a4-92cd-1983798af873,Baruch Leizeroski,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+fc79800d-ff97-4f08-a406-e8d79ed88f4f,35925121-b5fd-4da4-8f6f-4af906bf0466,Meyer Kramer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+50bb2b2c-5630-45c6-adcb-b3799975d75d,359cdc1c-2792-4126-a09c-b39a181f17ff,Abraham Eichler,null,1900,null,null,2026-02-21 22:38:02.468692+00,null,true
+69983d60-b4d0-4228-bf22-773aac51a724,3c63113f-6ff4-4b93-8438-2005829f83df,Moishe Travitsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+fc038eab-5075-4d4e-b992-7d2e50904564,3ce6f0d3-27bd-412f-9ecd-62f1db37c768,Mathew Rosen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+120c4ca9-5284-4753-960c-0771ee435089,3ce6f0d3-27bd-412f-9ecd-62f1db37c768,Sherman Novoseller,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ac2d9524-a308-4a71-b1af-6aea04ebe571,3ce6f0d3-27bd-412f-9ecd-62f1db37c768,Samuel Berkowitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+563608f6-009c-4c80-be16-78ad8ee8b48d,3e49e591-76cb-462f-ae77-689afb7ed5ba,Solomon Brichta,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+4d49a2a8-e8bb-4229-a2b3-7be507cdd382,3e49e591-76cb-462f-ae77-689afb7ed5ba,Harry Beitchman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5b3b250d-d920-4545-a94e-41d8ca7a0254,3e82e26e-4ffc-4934-a099-97af44a122de,Simon E. Cohen Noot,null,1855,null,null,2026-02-21 22:38:02.468692+00,null,true
+98de2979-ce6c-4491-86ca-0bdc69d90691,3e82e26e-4ffc-4934-a099-97af44a122de,Simon B Breidenbach,null,1862,null,null,2026-02-21 22:38:02.468692+00,null,true
+0a69585d-2dfc-446c-908a-d023d0870092,3e82e26e-4ffc-4934-a099-97af44a122de,Rev. Jacob Voorsanger,null,1874,null,null,2026-02-21 22:38:02.468692+00,null,true
+d6962c06-1685-400f-ac90-ff6f3c971518,3e82e26e-4ffc-4934-a099-97af44a122de,Jacob Lippman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+21bab528-9f5a-439d-932c-f3dbf9a1861a,3eb7ee4d-890a-4489-9508-79db73b3f33b,Simon Greenberg,null,1925,null,null,2026-02-21 22:38:02.468692+00,null,true
+0b733c8b-2dd5-4260-bad0-25356e6addc0,3eb7ee4d-890a-4489-9508-79db73b3f33b,Gerald Wolpe,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+56edc70f-63c3-4c3c-958d-8c5ebfc48edc,3eb7ee4d-890a-4489-9508-79db73b3f33b,Jay Stein,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e6769909-9e64-4d53-bb5b-1b21a3e1120b,3eb7ee4d-890a-4489-9508-79db73b3f33b,D. Rosenwasser,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1cbbfe8e-09b7-4d8d-9fcf-19c7f21fce37,40b11b59-4a38-41a0-9430-77f6fc97f878,Charry,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f6c3f4fe-2022-4fa8-b3cf-0b5873164538,40b11b59-4a38-41a0-9430-77f6fc97f878,Leonard Gordon,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+033f0b5e-452f-4c0f-b165-8309ece74f37,40b11b59-4a38-41a0-9430-77f6fc97f878,Adam Zeff,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ec6762d5-7239-4317-ac05-d525a761aff8,40b11b59-4a38-41a0-9430-77f6fc97f878,Sanford Hahn,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+999d8b72-1a72-42b8-871a-f75383888918,40be35e8-7bf3-46d8-b869-5443139ad3cc,Abraham Isaac Afshowitz,null,1912,null,null,2026-02-21 22:38:02.468692+00,null,true
+19a3e1c1-3768-43cb-bf46-0d9446ab9b5e,40be35e8-7bf3-46d8-b869-5443139ad3cc,Berrel Shapiro,null,1920,null,null,2026-02-21 22:38:02.468692+00,null,true
+df66b2f4-da01-4f83-8b7c-d8c2746cd865,4144d29f-addb-4420-8daa-d7c18943d4f7,Isaac Greenberg,null,1912,null,null,2026-02-21 22:38:02.468692+00,null,true
+cf98cecf-9343-4e3c-9f91-f55bb5fd541d,4144d29f-addb-4420-8daa-d7c18943d4f7,Samuel Berman,null,1938,null,null,2026-02-21 22:38:02.468692+00,null,true
+44a0886f-4a6d-41a6-9fca-974982004449,440e354f-6f37-4409-8231-e1f68456aa88,Elliot Strom,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+589427a1-8e4f-460d-a193-90b994a16dfa,455bf2bf-21e6-42a9-bb19-c7d29441595a,Morris Poupko,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+77f8080b-70ae-416d-a9c8-cdffb488c687,455bf2bf-21e6-42a9-bb19-c7d29441595a,Jeremiah Cohen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+49a41da1-9518-4c34-857f-1744cd5838e9,455bf2bf-21e6-42a9-bb19-c7d29441595a,Victor Solomon,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+aab5b786-fc6d-468b-adb5-aa0ab992ed8b,45fe4c92-df74-43a2-a3de-0364772b8682,Theodore H. Gordon,null,1953,1972,null,2026-02-21 22:38:02.468692+00,null,true
+1c987912-8c7b-4ba4-b2b9-81a98d4e4b7e,45fe4c92-df74-43a2-a3de-0364772b8682,Max Hausen,null,1972,1996,null,2026-02-21 22:38:02.468692+00,null,true
+ad0c6ebf-3e26-457a-8e50-9ba7240a92b3,45fe4c92-df74-43a2-a3de-0364772b8682,Paul J. Citrin,null,1996,null,null,2026-02-21 22:38:02.468692+00,null,true
+19f2a947-4a7e-4178-90fb-762048f02222,45fe4c92-df74-43a2-a3de-0364772b8682,David Straus,null,1998,null,null,2026-02-21 22:38:02.468692+00,null,true
+a60e0709-e127-4ef0-aa54-b19d82142280,45fe4c92-df74-43a2-a3de-0364772b8682,Ethan Franzel,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8ca08f0d-4389-42e3-a06e-a8e0b001a150,49378aed-c09e-4251-bd13-2de11999d43b,Rev Isaacs,null,1810,null,null,2026-02-21 22:38:02.468692+00,null,true
+77fdd69a-ecde-4a9c-8204-619b21d6e647,49378aed-c09e-4251-bd13-2de11999d43b,Jacob Lipman,null,1819,null,null,2026-02-21 22:38:02.468692+00,null,true
+8bebce6f-67f3-465c-9792-cb8567e58081,49378aed-c09e-4251-bd13-2de11999d43b,Wolf Benjamin,null,1823,null,null,2026-02-21 22:38:02.468692+00,null,true
+0dd60017-8f7d-4cd1-9025-2ff8874ff9f5,49378aed-c09e-4251-bd13-2de11999d43b,Moses Cohen,null,1834,null,null,2026-02-21 22:38:02.468692+00,null,true
+1b756f4b-11a0-45c7-bd82-18947e4be5b9,49378aed-c09e-4251-bd13-2de11999d43b,Moses Hart,null,1838,null,null,2026-02-21 22:38:02.468692+00,null,true
+b4a29297-a68f-48f3-82df-965ff656eaa5,49378aed-c09e-4251-bd13-2de11999d43b,Moses Race,null,1842,null,null,2026-02-21 22:38:02.468692+00,null,true
+4a159033-9762-4458-be8a-f1d024a68b6d,49378aed-c09e-4251-bd13-2de11999d43b,Moses Sulzbacher,null,1847,null,null,2026-02-21 22:38:02.468692+00,null,true
+8e572830-0dc1-448c-930d-04aa4090442c,49378aed-c09e-4251-bd13-2de11999d43b,Jacob Frankel,null,1849,null,null,2026-02-21 22:38:02.468692+00,null,true
+d1cc3cca-59a2-4686-b0dc-bf2253ef0455,49378aed-c09e-4251-bd13-2de11999d43b,Solomon Kauffman,null,1887,null,null,2026-02-21 22:38:02.468692+00,null,true
+95cea2c3-599d-4498-910b-1a6f229635d5,49378aed-c09e-4251-bd13-2de11999d43b,William Loewenberg …Alan Fuchs,null,1893,1908,null,2026-02-21 22:38:02.468692+00,null,true
+59132582-8782-4fa8-8926-9af0efc03003,49378aed-c09e-4251-bd13-2de11999d43b,Jill Maderer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+369d2765-b733-48d2-8732-ee0aaf77f2b0,493dc0b7-fbcf-4ad4-86f2-cb6f7503baeb,A. J. Levy,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f002e8f7-cfbc-4043-b8b7-b50fa71cd82d,493dc0b7-fbcf-4ad4-86f2-cb6f7503baeb,R H Melamed,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f0f80388-536f-4333-bfec-9ed13f8f4be4,493dc0b7-fbcf-4ad4-86f2-cb6f7503baeb,L. Feinberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+7444245b-dad5-450a-a6be-3c3a685bf8ad,493dc0b7-fbcf-4ad4-86f2-cb6f7503baeb,Isaac Fyne,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+af16d6d7-c6f7-4abc-9d02-eb6671a2ab28,4999ea56-a30f-44f0-a0f8-e9846be22420,Shlomo Caplan,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b392c9c0-ed34-44c7-8556-67165f5b6ca8,4999ea56-a30f-44f0-a0f8-e9846be22420,Michael Yondorf,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+4f011f30-d83d-4209-b815-bcffa6912687,4999ea56-a30f-44f0-a0f8-e9846be22420,Meyer Cohen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+097bdfea-fe72-428c-8c1d-658236143cb6,4a076d0d-95c2-4a11-8942-30f92e7361c9,Leon Album,null,1916,null,null,2026-02-21 22:38:02.468692+00,null,true
+49a8335c-e7eb-447d-84b9-12c9c070cb79,4a076d0d-95c2-4a11-8942-30f92e7361c9,Heilbaum,null,1929,null,null,2026-02-21 22:38:02.468692+00,null,true
+1cb45f22-bcd9-418a-a6f6-59be6ab6323e,4a076d0d-95c2-4a11-8942-30f92e7361c9,Morris Schnall,null,1940,null,null,2026-02-21 22:38:02.468692+00,null,true
+7e6836b8-0812-457d-a77a-a1d0e7797c4d,4a076d0d-95c2-4a11-8942-30f92e7361c9,Morris Iserowitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3204b510-3099-44e2-96a4-653a2be064f2,4aaf504a-dc28-468c-a63b-415aee6936ea,Segal Dagan Brier,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1401354d-b2ad-4543-8370-96fd7b96675d,4ab66ce6-09ca-4480-9fb0-00e16840171c,Maurice Kliers,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0ca3d051-fe5f-4e3a-86d8-b17703ac8653,4ab66ce6-09ca-4480-9fb0-00e16840171c,Pincus Chazin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2b3c8816-8689-4591-a13c-73fcb8dc0bac,4cf45999-8fee-4c0c-b01a-5ab595ba1cac,Isaac Forman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+31f5a866-df5a-41ed-8496-3d992bd25f0e,4de81e1d-8e88-4a98-92dc-4bc5d994ea49,William Fineshriber,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+7f9224c9-5a95-4a0a-8ddd-87195e19612c,4de81e1d-8e88-4a98-92dc-4bc5d994ea49,William Eisenberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ab4b624f-90d2-4592-81f2-1e1c5fd01cac,505f12e9-69a2-4008-ab47-b6b3da2fa23b,E Natinsky,null,1922,null,null,2026-02-21 22:38:02.468692+00,null,true
+8f61e7db-e119-410b-a0cd-08ae6e38b11e,5115ecb6-ec08-4635-8e1a-828554d41d57,Yeckel Brusalinsky Yehilah Sofronsky Eliezer Poupko,null,1923,null,null,2026-02-21 22:38:02.468692+00,null,true
+8a6f1ea3-6ceb-4472-96cd-f8d866a4f0a2,52eff962-db39-46ea-811e-1b986669321c,Jules Meles,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f1856aee-6a44-488a-aa2e-81f56a09e7cc,52eff962-db39-46ea-811e-1b986669321c,Kapustin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3fd29440-1b98-4f88-8b58-f07fc66af6c7,533bb988-bc1f-4b78-bb0d-e81de389773a,Judah Shestack,null,1920,null,null,2026-02-21 22:38:02.468692+00,null,true
+a90b5f9a-9d45-4078-954c-eff8aa22fee7,533bb988-bc1f-4b78-bb0d-e81de389773a,Rabbi Dagowitz,null,1960,null,null,2026-02-21 22:38:02.468692+00,null,true
+caadb65a-bd90-4397-a716-2f6acea1cf22,533bb988-bc1f-4b78-bb0d-e81de389773a,Abraham Poupko,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c4a1e75c-26bb-4025-8874-7e322f06542b,565e5278-2d63-4e96-8525-55c0b8f73b08,Cantor Gershon Willner,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+590acf01-f757-4daf-9332-cc99eb196b31,5720f7f3-7934-4fad-bd34-83696bc404d4,Gary Porkas,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a50b5174-ec49-49c6-8417-3c70345a106c,59223d0c-5fb2-4dad-a933-86807fc85b73,Arthur Dembitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9da2ede1-dc07-40e0-969e-1841b61bd546,5ba8af81-dcc4-449f-b94c-50e0eacb30a3,Chinitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f3a46662-7862-4fd7-aa79-b719c6b7d078,5ba8af81-dcc4-449f-b94c-50e0eacb30a3,Meyer Krauss,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+467f7f59-668f-4705-a90d-7ed2b79b402f,5ba8af81-dcc4-449f-b94c-50e0eacb30a3,Benjamin Englander,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a3e99645-f260-41c2-9c1c-942cb8371133,5ba8af81-dcc4-449f-b94c-50e0eacb30a3,Salmon Faber,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+fb65f1dc-e111-4776-94bd-0098c2f8a9ac,5ba8af81-dcc4-449f-b94c-50e0eacb30a3,David C. Teigman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+74196559-883b-4468-85a6-7bd8d28eae50,5d35ed5a-660f-4186-9825-7c7a7663fa11,Oskar Kramer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+db7467e7-fb63-4d8f-b949-e8d4cc7da911,5d35ed5a-660f-4186-9825-7c7a7663fa11,Weissman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+29677772-ad23-43ba-9f18-3f7b7f138848,5f5929ae-895e-4315-b9fb-f682e29b2a13,Glausner,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b7ae71e3-f897-42f4-9107-61c25ae10f8a,5f5929ae-895e-4315-b9fb-f682e29b2a13,Markowitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+00004e1f-4a95-4faa-adf2-8563cb7cd846,5f5929ae-895e-4315-b9fb-f682e29b2a13,Henry Cohen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d9fd19ac-fe3a-4951-845d-1f9ca42c6ae7,5f5929ae-895e-4315-b9fb-f682e29b2a13,Jim Egolf,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f26fc3f6-ab2e-44ff-9252-8aea1b07ffbc,60b39c88-4fcb-4d2c-a2cb-7f937f64ad59,Charles Lachs,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+910149b3-0a04-4a7c-a04f-b052b183123a,628c0cf3-37df-424b-ae09-12f118d95c86,Rabbi Sofronski,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+757c87a8-0e7c-4102-b727-3c5b05a59b2a,67972e51-54c0-438e-9b54-9ba463497d0a,Moshe Goldman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f19d50bc-a329-4521-9f35-6049d6c6662b,67accf1d-55f1-4c2f-99fd-306757ab5c77,Robert Leib,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8857db81-6c36-4495-9f70-ca5ef45f4492,67accf1d-55f1-4c2f-99fd-306757ab5c77,Harold Waintrup,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b0bf60a6-2b4f-4a16-b63b-24ae6649870d,68b0f488-6395-4fb5-8050-699e6eb7b8b8,Aaron Felder,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+877909d9-0c1d-453f-8609-fbb13045a028,696dedf4-3559-4673-855b-c8665fdc420d,Ira Stone,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3e0e791e-1f4f-4345-a717-dd4fb8859543,69d9ae91-2fc3-4204-9953-28ed04aa3042,Linda Potemkin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8c53d0b5-04f7-43a0-bce4-0335dfa61bb1,6a6fa146-9d35-41cd-a82e-d0a33c591a38,David Wortman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c6e1846b-519f-4333-85d6-ef71bc136efc,6afd88ec-977e-4862-bf34-67c0d56c01fe,Aileen Hollander,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f42c6a21-aabc-4a45-8375-8e5d7dd10a71,6b6c719f-ed4f-41af-ab64-d3c7d299e5ba,Gerson Brenner,null,1920,1940,null,2026-02-21 22:38:02.468692+00,null,true
+05610b61-22c4-4f8b-829d-3479087a1994,6b6c719f-ed4f-41af-ab64-d3c7d299e5ba,Isadore Shoulson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+cea9652c-ff0a-496e-bdd9-ba4f96c24888,6b6c719f-ed4f-41af-ab64-d3c7d299e5ba,Leon Feldman 1930's/1940's,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0bbda5b5-9c4b-4a38-89e7-90d2210ec06a,6f05c0d3-ae82-4bc8-a075-98338df56705,Eli Gazzer,null,1922,null,null,2026-02-21 22:38:02.468692+00,null,true
+4f5053a1-1e2c-44ed-861d-e9d6c61a11c6,6f05c0d3-ae82-4bc8-a075-98338df56705,Mordechai Weinshenker,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+41fbd7f4-a97b-4c4b-9244-1aec7d12aaf5,6f359665-4e12-4b26-9c9d-18bf513c4176,Chaim Brodsky,null,1890,null,null,2026-02-21 22:38:02.468692+00,null,true
+79b25c83-040c-4231-920b-348ae1090f2e,70b9c909-8e1a-4a7f-851f-3b71a18c09ad,Chaim Brodsky,null,1894,null,null,2026-02-21 22:38:02.468692+00,null,true
+a413b0a9-61aa-4bc3-9d42-3052dde8e44d,70b9c909-8e1a-4a7f-851f-3b71a18c09ad,Joseph H Snapir Fred Kazen,null,1930,null,null,2026-02-21 22:38:02.468692+00,null,true
+e0432b79-501a-4cff-a9e1-8ede28db829a,746a6df2-2bb5-4fc3-831a-6940e17ff63f,Louis Joseph,null,1945,1954,null,2026-02-21 22:38:02.468692+00,null,true
+764e2cc7-f132-4b3f-b9a0-0073193e5863,75731bf2-9e3f-4c0d-a5f9-adb0cad332cc,Cohen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b721c1ce-f9e7-472f-bcf6-445f0b6f29f6,75731bf2-9e3f-4c0d-a5f9-adb0cad332cc,Maurice Newhoff,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c420fb74-7dbf-43b9-9ce2-dcce0e34b622,762cb396-6e7a-4639-8ee8-d1bf09eb027a,Gerard Leher,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8d2af017-3110-4c2b-9b73-79af071276c6,762cb396-6e7a-4639-8ee8-d1bf09eb027a,Paul Teichman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6e18b700-9772-4c77-aac5-3282ee2ddfbf,762cb396-6e7a-4639-8ee8-d1bf09eb027a,Arnold Shuman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d677f46c-2eba-4f36-bf69-dc2beb11fa74,778a3faf-adac-496c-a34d-7eceb796cc19,Sheinfeld,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ed14c25f-004d-4400-bac6-0ff036db75a3,7ac861af-d082-4e4f-a0b8-6774fb69fdab,Eric Rosen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+55cf7da3-66c3-4633-94c6-c1d05ad12d45,7db9bc1a-3f56-44bf-98be-d2c0a37756c6,Ephraim Levin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c5eb1f90-401a-4ddf-8452-82f9323f85a9,7e0e810a-146a-4430-a587-c86cdae6dbd0,Shoulson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+265067d6-e11a-477c-9ddc-fe8a076280fe,7fcff5d9-a511-496a-9cb9-aff38821efe1,Brenner,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d2f3a093-e10a-4523-9db8-9ad29cf23e5d,7fcff5d9-a511-496a-9cb9-aff38821efe1,Meir Lasker,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f3fe33c6-22dd-4d4d-97e0-bcca65ff346b,7fcff5d9-a511-496a-9cb9-aff38821efe1,Edward Maline,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6fbf7397-c8af-441c-af23-ae8eb0be6630,81c5aebb-011a-4b03-83da-7020622f5739,Samuel Isenberg Samuel Cooperstein,null,1912,null,null,2026-02-21 22:38:02.468692+00,null,true
+963bcdd7-b10b-4aa3-9610-0614174657f2,82eabd3f-527f-4e88-8744-f33bbb65f793,Lauren Grabelle Herrman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6d4c6996-26d7-43b7-969b-4aeb51dbedd4,83dd23b8-67fe-4bf0-8c2f-849ae5811b5b,Meyer Selekman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+eaef5f2f-183c-4967-a231-f6c221272657,83dd23b8-67fe-4bf0-8c2f-849ae5811b5b,Peter Hyman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+cde96cac-24cc-4793-9688-3983764887f3,84bad1c0-6c4c-4a6e-a3b5-06302d956846,Berel Shapiro,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e4c71dc1-8aa7-4355-824f-d611fbc53a6a,85ab53fd-d112-430d-8e13-d784ac46bbb3,Lobberland,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+72d7113b-1004-4443-b4b2-d62b5376ed6a,85ab53fd-d112-430d-8e13-d784ac46bbb3,Shoulson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+851378ba-b929-450b-8a32-92007336310a,85ab53fd-d112-430d-8e13-d784ac46bbb3,Maurice Newhoff,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+66400af0-6604-42d0-90e6-92754368d553,863ea3b0-7d9a-41c9-84cb-0227d5c45b74,Jeffrey Schnitzer Holida,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2238c922-4163-4be3-91d0-6de4e1df3b74,8650f041-07e0-4855-a763-416c5b82002c,Joseph Jacob,null,1910,null,null,2026-02-21 22:38:02.468692+00,null,true
+3366241d-04da-4819-b0b0-82c28d1157dc,8877bd03-c986-4bf4-bce4-0f7937238b7a,Meyer Kramer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ad51eafd-3bc2-4533-b330-d0dc7c35896d,8877bd03-c986-4bf4-bce4-0f7937238b7a,Josef Serenbryansk,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8a9f0498-9c4d-496f-b3f8-0e4ecad218ac,891c5097-f77a-4427-b94c-571809b88eab,M. M. Eichler,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5d35aa6b-a361-41e2-8e92-0aa7c7b31fa9,89738bcf-e82c-45c6-b7b3-d20f8a6caf6c,Hasidic Rebbe & founder,null,1920,null,null,2026-02-21 22:38:02.468692+00,null,true
+f81c1a54-1026-4ce5-946f-f64010f8b4ec,89738bcf-e82c-45c6-b7b3-d20f8a6caf6c,Morris Twersky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+dfcd16cb-baf0-4f4b-afce-ce02fc1c8388,8afda564-081b-4edf-9c27-cf316d683efd,Israel Friedman,null,1950,null,null,2026-02-21 22:38:02.468692+00,null,true
+054ff3f6-128d-487f-8b64-e6cb0aa6f1f1,8c37f7f6-93e9-425c-b263-eb68d72b2256,Dov Brisman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+016bc175-cc2f-42e5-aeab-bcc030e79b3e,8da0adaf-5e2e-4a24-ad02-536ad561a60e,Pearlman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c9b826bc-019e-4533-8182-4ce2f50ee148,8e39866a-2e58-47fb-a2ad-2fba8834eb5c,David Wachtfogel,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+036e1bf2-d66a-4c09-8f66-71d186b580c7,8e39866a-2e58-47fb-a2ad-2fba8834eb5c,Ruebin Israel Abraham,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3a11e6c4-a6c2-4f31-863b-bfa7c5783156,8ed63d88-0116-484c-b3f9-9eb6518ebef5,Morris Goodblatt,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e662ae3b-571b-434f-a0df-03d7964e42fe,8ed63d88-0116-484c-b3f9-9eb6518ebef5,Eugene Wernick,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a11cd5b5-9420-4091-804d-26036cf8d933,8ed63d88-0116-484c-b3f9-9eb6518ebef5,Efry Specter,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6c271742-f40c-4ec3-9135-db975882a51a,8ed63d88-0116-484c-b3f9-9eb6518ebef5,Michael Bernstein,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+57d80807-8d4a-4ff0-82b7-0477651312fe,8febc158-162d-4079-bc09-57397fdfa78b,Michael Charney,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0e3b0f69-a330-44ca-b57c-12c36882e9ee,8fedc344-bffe-49c8-b28e-0f887f1666f6,David Ackerman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b0af1a19-a95e-457e-9d78-5ca2b61b58e3,8fedc344-bffe-49c8-b28e-0f887f1666f6,Sylvan Kamens,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+813604d1-b231-43f3-b4de-661cc2a78a1f,8fedc344-bffe-49c8-b28e-0f887f1666f6,Joshua Kalev,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+11fadd6f-ec2b-4e35-9668-0fe53c428c55,8ff132b8-1f71-43eb-be05-ffdf847e178c,Abraham J Levy,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2c759c3b-6dea-4ecf-9779-f537f9b8ec43,91a75e7a-f93d-42d6-9ebc-4c602e76df65,Steven Wernick Robert Rubin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+274a54b8-c58e-46be-9f22-bee35ddaba59,93f75b03-d3a3-4689-9f44-77ae276ea103,Isaac Forman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+7190d445-dced-4fb7-894e-018bfce04f5f,93f75b03-d3a3-4689-9f44-77ae276ea103,Harvey Gornish,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+143cd97a-8f59-4f28-b1ba-a970cedc0a80,93f75b03-d3a3-4689-9f44-77ae276ea103,Israel M. Axelrod,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ee19d1d8-2035-4932-b7ba-8c7c1aeb0e77,95394533-cac2-4af8-afc3-094c04363818,Isaac Stemple,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f67402ab-1f93-4edb-bc1c-c1293282288e,95394533-cac2-4af8-afc3-094c04363818,Flaum,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e623f63c-590f-4502-898a-6b9c7e1a9e44,95394533-cac2-4af8-afc3-094c04363818,Nathan Ruzanowsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+98ff910a-22a2-4479-90f3-ea5929cd437d,95394533-cac2-4af8-afc3-094c04363818,Bauer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b955cbed-917c-4aee-bb2f-570e1e8d484e,95394533-cac2-4af8-afc3-094c04363818,Solomon Rappaport,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b6c4a00a-1098-4569-bcc6-a37e5b705cf6,95394533-cac2-4af8-afc3-094c04363818,Leo Reich,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b9775415-8ed1-4672-bf60-fe8cab6ec61d,95394533-cac2-4af8-afc3-094c04363818,William Mitter,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+78e4d70d-4fbd-4dea-b689-4db1a63f419b,95394533-cac2-4af8-afc3-094c04363818,Elias Eppstein,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+70b5f662-1eda-4a82-959d-b03efeae9368,95394533-cac2-4af8-afc3-094c04363818,Nehemiah Mosessohn,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d1a91c6c-a5e9-4c27-b1e9-a4404ae324fa,95394533-cac2-4af8-afc3-094c04363818,A Garfand,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1b1cfcb5-8bdc-409d-a530-7fedb9be62cb,9606a545-84da-4c19-a1fc-e8b53a8bd4ea,Goldberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9127f4c1-4c50-4c7d-bb47-d22f4ff10573,97a5e8ec-1d05-45bf-b405-27c5cc8a2db1,Occasional rabbi Simon J. Englander,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+4ab9c563-2ec3-4d86-8c10-b28c2679e060,99dd1de2-8c0f-4c94-bc31-bf2e53c74048,Klein,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8d3a1915-f87d-4e1a-b41f-c2afa9808587,99dd1de2-8c0f-4c94-bc31-bf2e53c74048,Joseph Bosh,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0eea730c-48b2-4921-98d3-510bc7f486bd,9ad67bfe-15fe-4811-816c-b3fef66db9bd,Gross,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1b5f9c89-a15d-49fb-80a1-9f562c62a47e,9d1028c0-54be-412f-a730-be300ff15803,Berel Shapiro,null,1924,null,null,2026-02-21 22:38:02.468692+00,null,true
+729e6036-a956-4dc5-bb81-61b1e715674c,9d1028c0-54be-412f-a730-be300ff15803,"Zallman Galinsky ""Rebbe Galen""",null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+7233f98d-3aca-4588-a461-31d488464764,9f998848-2a4f-45cc-a4c6-1121483f29dc,Rabbi Leizerowski,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ce06ddd3-7321-4056-ae1e-0a50a37aa525,a09cf407-7740-47cc-b540-a4e4f1a99b69,Berel Weisman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2945565a-4c0c-4714-bf98-0a1e8391a93b,a0a25e07-8263-44c6-95c3-408121dc6d4d,Alexander Levin,null,1940,null,null,2026-02-21 22:38:02.468692+00,null,true
+c323c9e5-bc2c-4c38-aa1d-7625eabcb298,a0a25e07-8263-44c6-95c3-408121dc6d4d,Saul I Wisemon,null,1980,null,null,2026-02-21 22:38:02.468692+00,null,true
+436a1176-8050-4c66-bdb3-747a4a90ac40,a0a25e07-8263-44c6-95c3-408121dc6d4d,Samuel Seelav,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3dcd5fcf-1a9f-4677-ac2f-8a4ff7e709b7,a0a25e07-8263-44c6-95c3-408121dc6d4d,David Kratzok,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0731d686-f36a-4536-9d05-5ddc4678c9e2,a0a25e07-8263-44c6-95c3-408121dc6d4d,Chayim Jacob Widerewitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+46983117-1136-4dd2-b4d0-2076753b3c42,a0a25e07-8263-44c6-95c3-408121dc6d4d,Moraharm,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+74ccfb67-aac2-46fd-b77c-de08ff00b4f9,a0f2da8f-fc33-4ae8-a95d-202d848f94ff,Sam Karfin,null,1925,null,null,2026-02-21 22:38:02.468692+00,null,true
+6ad55aa0-6100-418b-92b3-ae50d2893d27,a0f2da8f-fc33-4ae8-a95d-202d848f94ff,Jacob Landau,null,1930,null,null,2026-02-21 22:38:02.468692+00,null,true
+6ca92461-e05b-4cc4-85ee-2537326ad378,a197b03e-74e7-4f1d-bce1-13e2546b0b8e,Monastreichner Rebbe,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+20678c02-a9f9-4c0a-890d-5d99af571b12,a1fcbb97-6d28-46bf-89ae-a143cdacc6af,Joseph Herzog,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9dfce4d5-31a8-4301-b38d-c37df58b4676,a1fcbb97-6d28-46bf-89ae-a143cdacc6af,Craig Axler,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c267dc45-3295-4266-8f02-50fe3eb2a3c5,a3e7fc9d-23d0-4c38-a26b-0adfb2bb043d,Yerachmiel Gedalia Zucker Associated with the Novominsker Rebbe in the 1990's,null,1937,null,null,2026-02-21 22:38:02.468692+00,null,true
+88509d55-fa9b-4d89-8dc9-5e06bd436091,a50666fe-e7d3-456a-a0a5-db22d25cd087,Rosen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2d21d05a-8942-4ecc-9118-d4cd3da6ef69,a536be87-f80e-4663-92bf-453c670dc266,B H Gotthelf,null,1847,null,null,2026-02-21 22:38:02.468692+00,null,true
+a1832c6d-ba33-4a7f-93d2-da901a3aa831,a536be87-f80e-4663-92bf-453c670dc266,L Naumburg,null,1850,null,null,2026-02-21 22:38:02.468692+00,null,true
+3e8d8dc2-eb45-4c50-8757-a1bfaa9d393b,a536be87-f80e-4663-92bf-453c670dc266,Solomon Deutsch,null,1857,null,null,2026-02-21 22:38:02.468692+00,null,true
+d5e72d23-6f63-4193-86af-e51d79ce8639,a536be87-f80e-4663-92bf-453c670dc266,David Einhorn,null,1861,null,null,2026-02-21 22:38:02.468692+00,null,true
+87a1982e-fc4c-43fa-8568-9cc30c61c9a5,a536be87-f80e-4663-92bf-453c670dc266,Samuel Hirsch,null,1866,null,null,2026-02-21 22:38:02.468692+00,null,true
+73b2a685-684f-4e92-af08-5d63b7e78f43,a536be87-f80e-4663-92bf-453c670dc266,Joseph Krauskopf,null,1887,null,null,2026-02-21 22:38:02.468692+00,null,true
+3b55f227-b74f-46db-9fc2-eab846a03c1c,a536be87-f80e-4663-92bf-453c670dc266,…William Fineshriber,null,1924,null,null,2026-02-21 22:38:02.468692+00,null,true
+701a5259-daa3-4bcb-8dc1-afcbfebe0c8f,a536be87-f80e-4663-92bf-453c670dc266,Lance Sussman: Benjamin P. David (2023 -,null,2023,null,null,2026-02-21 22:38:02.468692+00,null,true
+6ba80d94-75df-4c18-96ae-e45a79ef0b80,a536be87-f80e-4663-92bf-453c670dc266,Simon Maslin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3488dbad-b457-43dd-8c73-f364baf51d4f,a5ca4f98-4fcb-4011-b5f9-7db4924b3ca3,Joe Grossman,null,1910,null,null,2026-02-21 22:38:02.468692+00,null,true
+b2a29fef-beda-4c4e-b6e2-dd4395971203,a5ca4f98-4fcb-4011-b5f9-7db4924b3ca3,Kunin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5308f851-3753-424d-8448-aed4e00d2ec4,a5ca4f98-4fcb-4011-b5f9-7db4924b3ca3,Yohlin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e8ee8bbb-0215-4a8d-a4ea-e6079c5e9068,a973e4c7-8a44-41b1-8599-b04f47dd0bae,Victor Rosenstein Solomon Kauffman,null,1893,null,null,2026-02-21 22:38:02.468692+00,null,true
+e7eb56b1-dde5-4075-bfc3-47c79f9d054c,a9d71be9-d5cb-45d5-bea6-2b09e7d2c7fb,Fyne,null,1940,null,null,2026-02-21 22:38:02.468692+00,null,true
+f336d013-3730-4d01-a4f0-d73239e20e40,a9d71be9-d5cb-45d5-bea6-2b09e7d2c7fb,Leon Hurowitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+cc402a70-2d32-4037-a56e-631b20f2c5e0,a9d71be9-d5cb-45d5-bea6-2b09e7d2c7fb,Isaac Sofronski,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5ac83180-544d-4b28-91a4-95cf1c89d41f,a9d71be9-d5cb-45d5-bea6-2b09e7d2c7fb,David B. Swiren,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+63186339-be44-4436-a506-53138f2576e4,a9d71be9-d5cb-45d5-bea6-2b09e7d2c7fb,Maurice Novoseller,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+052b3f44-59f2-451e-87ee-5c699b1354f9,acd4becb-66e2-4934-bb63-2c94192403b6,Morris Chairman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f715e143-75bb-414d-ad3f-0e61e33542e0,acea28c3-06f0-4221-a984-14a8fe7b3ae5,Glenn Jacob,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9827924b-a53c-41b6-bb17-32f346c2ae63,adcaed40-4732-4e22-b909-f68623a6b29a,Matt Edward Tenenbaum,null,1929,null,null,2026-02-21 22:38:02.468692+00,null,true
+abd31ec1-ad0c-4c1d-b821-0e1b04b8862b,adcaed40-4732-4e22-b909-f68623a6b29a,Maurice Newhoff,null,1960,null,null,2026-02-21 22:38:02.468692+00,null,true
+2e718bf2-46b9-4976-8198-004961fc71f4,ae8b5b67-2cf4-48bb-970f-91eba7e6ce99,Marvin Nathan,null,1900,null,null,2026-02-21 22:38:02.468692+00,null,true
+7643df2f-ba6f-4057-95b7-556d030d7bf2,ae8b5b67-2cf4-48bb-970f-91eba7e6ce99,E. Millgram,null,1930,null,null,2026-02-21 22:38:02.468692+00,null,true
+f96d5d1b-28a1-4a6c-a57f-31ccc2c0d169,ae8b5b67-2cf4-48bb-970f-91eba7e6ce99,Mathew Rosen,null,1960,null,null,2026-02-21 22:38:02.468692+00,null,true
+830bcf26-9d42-4524-8ed0-fde64a9e69a9,ae8b5b67-2cf4-48bb-970f-91eba7e6ce99,Abraham,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8eb95771-5f7d-4e1d-9283-120d860f1fae,af314ab7-e728-499e-b65f-adf918ad0709,Saul Grife,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9888b4bb-49e1-4927-a622-ec471fb3f896,b08f035f-45cf-4895-ba74-3bd39e6a6435,Abraham David Newman Morris Pickholz,null,1950,null,null,2026-02-21 22:38:02.468692+00,null,true
+848d0cbd-79c6-4e71-81c2-c48c9ea2f6fe,b0c91b48-43b0-496b-aadc-aa93d32d70da,Israel Lubarsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0f011197-b3cb-45cf-8703-d85042d0d0ab,b15a6ea9-c375-416c-8578-986f2cb521b6,Bachrach: Pincus Turman: Eleazer Bunin Joseph Konovitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+4557f8dd-1ac2-4a2c-be99-34e8e1b2741b,b15a6ea9-c375-416c-8578-986f2cb521b6,Issacher Levin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d67c5276-a98e-410e-be81-bb1079c934c9,b15a6ea9-c375-416c-8578-986f2cb521b6,Gerald Lerer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3e6b1679-49ca-489c-91d8-4da6ce6f1382,b15a6ea9-c375-416c-8578-986f2cb521b6,Howard Hersch,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5f26d62b-85cf-4db7-8f1e-d95662576721,b309cceb-e370-4e13-834c-9d0f767401af,Alexander Levine,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a1f6fc8a-17a8-444c-9c75-252b10e55025,b309cceb-e370-4e13-834c-9d0f767401af,Harold Romirowsk,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5c156e6e-8633-4f09-9e93-18eea7377161,b36590f8-dc77-4f58-8985-edbe3455ca93,A. Hersh Hershler,null,1897,1912,null,2026-02-21 22:38:02.468692+00,null,true
+20bf6f8b-3e74-4eca-b7f2-74f82c090f7d,b6a099d1-207e-4416-beb0-c8a3142f5629,Joseph Grossman,null,1910,null,null,2026-02-21 22:38:02.468692+00,null,true
+6d550187-f542-4118-91e7-c3bdca50a6d9,b71ffc93-3496-4727-939f-fcb15d37ed53,Abraham Silver,null,1907,1912,null,2026-02-21 22:38:02.468692+00,null,true
+662f388a-3771-447b-ae11-ceb5298df1e1,b71ffc93-3496-4727-939f-fcb15d37ed53,Bernard Levinthal,null,1912,null,null,2026-02-21 22:38:02.468692+00,null,true
+f0ff71c2-be12-48c7-84a7-3f432c27e71d,b71ffc93-3496-4727-939f-fcb15d37ed53,Frankel,null,1914,null,null,2026-02-21 22:38:02.468692+00,null,true
+ff620b3f-7175-43bb-b5fa-df57c3224d0f,b8028e3c-fa7d-4ff2-8bc5-1d88c096dc2e,Abe Garfinkle,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c46eda2c-e56b-4f4b-b2c0-7efc7ec0a0db,b8028e3c-fa7d-4ff2-8bc5-1d88c096dc2e,David Paralinsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8b7ae82b-e71a-4559-9d9c-9a614061d2c0,b91808cd-6661-43f6-b603-3493b44cb4bd,Isidore Budick,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0458591c-ebc9-4677-9f2c-52a379616340,b91808cd-6661-43f6-b603-3493b44cb4bd,Erwin Weiss,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+4decf503-3cb8-4f82-99e0-171f3f796a9a,bb76b97d-2975-4b6b-b163-9428c279dc4d,Israel M. Sacks,null,1885,null,null,2026-02-21 22:38:02.468692+00,null,true
+69458418-473b-4289-9282-3427791162d4,bb76b97d-2975-4b6b-b163-9428c279dc4d,Eleazer Kleinberg,null,1886,null,null,2026-02-21 22:38:02.468692+00,null,true
+aee734fb-ab1e-451d-a17d-6c23e19180ef,bb76b97d-2975-4b6b-b163-9428c279dc4d,Bernard L. Levinthal,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8ca38d07-a2ce-4c3f-89f8-6c64efea1ffe,bb76b97d-2975-4b6b-b163-9428c279dc4d,Wapner family involved since the 1890's. Yochonon Goldman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d906caec-ef3f-4f4a-9282-ee3439d2b7a6,c1ab9902-d748-4a0e-a96c-4e8d21b17d39,Samuel Fredman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9917ea7d-27b2-468f-8f5a-bd3ad9bc4810,c1ab9902-d748-4a0e-a96c-4e8d21b17d39,Ferdinand Becker,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3338577f-c1ac-4d77-b2a4-c79f3cde6ef6,c1ab9902-d748-4a0e-a96c-4e8d21b17d39,Emanuel Schreiber,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d85f0755-6bc0-44df-8190-bde09bf0c8d8,c1ab9902-d748-4a0e-a96c-4e8d21b17d39,Ludvig Roeder,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+18fa7426-579b-4b3d-a325-f172bce66301,c1db7691-3fd2-4388-ba29-71f96be856e8,Dovid Max,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e107facc-5ac4-4ef1-bad8-a0512eb5ac72,c4c48f93-4d73-4125-bec0-184eeb6340d2,Sherman Novoseller,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+c475b5db-bf0b-42a9-82ae-a1931bb84759,c4c48f93-4d73-4125-bec0-184eeb6340d2,Arniel Novoseller,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2cb1cc3e-0d23-4aff-8249-ad5d09ff060b,c737533e-081c-44d1-8249-96700a68c0a3,Marvin Goldman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e923902a-771f-4bd2-8456-988878ba7c1e,c737533e-081c-44d1-8249-96700a68c0a3,Meyer Kramer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0c9b30c8-be8e-46bb-b01f-01d3f5114554,c737533e-081c-44d1-8249-96700a68c0a3,Steve Sacks,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d1c9c644-b6e2-49d6-a5a3-e1a3d12c1b62,c8c46e04-336b-4cec-8aea-f1f15011609a,Meyer Kramer,null,1940,null,null,2026-02-21 22:38:02.468692+00,null,true
+c11cf57e-d4e3-45d8-afa4-ecb6f5657c44,ca1a11f6-123e-40e2-96f2-599577ea52de,Aaronberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1292143a-c915-44c0-91d1-152828b02c27,ca1a11f6-123e-40e2-96f2-599577ea52de,Aaron Dektor,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+48d65635-7ae6-46a0-a0de-3ebab8dffc5d,cb4d22eb-00e8-46c7-a9c8-8b2450d06b2a,Nathan Bernstein,null,1948,null,null,2026-02-21 22:38:02.468692+00,null,true
+ab8df0e9-b48b-4bf0-a3b3-6fa3cf8b6dfb,cb4d22eb-00e8-46c7-a9c8-8b2450d06b2a,Samuel Herman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a9910b7f-c169-4a0a-a7cc-ee0f5cc8e6ff,cb4d22eb-00e8-46c7-a9c8-8b2450d06b2a,Irv Halberstam,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9988c999-bc42-4fcf-985a-03e9b65998db,cc9bc5d8-20ed-40b9-845e-03ed2b49caa3,Abraham Novitsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+92fb3c1c-c6ec-4cf9-8994-80822805625f,cd8ab357-69da-43f9-8247-64d96ab5365d,Mordechai Terebelo,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6d05df13-1a30-4940-92e3-bb7870dbae0f,cd8ab357-69da-43f9-8247-64d96ab5365d,Yehoshua Kanganoff,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+67e00df6-f9f1-402b-815e-257133c17ddf,ce59b73a-7eee-4870-9d0b-c7a55bfb091a,Joshua Waxman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ea443373-7a63-484f-806c-aedb0c12ab38,cee453c6-570b-4aec-b983-36110018e6ee,Gershom Mendez Seixas,null,1780,null,null,2026-02-21 22:38:02.468692+00,null,true
+2553caca-4944-4663-802e-d327d4626f49,cee453c6-570b-4aec-b983-36110018e6ee,Jacob Raphael Cohen,null,1784,1811,null,2026-02-21 22:38:02.468692+00,null,true
+43ff5303-a7a6-462c-aee9-cb2b03e080fd,cee453c6-570b-4aec-b983-36110018e6ee,Emanuel Nunes Carvalho,null,1815,null,null,2026-02-21 22:38:02.468692+00,null,true
+4a5ec8f1-77c7-4e7a-b294-bb688e4e62fa,cee453c6-570b-4aec-b983-36110018e6ee,Abraham Israel Keys,null,1824,null,null,2026-02-21 22:38:02.468692+00,null,true
+1bc7662a-c2e8-4449-9e28-c08feb74ae00,cee453c6-570b-4aec-b983-36110018e6ee,Isaac Leeser,null,1829,null,null,2026-02-21 22:38:02.468692+00,null,true
+a3cabc3e-40a4-48f1-9785-b0b1b2bb15db,cee453c6-570b-4aec-b983-36110018e6ee,Sabato Morais,null,1851,null,null,2026-02-21 22:38:02.468692+00,null,true
+44cd61e9-ec43-414f-a544-12783d0874b3,cee453c6-570b-4aec-b983-36110018e6ee,Leon H. Elmaleh,null,1898,null,null,2026-02-21 22:38:02.468692+00,null,true
+346e037d-8f8c-4f54-b96f-0e160bbfbfa6,cee453c6-570b-4aec-b983-36110018e6ee,Julius H. Greenstone …Albert Gabbai,null,1900,null,null,2026-02-21 22:38:02.468692+00,null,true
+03a13772-dce6-43a3-9d48-30871c85e2c1,cfcbf275-8098-4ba3-b7d8-3d3492b057c6,Jacob Chinitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6f5330a8-eb30-4bc1-a306-e43d0d2d94e6,d0a33c1d-1100-45e4-a632-078f9c0c2708,Jacob Rabinowitz,null,1927,null,null,2026-02-21 22:38:02.468692+00,null,true
+4e30e0bf-1dc0-4bf2-a767-92de9e5d7286,d0cfe26e-df3b-458d-b2f6-f573bd838499,Oscar Levin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2a8acd1a-53c8-4dd8-a928-5c5a6ecc1322,d0cfe26e-df3b-458d-b2f6-f573bd838499,Harry A Coles,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+23b05fe8-08d2-4632-a696-bdf702cdc932,d289a58c-c0cd-4d8f-ba4f-128202eae609,Benson Scoff,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+03476523-2bfd-400f-b616-b6bf8aa9fe1c,d2ca7f1f-9afb-4ef6-8c1c-edbbfa4cd340,Samuel Levin,null,1919,null,null,2026-02-21 22:38:02.468692+00,null,true
+05b81dd3-a7fd-4fb5-a39f-2a43e01043cd,d310cb50-8f81-465d-89d8-34d1ceb9ddf5,Ms. Sacks,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3f757c9f-f09e-464a-b829-37ecddf2694c,d310cb50-8f81-465d-89d8-34d1ceb9ddf5,Axelrods,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+75505756-bbb0-41d8-9b78-15d252d92ee0,d310cb50-8f81-465d-89d8-34d1ceb9ddf5,Caplans,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ae3191ba-0c94-482c-b455-60c1035e86c8,d58d74d2-5af1-42e9-985a-5aa35e38fac4,Shamas: Morris Stern,null,1929,null,null,2026-02-21 22:38:02.468692+00,null,true
+0033bae2-6922-4e9a-8d2b-009636e7a718,d61c8985-b2e3-4466-b80b-9b4dce38474c,Meyer Schuster,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a0138171-baf6-4e64-a56a-692e09b5d4cd,d61c8985-b2e3-4466-b80b-9b4dce38474c,Mordche Young,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+234952aa-b333-4327-ae92-3181f383f5ec,d61c8985-b2e3-4466-b80b-9b4dce38474c,Avaraham Stenberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+120d06d8-a13a-4cd4-92d5-7fa5efa729d7,d6a83ad5-bd59-49f9-b8d1-7131a95b6451,Elliott Perlstein,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+d312757e-cfc6-43ce-a538-fa39677da183,d730ddd0-d3f1-4af1-9416-7ee3cc6246eb,Hyman Shestack Albert Paupko,null,1918,null,null,2026-02-21 22:38:02.468692+00,null,true
+2c602997-0a62-4237-a671-bdd0137d47a0,d7b76ae1-e83b-4e53-836a-ecba41828847,Gottlieb,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+352e0051-3f15-48bd-8419-dce03dd14fe2,d87bf8c1-4ccc-406a-b7c2-100eba53d0a6,David B. Swiren,null,1921,null,null,2026-02-21 22:38:02.468692+00,null,true
+cfb874ce-4076-41aa-bce1-1579655acf90,da340bb7-d1f8-493b-9d84-6bd3b49ee0a8,Linda Holtzman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5a6140fb-ced8-4042-9628-2666f07421a9,da340bb7-d1f8-493b-9d84-6bd3b49ee0a8,Yael Levy,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+03e23667-886f-4c64-bf8b-ec0e6d0a26b1,dbe836c8-9bab-4c07-b377-df2b9db197dd,Jon Cutler,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+445eb10e-183e-491b-9878-d9d756469bab,dc048af7-f5a9-4535-ab3d-fbb8dc34b5a7,Elias Beller,null,1914,null,null,2026-02-21 22:38:02.468692+00,null,true
+b4083831-0655-4332-938e-8b92e3b40460,dc17c4d0-8fc7-4dca-b5dc-aa8e5a75bdfc,Bernard Levinthal before moving to B'nai Abraham,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b9725286-8e64-4512-91d8-c34a94f54bd6,dc654794-840c-41d7-9378-620f5b2e25d3,Morris Dembowitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1c92926a-cd63-4868-b41f-d831e8c574fe,dc9b29c0-4fbd-4724-917a-1bf245de90a7,Abraham Shemtov,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+aa10d0f4-1024-471d-a0bc-aea3253f6193,dc9b29c0-4fbd-4724-917a-1bf245de90a7,Zalman Lipsker,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+bdf8e33e-4330-48a7-8260-e3a649f594b1,e020351e-812b-4881-a32e-99fe755959ee,Mortimer Cohen,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+daba395f-3825-4ed9-8c6c-a32c02548785,e020351e-812b-4881-a32e-99fe755959ee,David Glanzberg-,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+48be75aa-b31f-42e2-91c3-42043265a596,e1b3b8e3-5112-4f4d-8565-ac346a951b13,Paul Teichner,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+59ed7c4a-c060-4bf3-b44c-8657db3bcb8d,e267e06d-2c98-472b-8fbe-a839924ae17c,Abraham A. Levene,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1b984474-31d0-4fa7-847d-0b9db304a50a,e267e06d-2c98-472b-8fbe-a839924ae17c,Abraham Shmidman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+9e96531d-51ca-409d-aa87-2f5bc09e3fdd,e3ce6708-81d0-4a49-b037-6dc49548c57a,Moses Judelson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+03831567-5057-4c37-bf60-186e70965ecb,e4eb64d2-d04e-4550-b478-afc491c60e1b,Zwi H. Lederberg,null,1950,1960,null,2026-02-21 22:38:02.468692+00,null,true
+79ff23a6-f0fb-4dae-8fe8-697d95bc897b,e4eb64d2-d04e-4550-b478-afc491c60e1b,Ben Karafin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8bc5aadb-f331-4f84-9c7e-b52778c8eb5a,e561dcc7-13e7-4c30-8440-06384f37751c,Morris Ravinsky,null,1920,null,null,2026-02-21 22:38:02.468692+00,null,true
+bb365433-9d07-4295-8a23-046dc8474705,e7ee0ad1-0097-4007-958c-137ca7140220,Ben Hoffman,null,1904,null,null,2026-02-21 22:38:02.468692+00,null,true
+8f6004d4-949f-4f6a-98ea-811e5e25ecd7,e7ee0ad1-0097-4007-958c-137ca7140220,Morris Ravisky,null,1928,null,null,2026-02-21 22:38:02.468692+00,null,true
+ffe5cff6-3c5c-4a7b-9b42-d05fd6b26706,e7ee0ad1-0097-4007-958c-137ca7140220,Abraham Slivko,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+71b257bc-e4c8-48ad-ba22-0dc53f4e0de0,ef0294df-4671-4073-93c9-0fe2e82239ea,Yitzchok Feldman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+2f837e24-1669-415d-bf2e-1292acb5c531,efbb1085-6a31-48e3-bd8a-1e54ba388aed,Morris H Kaaplander,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+4d6e8380-91fc-48d7-a2fa-1143627bb3b3,efbb1085-6a31-48e3-bd8a-1e54ba388aed,Max L Forman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+23d82eeb-6a88-44cb-b63d-b0920d84c37f,efbb1085-6a31-48e3-bd8a-1e54ba388aed,Phillip Tatz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+22abd666-6b01-41a1-99ef-6769239924c3,efd8faf5-742c-4e55-b412-2491313ab4b6,Arthur Lavinsky,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f6bb1732-9f4c-4264-a6a2-9fb1f050491b,f0150541-1754-4c78-9a7a-69ef997d1b02,Aaron Gold,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ff88365f-7d26-406c-8f0a-bba9f966b78d,f0150541-1754-4c78-9a7a-69ef997d1b02,David Clayman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+6973a39b-b706-487b-ab7f-3740b4a94f67,f0150541-1754-4c78-9a7a-69ef997d1b02,Louis Sacks,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+611f16c0-a5cb-4e90-96ff-d88c074e09c6,f17ab692-7db9-4a0d-9e1d-250440bbf859,Berrel Shapiro,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b3fc8c8f-afcf-4d34-8c7d-f94159159e30,f17ab692-7db9-4a0d-9e1d-250440bbf859,Osher Zelig Lipschitz,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+0472d198-3c0d-419e-8891-d715edce7c32,f18d8af0-942b-44d8-9eda-c79c86975cf0,Alan Iser,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+547bfbd1-09e2-472c-a014-d79c86f01254,f1fd1129-f431-49bd-93c3-c4f2a3c5239e,Sidney Greenberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+bd825579-6f76-48fb-8b8a-32abdef0e415,f1fd1129-f431-49bd-93c3-c4f2a3c5239e,Howard Addison,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+8b203c5a-c56e-4840-9038-ed743aa82afd,f1fd1129-f431-49bd-93c3-c4f2a3c5239e,Adam Wohlberg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+a1e46d92-9e51-4ab0-85ab-67f3106231fb,f1fd1129-f431-49bd-93c3-c4f2a3c5239e,Morris Shoulson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+1214b052-618c-4f95-8bc8-df69c2d8b46e,f27a038f-c44f-489d-905d-4f5c1892101f,Oscar Levin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f1eebeae-b224-4537-a170-c614edb3cff7,f27a038f-c44f-489d-905d-4f5c1892101f,Paul Hait,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b52ca713-8073-4870-97a3-c2cbd0dfb368,f27a038f-c44f-489d-905d-4f5c1892101f,Louis Leifer,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ddf4dcc3-bc96-4f47-a83a-c0c7c7b99a4f,f27a038f-c44f-489d-905d-4f5c1892101f,Solomon Shoulson,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3f3c778d-313f-4264-9645-814b47954bd1,f27a038f-c44f-489d-905d-4f5c1892101f,Theodore Saunders,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+5149159c-9e11-4752-88f1-48c02899364f,f34c6a64-a08d-403b-b9f2-1db913c6eddd,Bruce Harbater,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+493ba59b-95aa-4e7d-b07a-d70f54aaf6e9,f34c6a64-a08d-403b-b9f2-1db913c6eddd,Brian Walt,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b1970fe5-8aa0-4308-9cb2-229ca9b65915,f488bafa-af7b-4cb9-90b1-059863c92f12,Joseph Snapir Menachem Schmidt,null,1940,null,null,2026-02-21 22:38:02.468692+00,null,true
+d15d1452-541f-43a0-854b-e03f2ffd832f,f67582a6-50e8-41c0-b714-19aec7470762,Gerson Brenner Max Corchnoy,null,1916,null,null,2026-02-21 22:38:02.468692+00,null,true
+b4a2d225-8095-439d-9165-66df2798abbe,fa0ab9fa-d343-49d3-b3b2-c258ea0c6d22,Amiram Gabay,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+dd79e668-f847-4998-966d-13c6f3f923d4,fafb2b97-aeb5-4875-bbab-9b0b36850119,Elliot Holin,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+3e3e04f3-c962-44af-aa1b-92c3bfb22418,fb8fa182-431a-43f1-b4d1-15bfb9d2143e,Meir Leib Barg,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+b8a052ad-a410-4f67-84ee-7e5d30133efe,fd6a54ee-bf66-4185-a7c6-069c9c079b49,David Abromitz,null,1900,null,null,2026-02-21 22:38:02.468692+00,null,true
+471ac57b-7c94-459a-8ea9-d819a508abc5,fd94ba57-0153-4457-a54e-c3074170436e,Leo Landman,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+f208646c-e0be-4c12-ac95-c32837fdc75d,fe134100-50ed-4aae-a134-03f326c0d400,Baruch Spivak,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+e47e957c-bd5a-44eb-8a1f-10cbe08abd91,fe775442-6018-445f-a10f-8b9d9e0c1763,Herman Klein,null,1953,null,null,2026-02-21 22:38:02.468692+00,null,true
+d0c1a9a2-ec40-4561-935e-40b0b1363ac9,ff640006-7305-4809-b952-b12d4814b7d8,William Fierverker,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+42245b56-f1cc-436d-80c2-6ad8932c337c,ff640006-7305-4809-b952-b12d4814b7d8,Jeff Pivo,null,null,null,null,2026-02-21 22:38:02.468692+00,null,true
+ebcb290e-b76b-4f0e-a98f-974024aebe22,ff8b6a4b-1925-4cb3-a5ca-af7724880738,Simon,null,1922,null,null,2026-02-21 22:38:02.468692+00,null,true
