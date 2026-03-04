@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import MiniMap from '@/components/map/MiniMap'
+import SuggestEditButton from '@/components/edit/SuggestEditButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -205,6 +206,14 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                 🗺️ View on Map
               </Link>
             )}
+          </div>
+
+          {/* Suggest edit — auth-aware, sits at bottom of hero card */}
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+            <SuggestEditButton
+              synagogue={synagogue}
+              primaryNeighborhood={primaryAddr?.neighborhood ?? null}
+            />
           </div>
         </div>
 
