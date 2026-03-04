@@ -62,6 +62,14 @@ const STATUS_BADGE: Record<string, string> = {
   unknown: 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-700',
 };
 
+// Applied in both light and dark mode: suppress Google's POI and transit clutter
+// so synagogue markers read as the primary layer on the map.
+const BASE_MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { featureType: 'poi',              elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi',              elementType: 'labels.text', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.station',  elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+];
+
 // Google Maps night-mode style
 const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
   { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
@@ -306,6 +314,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
   const [startYear, setStartYear] = useState<number>(1745);
   const [endYear, setEndYear] = useState<number>(2024);
   const [visibleCount, setVisibleCount] = useState(0);
+  const [hiddenStatuses, setHiddenStatuses] = useState<Set<string>>(new Set());
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const searchParams = useSearchParams();
@@ -437,7 +446,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
       mapTypeControl: false,
       streetViewControl: true,
       fullscreenControl: true,
-      styles: isDark ? DARK_MAP_STYLES : [],
+      styles: isDark ? [...BASE_MAP_STYLES, ...DARK_MAP_STYLES] : BASE_MAP_STYLES,
     });
 
     infoWindowRef.current = new window.google.maps.InfoWindow();
@@ -445,7 +454,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
     // Listen for OS theme changes and update map style dynamically
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const onThemeChange = (e: MediaQueryListEvent) => {
-      mapInstanceRef.current?.setOptions({ styles: e.matches ? DARK_MAP_STYLES : [] });
+      mapInstanceRef.current?.setOptions({ styles: e.matches ? [...BASE_MAP_STYLES, ...DARK_MAP_STYLES] : BASE_MAP_STYLES });
     };
     mq.addEventListener('change', onThemeChange);
     return () => mq.removeEventListener('change', onThemeChange);
@@ -462,6 +471,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
       const addr = s.addresses?.[0];
       if (!addr) return false;
       if (filteredIds !== null && !filteredIds.has(s.id)) return false;
+      if (hiddenStatuses.has(s.status ?? 'unknown')) return false;
       const founded = s.founded_year ?? 0;
       const closed = s.closed_year ?? 9999;
       // Show synagogues whose operational period overlaps with [startYear, endYear]
@@ -498,13 +508,15 @@ function MapClientInner({ synagogues }: MapClientProps) {
             }
           : {
               url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
-                  `<circle cx="16" cy="16" r="14" fill="${color}" stroke="${borderColor}" stroke-width="3"/>` +
-                  `<text x="16" y="16" font-size="11" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+                `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">` +
+                  `<defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%">` +
+                  `<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.35"/></filter></defs>` +
+                  `<circle cx="18" cy="18" r="15" fill="${color}" stroke="${borderColor}" stroke-width="2.5" filter="url(#s)"/>` +
+                  `<text x="18" y="18" font-size="12" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
                   `</svg>`
               )}`,
-              scaledSize: new window.google.maps.Size(32, 32),
-              anchor: new window.google.maps.Point(16, 16),
+              scaledSize: new window.google.maps.Size(36, 36),
+              anchor: new window.google.maps.Point(18, 18),
             },
         zIndex: isFocused ? 9999 : 1,
         animation: isFocused ? window.google.maps.Animation.BOUNCE : undefined,
@@ -548,7 +560,16 @@ function MapClientInner({ synagogues }: MapClientProps) {
     });
 
     setVisibleCount(filtered.length);
-  }, [isLoaded, synagogues, startYear, endYear, filteredIds]);
+  }, [isLoaded, synagogues, startYear, endYear, filteredIds, hiddenStatuses]);
+
+  function toggleStatus(status: string) {
+    setHiddenStatuses(prev => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status);
+      else next.add(status);
+      return next;
+    });
+  }
 
   function focusOnSynagogue(syn: Synagogue) {
     const addr = syn.addresses[0];
@@ -757,15 +778,36 @@ function MapClientInner({ synagogues }: MapClientProps) {
           </div>
         </div>
 
-        {/* Legend overlay */}
+        {/* Legend overlay — each row is a toggle button */}
         <div className="absolute top-4 right-4 bg-white dark:bg-gray-900 rounded-lg shadow-md px-3 py-2 z-10 text-xs border border-transparent dark:border-gray-700">
-          <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</p>
-          {Object.entries(STATUS_COLORS).map(([status, color]) => (
-            <div key={status} className="flex items-center gap-2 mb-1">
-              <span style={{ background: color }} className="inline-block w-3 h-3 rounded-full" />
-              <span className="capitalize text-gray-600 dark:text-gray-400">{status}</span>
-            </div>
-          ))}
+          <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Status</p>
+          {Object.entries(STATUS_COLORS).map(([status, color]) => {
+            const isHidden = hiddenStatuses.has(status);
+            return (
+              <button
+                key={status}
+                onClick={() => toggleStatus(status)}
+                title={isHidden ? `Show ${STATUS_LABELS[status]}` : `Hide ${STATUS_LABELS[status]}`}
+                className={`flex items-center gap-2 mb-1 w-full text-left rounded px-1 py-0.5 transition-opacity hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer${isHidden ? ' opacity-40' : ''}`}
+              >
+                <span
+                  style={{ background: isHidden ? '#9ca3af' : color }}
+                  className="inline-block w-3 h-3 rounded-full flex-shrink-0"
+                />
+                <span className={`capitalize${isHidden ? ' line-through text-gray-400 dark:text-gray-600' : ' text-gray-600 dark:text-gray-400'}`}>
+                  {status}
+                </span>
+              </button>
+            );
+          })}
+          {hiddenStatuses.size > 0 && (
+            <button
+              onClick={() => setHiddenStatuses(new Set())}
+              className="mt-1 w-full text-left text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Show all
+            </button>
+          )}
         </div>
       </div>
     </div>
