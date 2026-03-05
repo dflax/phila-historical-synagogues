@@ -10,6 +10,7 @@ import SuggestHistoryButton from '@/components/edit/SuggestHistoryButton'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 import NavAuth from '@/components/auth/NavAuth'
 import { useUserRole } from '@/hooks/useUserRole'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,29 +158,50 @@ function TrashButton({ onClick }: { onClick: () => void }) {
   )
 }
 
+interface PendingDelete {
+  endpoint: string
+  id: string
+  label: string
+  remove: (id: string) => void
+}
+
 export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages }: Props) {
   const { isEditor } = useUserRole()
 
-  const [addresses,   setAddresses]   = useState<Address[]>(initialAddresses)
-  const [history,     setHistory]     = useState<HistoryEntry[]>(initialHistory)
-  const [rabbis,      setRabbis]      = useState<Rabbi[]>(initialRabbis)
-  const [images,      setImages]      = useState<Image[]>(initialImages)
-  const [lightboxImg, setLightboxImg] = useState<Image | null>(null)
+  const [addresses,     setAddresses]     = useState<Address[]>(initialAddresses)
+  const [history,       setHistory]       = useState<HistoryEntry[]>(initialHistory)
+  const [rabbis,        setRabbis]        = useState<Rabbi[]>(initialRabbis)
+  const [images,        setImages]        = useState<Image[]>(initialImages)
+  const [lightboxImg,   setLightboxImg]   = useState<Image | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError,   setDeleteError]   = useState<string | null>(null)
 
-  async function handleDelete(
-    endpoint: string,
-    id: string,
-    label: string,
-    remove: (id: string) => void,
-  ) {
-    if (!window.confirm(`Are you sure you want to delete this ${label}? This cannot be undone.`)) return
+  function requestDelete(endpoint: string, id: string, label: string, remove: (id: string) => void) {
+    setDeleteError(null)
+    setPendingDelete({ endpoint, id, label, remove })
+  }
+
+  async function executeDelete() {
+    if (!pendingDelete) return
+    setDeleteLoading(true)
+    setDeleteError(null)
+    const { endpoint, id, remove } = pendingDelete
     const res = await fetch(`/api/${endpoint}/${id}`, { method: 'DELETE' })
+    setDeleteLoading(false)
     if (res.ok) {
       remove(id)
+      setPendingDelete(null)
     } else {
       const body = await res.json().catch(() => ({}))
-      alert(body.error ?? 'Delete failed. Please try again.')
+      setDeleteError(body.error ?? 'Delete failed. Please try again.')
     }
+  }
+
+  function cancelDelete() {
+    if (deleteLoading) return
+    setPendingDelete(null)
+    setDeleteError(null)
   }
 
   const primaryAddr = addresses[0] ?? null
@@ -298,7 +320,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                         </div>
                       </div>
                       {isEditor && (
-                        <TrashButton onClick={() => handleDelete('addresses', addr.id, 'address', id => setAddresses(prev => prev.filter(a => a.id !== id)))} />
+                        <TrashButton onClick={() => requestDelete('addresses', addr.id, 'address', id => setAddresses(prev => prev.filter(a => a.id !== id)))} />
                       )}
                     </div>
                   ))}
@@ -335,7 +357,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                         )}
                       </div>
                       {isEditor && (
-                        <TrashButton onClick={() => handleDelete('rabbis', r.id, 'rabbi', id => setRabbis(prev => prev.filter(x => x.id !== id)))} />
+                        <TrashButton onClick={() => requestDelete('rabbis', r.id, 'rabbi', id => setRabbis(prev => prev.filter(x => x.id !== id)))} />
                       )}
                     </div>
                   ))}
@@ -407,7 +429,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                           )}
                         </div>
                         {isEditor && (
-                          <TrashButton onClick={() => handleDelete('history', entry.id, 'history entry', id => setHistory(prev => prev.filter(h => h.id !== id)))} />
+                          <TrashButton onClick={() => requestDelete('history', entry.id, 'history entry', id => setHistory(prev => prev.filter(h => h.id !== id)))} />
                         )}
                       </div>
                     ))}
@@ -457,7 +479,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                       </button>
                       {isEditor && (
                         <button
-                          onClick={() => handleDelete('images', img.id, 'photo', id => {
+                          onClick={() => requestDelete('images', img.id, 'photo', id => {
                             setImages(prev => prev.filter(i => i.id !== id))
                             if (lightboxImg?.id === id) setLightboxImg(null)
                           })}
@@ -479,6 +501,17 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
           </div>
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        isOpen={pendingDelete !== null}
+        title={`Delete ${pendingDelete?.label ?? 'item'}`}
+        message={`Are you sure you want to delete this ${pendingDelete?.label ?? 'item'}? This cannot be undone.`}
+        onConfirm={executeDelete}
+        onCancel={cancelDelete}
+        loading={deleteLoading}
+        error={deleteError}
+      />
 
       {/* Lightbox */}
       {lightboxImg && (

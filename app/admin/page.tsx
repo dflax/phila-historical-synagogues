@@ -39,6 +39,7 @@ export default async function AdminPage() {
     .from('images')
     .select('id, synagogue_id, url, storage_path, storage_provider, caption, description, photographer, year, date_taken, created_at, original_filename, width, height, synagogues(name)')
     .eq('approved', false)
+    .or('deleted.is.null,deleted.eq.false')
     .order('created_at', { ascending: true })    // oldest first
 
   // ── Resolve storage URLs ──────────────────────────────────────────────────

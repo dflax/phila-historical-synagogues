@@ -46,17 +46,22 @@ export async function DELETE(
     return NextResponse.json({ error: 'Forbidden: you did not approve this record' }, { status: 403 })
   }
 
-  // ── 4. Delete DB record ───────────────────────────────────────────────────
+  // ── 4. Soft delete DB record (preserves audit trail) ─────────────────────
   const { error } = await supabase
     .from('images')
-    .delete()
+    .update({
+      deleted:    true,
+      deleted_by: user.id,
+      deleted_at: new Date().toISOString(),
+    })
     .eq('id', params.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: `Failed to mark image as deleted: ${error.message}` }, { status: 500 })
   }
 
-  // ── 5. Delete from storage (best-effort; DB deletion already succeeded) ───
+  // ── 5. Delete file from storage (best-effort; soft-delete already succeeded) ──
+  // File deleted from storage but database record kept for audit trail
   if (record.storage_path) {
     await supabase.storage
       .from('synagogue-images')

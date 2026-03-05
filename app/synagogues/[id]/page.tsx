@@ -47,6 +47,12 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       )
     `)
     .eq('id', params.id)
+    // Exclude soft-deleted records from each related table.
+    // .or() with foreignTable filters nested resources without affecting the parent query.
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'addresses' })
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'history_entries' })
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'rabbis' })
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'images' })
     .single()
 
   if (error || !synagogue) notFound()
