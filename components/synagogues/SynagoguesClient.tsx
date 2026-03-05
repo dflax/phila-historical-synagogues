@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import NavAuth from '@/components/auth/NavAuth'
 
 interface Address {
   id: string
@@ -165,10 +166,11 @@ export default function SynagoguesClient({ synagogues }: Props) {
             <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
               Philadelphia Historical Synagogues
             </Link>
-            <div className="flex gap-6">
+            <div className="flex items-center gap-6">
               <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Home</Link>
               <Link href="/map" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Map</Link>
               <Link href="/synagogues" className="text-blue-600 dark:text-blue-400 font-medium border-b-2 border-blue-600 dark:border-blue-400 pb-0.5">Browse</Link>
+              <NavAuth />
             </div>
           </div>
         </div>

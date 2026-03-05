@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import MapClient from '@/components/map/MapClient'
+import NavAuth from '@/components/auth/NavAuth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -93,7 +94,7 @@ export default async function MapPage() {
             <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
               Philadelphia Historical Synagogues
             </Link>
-            <div className="flex gap-6">
+            <div className="flex items-center gap-6">
               <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Home
               </Link>
@@ -103,6 +104,7 @@ export default async function MapPage() {
               <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Browse
               </Link>
+              <NavAuth />
             </div>
           </div>
         </div>

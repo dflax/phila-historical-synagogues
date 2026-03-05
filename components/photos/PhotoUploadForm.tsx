@@ -160,15 +160,17 @@ export default function PhotoUploadForm({ synagogueId, userId, onSuccess }: Prop
     setProgress(100)
     setLoading(false)
 
-if (insertError) {
-  // If insert fails, clean up the uploaded file to avoid orphans
-  await supabase.storage.from('synagogue-images').remove([storagePath])
-
-  // TEMPORARY DEBUG: Show full error details
-  console.error('Insert error:', insertError)
-  setError(`Insert failed: ${insertError.message} (code: ${insertError.code}, details: ${insertError.details})`)
-  return
-}
+    if (insertError) {
+      // If insert fails, clean up the uploaded file to avoid orphans
+      await supabase.storage.from('synagogue-images').remove([storagePath])
+    
+      if (insertError.code === '23503') {
+        setError('Your account profile is not fully set up. Please sign out and sign in again.')
+      } else {
+        setError(insertError.message)
+      }
+      return
+    }
 
     onSuccess(approved)
   }

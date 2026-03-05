@@ -8,8 +8,9 @@ import AuthModal from './AuthModal'
 
 export default function NavAuth() {
   const supabase = createClientComponentClient()
-  const [user, setUser] = useState<User | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [user,         setUser]         = useState<User | null>(null)
+  const [fullName,     setFullName]     = useState<string | null>(null)
+  const [modalOpen,    setModalOpen]    = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -22,11 +23,23 @@ export default function NavAuth() {
     // Keep in sync with auth state changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      if (!session) setFullName(null)
       if (session) setModalOpen(false)
     })
 
     return () => subscription.unsubscribe()
   }, [supabase])
+
+  // Fetch full_name from user_profiles whenever the logged-in user changes
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('user_profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setFullName(data?.full_name ?? null))
+  }, [user, supabase])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -60,10 +73,9 @@ export default function NavAuth() {
   }
 
   // ── Logged in ─────────────────────────────────────────────────────────────
-  const displayName = user.user_metadata?.full_name ?? user.email ?? 'Account'
-  const initial = (
-    user.user_metadata?.full_name?.[0] ?? user.email?.[0] ?? 'A'
-  ).toUpperCase()
+  // Prefer profile full_name; fall back to auth metadata then email
+  const displayName = fullName ?? user.user_metadata?.full_name ?? user.email ?? 'Account'
+  const initial = displayName[0].toUpperCase()
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -92,10 +104,14 @@ export default function NavAuth() {
 
       {dropdownOpen && (
         <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-40 py-1">
-          {/* Email header */}
+          {/* Identity header */}
           <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Signed in as</p>
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.email}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {fullName ?? user.user_metadata?.full_name ?? user.email}
+            </p>
+            {(fullName ?? user.user_metadata?.full_name) && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
+            )}
           </div>
 
           <Link
