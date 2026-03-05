@@ -115,13 +115,16 @@ export default function AdminClient({ proposals: initialProposals, images: initi
   async function approveProposal(id: string) {
     addProcessing(id)
     setError(null)
-    const { error: err } = await supabase
-      .from('edit_proposals')
-      .update({ status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString() })
-      .eq('id', id)
-    removeProcessing(id)
-    if (err) { setError(err.message); return }
-    setPendingProposals(prev => prev.filter(p => p.id !== id))
+    try {
+      const res  = await fetch(`/api/proposals/${id}/approve`, { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok) { setError(body.error ?? 'Approval failed'); return }
+      setPendingProposals(prev => prev.filter(p => p.id !== id))
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      removeProcessing(id)
+    }
   }
 
   async function rejectProposal(id: string) {
@@ -147,13 +150,26 @@ export default function AdminClient({ proposals: initialProposals, images: initi
     const ids = group.items.map(p => p.id)
     ids.forEach(addProcessing)
     setError(null)
-    const { error: err } = await supabase
-      .from('edit_proposals')
-      .update({ status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString() })
-      .in('id', ids)
+
+    const results = await Promise.allSettled(
+      ids.map(async id => {
+        const res  = await fetch(`/api/proposals/${id}/approve`, { method: 'POST' })
+        const body = await res.json()
+        return { id, ok: res.ok, error: body.error as string | undefined }
+      }),
+    )
+
     ids.forEach(removeProcessing)
-    if (err) { setError(err.message); return }
-    setPendingProposals(prev => prev.filter(p => !ids.includes(p.id)))
+
+    const approved: string[] = []
+    const failed: string[]   = []
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value.ok) approved.push(r.value.id)
+      else failed.push(r.status === 'fulfilled' ? r.value.id : '?')
+    }
+
+    if (approved.length) setPendingProposals(prev => prev.filter(p => !approved.includes(p.id)))
+    if (failed.length)   setError(`${failed.length} approval(s) failed — the others were applied.`)
   }
 
   // ── Photo actions ──────────────────────────────────────────────────────────
