@@ -115,7 +115,7 @@ export default function PhotoUploadForm({ synagogueId, userId, onSuccess }: Prop
 
     // ── 2. Fetch user role to determine approval status ─────────────────────
     const { data: userRow } = await supabase
-      .from('users')
+      .from('user_profiles')
       .select('role')
       .eq('id', userId)
       .maybeSingle()
