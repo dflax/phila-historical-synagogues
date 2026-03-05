@@ -10,6 +10,7 @@ export default function NavAuth() {
   const supabase = createClientComponentClient()
   const [user,         setUser]         = useState<User | null>(null)
   const [fullName,     setFullName]     = useState<string | null>(null)
+  const [role,         setRole]         = useState<string | null>(null)
   const [modalOpen,    setModalOpen]    = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -23,22 +24,25 @@ export default function NavAuth() {
     // Keep in sync with auth state changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      if (!session) setFullName(null)
+      if (!session) { setFullName(null); setRole(null) }
       if (session) setModalOpen(false)
     })
 
     return () => subscription.unsubscribe()
   }, [supabase])
 
-  // Fetch full_name from user_profiles whenever the logged-in user changes
+  // Fetch full_name + role from user_profiles whenever the logged-in user changes
   useEffect(() => {
     if (!user) return
     supabase
       .from('user_profiles')
-      .select('full_name')
+      .select('full_name, role')
       .eq('id', user.id)
       .maybeSingle()
-      .then(({ data }) => setFullName(data?.full_name ?? null))
+      .then(({ data }) => {
+        setFullName(data?.full_name ?? null)
+        setRole(data?.role ?? null)
+      })
   }, [user, supabase])
 
   // Close dropdown on outside click
@@ -113,6 +117,19 @@ export default function NavAuth() {
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
             )}
           </div>
+
+          {role && ['editor', 'admin', 'super_admin'].includes(role) && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition"
+              onClick={() => setDropdownOpen(false)}
+            >
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Admin Dashboard
+            </Link>
+          )}
 
           <Link
             href="/contributions"

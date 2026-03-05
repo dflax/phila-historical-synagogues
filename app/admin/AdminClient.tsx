@@ -1,0 +1,695 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import Link from 'next/link'
+import NavAuth from '@/components/auth/NavAuth'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface PendingProposal {
+  id: string
+  synagogue_id: string | null
+  synagogue_name: string | null
+  proposal_type: 'create' | 'update' | 'delete'
+  proposed_data: Record<string, any>
+  current_data: Record<string, any> | null
+  change_summary: string | null
+  proposed_at: string
+}
+
+export interface PendingImage {
+  id: string
+  synagogue_id: string
+  synagogue_name: string | null
+  url: string | null
+  storage_path: string | null
+  caption: string
+  description: string | null
+  photographer: string | null
+  year: number | null
+  date_taken: string | null
+  created_at: string
+  original_filename: string | null
+  width: number | null
+  height: number | null
+}
+
+interface Props {
+  proposals: PendingProposal[]
+  images: PendingImage[]
+  userId: string
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
+
+const FIELD_LABELS: Record<string, string> = {
+  name:         'Name',
+  founded_year: 'Founded Year',
+  closed_year:  'Closed Year',
+  status:       'Status',
+  neighborhood: 'Neighborhood',
+}
+
+const PROPOSAL_TYPE_LABELS: Record<string, string> = {
+  create: 'New synagogue',
+  update: 'Edit details',
+  delete: 'Remove synagogue',
+}
+
+const PROPOSAL_TYPE_COLORS: Record<string, string> = {
+  create: 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  update: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+type SynGroup = { synagogue_id: string | null; synagogue_name: string; items: PendingProposal[] }
+
+function groupProposals(proposals: PendingProposal[]): SynGroup[] {
+  const map = new Map<string, SynGroup>()
+  for (const p of proposals) {
+    const key = p.synagogue_id ?? '__new__'
+    if (!map.has(key)) map.set(key, { synagogue_id: p.synagogue_id, synagogue_name: p.synagogue_name ?? 'New Synagogue', items: [] })
+    map.get(key)!.items.push(p)
+  }
+  return [...map.values()]
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function AdminClient({ proposals: initialProposals, images: initialImages, userId }: Props) {
+  const supabase = createClientComponentClient()
+
+  const [activeTab,         setActiveTab]         = useState<'proposals' | 'photos'>('proposals')
+  const [pendingProposals,  setPendingProposals]   = useState<PendingProposal[]>(initialProposals)
+  const [pendingImages,     setPendingImages]      = useState<PendingImage[]>(initialImages)
+  const [expandedGroups,    setExpandedGroups]     = useState<Set<string>>(new Set())
+  const [rejectingId,       setRejectingId]        = useState<string | null>(null)
+  const [rejectNotes,       setRejectNotes]        = useState('')
+  const [selectedPhoto,     setSelectedPhoto]      = useState<PendingImage | null>(null)
+  const [processing,        setProcessing]         = useState<Set<string>>(new Set())
+  const [error,             setError]              = useState<string | null>(null)
+
+  const addProcessing    = (id: string) => setProcessing(p => { const s = new Set(p); s.add(id);    return s })
+  const removeProcessing = (id: string) => setProcessing(p => { const s = new Set(p); s.delete(id); return s })
+
+  const groups = groupProposals(pendingProposals)
+
+  function toggleGroup(key: string) {
+    setExpandedGroups(prev => {
+      const s = new Set(prev)
+      if (s.has(key)) s.delete(key); else s.add(key)
+      return s
+    })
+  }
+
+  // ── Proposal actions ───────────────────────────────────────────────────────
+
+  async function approveProposal(id: string) {
+    addProcessing(id)
+    setError(null)
+    const { error: err } = await supabase
+      .from('edit_proposals')
+      .update({ status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString() })
+      .eq('id', id)
+    removeProcessing(id)
+    if (err) { setError(err.message); return }
+    setPendingProposals(prev => prev.filter(p => p.id !== id))
+  }
+
+  async function rejectProposal(id: string) {
+    addProcessing(id)
+    setError(null)
+    const { error: err } = await supabase
+      .from('edit_proposals')
+      .update({
+        status:         'rejected',
+        reviewer_notes: rejectNotes.trim() || null,
+        reviewed_by:    userId,
+        reviewed_at:    new Date().toISOString(),
+      })
+      .eq('id', id)
+    removeProcessing(id)
+    if (err) { setError(err.message); return }
+    setPendingProposals(prev => prev.filter(p => p.id !== id))
+    setRejectingId(null)
+    setRejectNotes('')
+  }
+
+  async function approveAllInGroup(group: SynGroup) {
+    const ids = group.items.map(p => p.id)
+    ids.forEach(addProcessing)
+    setError(null)
+    const { error: err } = await supabase
+      .from('edit_proposals')
+      .update({ status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString() })
+      .in('id', ids)
+    ids.forEach(removeProcessing)
+    if (err) { setError(err.message); return }
+    setPendingProposals(prev => prev.filter(p => !ids.includes(p.id)))
+  }
+
+  // ── Photo actions ──────────────────────────────────────────────────────────
+
+  async function approvePhoto(photo: PendingImage) {
+    addProcessing(photo.id)
+    setError(null)
+    const { error: err } = await supabase
+      .from('images')
+      .update({ approved: true, approved_by: userId, approved_at: new Date().toISOString() })
+      .eq('id', photo.id)
+    removeProcessing(photo.id)
+    if (err) { setError(err.message); return }
+    setPendingImages(prev => prev.filter(i => i.id !== photo.id))
+    if (selectedPhoto?.id === photo.id) setSelectedPhoto(null)
+  }
+
+  async function rejectPhoto(photo: PendingImage) {
+    addProcessing(photo.id)
+    setError(null)
+    // Delete the record; attempt storage cleanup (best-effort)
+    const { error: err } = await supabase.from('images').delete().eq('id', photo.id)
+    removeProcessing(photo.id)
+    if (err) { setError(err.message); return }
+    if (photo.storage_path) {
+      // fire-and-forget; failure is non-critical
+      supabase.storage.from('synagogue-images').remove([photo.storage_path]).catch(() => {})
+    }
+    setPendingImages(prev => prev.filter(i => i.id !== photo.id))
+    if (selectedPhoto?.id === photo.id) setSelectedPhoto(null)
+  }
+
+  // ESC closes photo modal
+  useEffect(() => {
+    if (!selectedPhoto) return
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') setSelectedPhoto(null) }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [selectedPhoto])
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+
+      {/* Nav */}
+      <nav className="bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-700 sticky top-0 z-20">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
+              Philadelphia Historical Synagogues
+            </Link>
+            <div className="flex items-center gap-6">
+              <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Home</Link>
+              <Link href="/map" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Map</Link>
+              <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Browse</Link>
+              <NavAuth />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {pendingProposals.length} edit proposal{pendingProposals.length !== 1 ? 's' : ''} pending
+              {' · '}
+              {pendingImages.length} photo{pendingImages.length !== 1 ? 's' : ''} pending
+            </p>
+          </div>
+          <span className="text-xs font-medium text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 px-2.5 py-1 rounded-full">
+            Editor view
+          </span>
+        </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="mb-4 flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+            <span className="flex-1">{error}</span>
+            <button onClick={() => setError(null)} className="flex-shrink-0 hover:opacity-70">✕</button>
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+          {(['proposals', 'photos'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                activeTab === tab
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {tab === 'proposals'
+                ? `Edit Proposals (${pendingProposals.length})`
+                : `Photos (${pendingImages.length})`}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Edit Proposals Tab ─────────────────────────────────────────────── */}
+        {activeTab === 'proposals' && (
+          pendingProposals.length === 0 ? (
+            <AllClear label="No pending edit proposals" />
+          ) : (
+            <div className="space-y-3">
+              {groups.map(group => {
+                const key = group.synagogue_id ?? '__new__'
+                const isOpen = expandedGroups.has(key)
+                const groupBusy = group.items.every(p => processing.has(p.id))
+                return (
+                  <div key={key} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+
+                    {/* Group header */}
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <button
+                        onClick={() => toggleGroup(key)}
+                        className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                        aria-expanded={isOpen}
+                      >
+                        <svg
+                          className={`w-4 h-4 flex-shrink-0 text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                          viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                        >
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-semibold text-gray-900 dark:text-white truncate">{group.synagogue_name}</span>
+                        {group.synagogue_id && (
+                          <Link
+                            href={`/synagogues/${group.synagogue_id}`}
+                            target="_blank"
+                            onClick={e => e.stopPropagation()}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex-shrink-0"
+                          >
+                            ↗
+                          </Link>
+                        )}
+                      </button>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full flex-shrink-0">
+                        {group.items.length} pending
+                      </span>
+                      <button
+                        onClick={() => approveAllInGroup(group)}
+                        disabled={groupBusy}
+                        className="flex-shrink-0 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 border border-green-200 dark:border-green-800 disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-1 rounded-full transition"
+                      >
+                        {groupBusy ? 'Approving…' : 'Approve All'}
+                      </button>
+                    </div>
+
+                    {/* Expanded proposals */}
+                    {isOpen && (
+                      <div className="border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
+                        {group.items.map(proposal => (
+                          <ProposalCard
+                            key={proposal.id}
+                            proposal={proposal}
+                            processing={processing.has(proposal.id)}
+                            isRejecting={rejectingId === proposal.id}
+                            rejectNotes={rejectNotes}
+                            onRejectNoteChange={setRejectNotes}
+                            onApprove={() => approveProposal(proposal.id)}
+                            onStartReject={() => { setRejectingId(proposal.id); setRejectNotes('') }}
+                            onConfirmReject={() => rejectProposal(proposal.id)}
+                            onCancelReject={() => { setRejectingId(null); setRejectNotes('') }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        )}
+
+        {/* ── Photos Tab ─────────────────────────────────────────────────────── */}
+        {activeTab === 'photos' && (
+          pendingImages.length === 0 ? (
+            <AllClear label="No pending photo uploads" />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {pendingImages.map(photo => (
+                <PhotoCard
+                  key={photo.id}
+                  photo={photo}
+                  processing={processing.has(photo.id)}
+                  onView={() => setSelectedPhoto(photo)}
+                  onApprove={() => approvePhoto(photo)}
+                  onReject={() => rejectPhoto(photo)}
+                />
+              ))}
+            </div>
+          )
+        )}
+      </div>
+
+      {/* Photo detail modal */}
+      {selectedPhoto && (
+        <PhotoModal
+          photo={selectedPhoto}
+          processing={processing.has(selectedPhoto.id)}
+          onClose={() => setSelectedPhoto(null)}
+          onApprove={() => approvePhoto(selectedPhoto)}
+          onReject={() => rejectPhoto(selectedPhoto)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── All-clear empty state ─────────────────────────────────────────────────────
+
+function AllClear({ label }: { label: string }) {
+  return (
+    <div className="text-center py-20">
+      <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-4">
+        <svg className="w-7 h-7 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+      </div>
+      <p className="font-semibold text-gray-700 dark:text-gray-300">{label}</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Check back later.</p>
+    </div>
+  )
+}
+
+// ── Proposal card ─────────────────────────────────────────────────────────────
+
+interface ProposalCardProps {
+  proposal: PendingProposal
+  processing: boolean
+  isRejecting: boolean
+  rejectNotes: string
+  onRejectNoteChange: (v: string) => void
+  onApprove: () => void
+  onStartReject: () => void
+  onConfirmReject: () => void
+  onCancelReject: () => void
+}
+
+function ProposalCard({
+  proposal, processing, isRejecting, rejectNotes,
+  onRejectNoteChange, onApprove, onStartReject, onConfirmReject, onCancelReject,
+}: ProposalCardProps) {
+  const changedFields = Object.keys(proposal.proposed_data)
+  const typeColor = PROPOSAL_TYPE_COLORS[proposal.proposal_type] ?? PROPOSAL_TYPE_COLORS.update
+
+  return (
+    <div className="px-4 py-4 space-y-3">
+      {/* Proposal meta */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${typeColor}`}>
+          {PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type}
+        </span>
+        <span className="text-xs text-gray-400 dark:text-gray-500">
+          {formatDate(proposal.proposed_at)}
+        </span>
+      </div>
+
+      {/* Reason / change_summary */}
+      {proposal.change_summary && (
+        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-lg px-3 py-2">
+          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">Reason given</p>
+          <p className="text-sm text-amber-900 dark:text-amber-200">{proposal.change_summary}</p>
+        </div>
+      )}
+
+      {/* Diff table */}
+      {changedFields.length > 0 && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-sm">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 w-1/4">Field</th>
+                <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 w-5/12">Current</th>
+                <th className="text-left px-3 py-2 text-xs font-semibold text-gray-900 dark:text-white w-5/12">Proposed</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+              {changedFields.map(field => {
+                const before = proposal.current_data?.[field]
+                const after  = proposal.proposed_data[field]
+                return (
+                  <tr key={field}>
+                    <td className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {FIELD_LABELS[field] ?? field}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
+                      {before != null && before !== '' ? String(before) : <span className="italic">—</span>}
+                    </td>
+                    <td className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                      {after != null && after !== '' ? String(after) : <span className="italic font-normal text-gray-400">—</span>}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      {!isRejecting ? (
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={onApprove}
+            disabled={processing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 border border-green-200 dark:border-green-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+          >
+            {processing ? (
+              <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            ) : (
+              <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+            )}
+            Approve
+          </button>
+          <button
+            onClick={onStartReject}
+            disabled={processing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+            Reject
+          </button>
+        </div>
+      ) : (
+        /* Inline reject form */
+        <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-gray-800">
+          <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Reviewer note (optional)</p>
+          <textarea
+            value={rejectNotes}
+            onChange={e => onRejectNoteChange(e.target.value)}
+            rows={2}
+            placeholder="Explain why this proposal was rejected…"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={onConfirmReject}
+              disabled={processing}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+            >
+              {processing ? 'Rejecting…' : 'Confirm reject'}
+            </button>
+            <button
+              onClick={onCancelReject}
+              disabled={processing}
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Photo card (grid tile) ────────────────────────────────────────────────────
+
+function PhotoCard({
+  photo, processing, onView, onApprove, onReject,
+}: { photo: PendingImage; processing: boolean; onView: () => void; onApprove: () => void; onReject: () => void }) {
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col">
+      {/* Thumbnail */}
+      <button
+        onClick={onView}
+        className="aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 relative hover:opacity-90 transition"
+        aria-label="View full size"
+      >
+        {photo.url ? (
+          <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition flex items-end">
+          <span className="w-full bg-gradient-to-t from-black/50 to-transparent px-2 py-2 text-white text-xs opacity-0 hover:opacity-100 transition line-clamp-2">
+            {photo.caption}
+          </span>
+        </div>
+      </button>
+
+      {/* Info */}
+      <div className="px-2.5 py-2 flex-1 space-y-0.5">
+        <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{photo.synagogue_name ?? '—'}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{photo.caption}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(photo.created_at)}</p>
+      </div>
+
+      {/* Action buttons */}
+      <div className="px-2.5 pb-2.5 flex gap-1.5">
+        <button
+          onClick={onApprove}
+          disabled={processing}
+          title="Approve"
+          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 border border-green-200 dark:border-green-800 disabled:opacity-40 rounded-lg transition"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+          Approve
+        </button>
+        <button
+          onClick={onReject}
+          disabled={processing}
+          title="Reject & delete"
+          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 disabled:opacity-40 rounded-lg transition"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+          Reject
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Photo detail modal ────────────────────────────────────────────────────────
+
+function PhotoModal({
+  photo, processing, onClose, onApprove, onReject,
+}: { photo: PendingImage; processing: boolean; onClose: () => void; onApprove: () => void; onReject: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-900 flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700 gap-3">
+          <h2 className="font-semibold text-gray-900 dark:text-white leading-snug flex-1">{photo.caption}</h2>
+          <button onClick={onClose} className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition" aria-label="Close">
+            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          {/* Full image */}
+          {photo.url ? (
+            <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <img src={photo.url} alt={photo.caption} className="w-full object-contain max-h-80" />
+            </div>
+          ) : (
+            <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 h-40 flex items-center justify-center text-gray-300 dark:text-gray-600">
+              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
+              </svg>
+            </div>
+          )}
+
+          {/* Metadata grid */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Synagogue</p>
+              {photo.synagogue_id ? (
+                <Link href={`/synagogues/${photo.synagogue_id}`} target="_blank" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                  {photo.synagogue_name ?? 'View →'}
+                </Link>
+              ) : (
+                <p className="text-sm text-gray-700 dark:text-gray-300">{photo.synagogue_name ?? '—'}</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Uploaded</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{formatDate(photo.created_at)}</p>
+            </div>
+            {photo.photographer && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Photographer</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{photo.photographer}</p>
+              </div>
+            )}
+            {(photo.year || photo.date_taken) && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{photo.date_taken ? 'Date Taken' : 'Year'}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{photo.date_taken ? formatDate(photo.date_taken) : photo.year}</p>
+              </div>
+            )}
+            {photo.width && photo.height && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Dimensions</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{photo.width} × {photo.height}px</p>
+              </div>
+            )}
+            {photo.original_filename && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Filename</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 truncate" title={photo.original_filename}>{photo.original_filename}</p>
+              </div>
+            )}
+          </div>
+
+          {photo.description && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Description</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{photo.description}</p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <button
+              onClick={onApprove}
+              disabled={processing}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+              {processing ? 'Approving…' : 'Approve photo'}
+            </button>
+            <button
+              onClick={onReject}
+              disabled={processing}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+              {processing ? 'Deleting…' : 'Reject & delete'}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center -mt-2">
+            Rejecting permanently deletes this photo and removes it from storage.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
