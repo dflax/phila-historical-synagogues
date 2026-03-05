@@ -66,7 +66,7 @@ export async function POST(
 
   // ── 4. Apply changes based on proposal_type ──────────────────────────────
 
-  if (proposal.proposal_type === 'update' && proposal.synagogue_id) {
+  if (proposal.proposal_type === 'synagogue_edit' && proposal.synagogue_id) {
     // Split fields by their target table
     const synagogueChanges: Record<string, unknown> = {}
     const addressChanges: Record<string, unknown> = {}
@@ -121,7 +121,7 @@ export async function POST(
       // not applied — the admin can create an address separately.
     }
 
-  } else if (proposal.proposal_type === 'create') {
+  } else if (proposal.proposal_type === 'synagogue_new') {
     // Insert a new approved synagogue record
     const name       = typeof proposed.name   === 'string' ? proposed.name.trim() : 'Unknown'
     const status     = typeof proposed.status === 'string' ? proposed.status      : 'unknown'
@@ -145,7 +145,7 @@ export async function POST(
       )
     }
 
-  } else if (proposal.proposal_type === 'delete' && proposal.synagogue_id) {
+  } else if (proposal.proposal_type === 'synagogue_delete' && proposal.synagogue_id) {
     // Soft-close rather than hard delete to preserve historical data.
     // A hard delete can be done manually if truly needed.
     const { error } = await supabase

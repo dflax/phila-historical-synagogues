@@ -9,7 +9,7 @@ import NavAuth from '@/components/auth/NavAuth'
 export interface EditProposal {
   id: string
   synagogue_id: string | null
-  proposal_type: 'create' | 'update' | 'delete'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -53,9 +53,15 @@ const PROPOSAL_STATUS: Record<string, { label: string; text: string; bg: string;
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
-  create: 'New synagogue',
-  update: 'Edit details',
-  delete: 'Remove synagogue',
+  synagogue_edit:  'Edit synagogue',
+  synagogue_new:   'New synagogue',
+  address_edit:    'Edit address',
+  address_new:     'New address',
+  rabbi_edit:      'Edit rabbi',
+  rabbi_new:       'New rabbi',
+  history_edit:    'Edit history',
+  history_new:     'New history entry',
+  photo_upload:    'Photo upload',
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -380,7 +386,7 @@ export default function ContributionsClient({ proposals, images }: Props) {
 function EditDetailModal({ proposal, onClose }: { proposal: EditProposal; onClose: () => void }) {
   const changedFields = Object.keys(proposal.proposed_data).filter(k => k !== 'note')
   const note = proposal.proposed_data.note as string | undefined
-  const showOriginal = proposal.proposal_type === 'update' && proposal.current_data != null
+  const showOriginal = proposal.proposal_type.endsWith('_edit') && proposal.current_data != null
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
@@ -468,7 +474,7 @@ function EditDetailModal({ proposal, onClose }: { proposal: EditProposal; onClos
           {changedFields.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                {proposal.proposal_type === 'update' ? 'Proposed Changes' : 'Proposed Data'}
+                {proposal.proposal_type.endsWith('_edit') ? 'Proposed Changes' : 'Proposed Data'}
               </p>
               <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <table className="w-full text-sm">

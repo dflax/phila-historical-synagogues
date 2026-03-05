@@ -105,7 +105,7 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
       .from('edit_proposals')
       .insert({
         synagogue_id:   synagogue.id,
-        proposal_type:  'update',
+        proposal_type:  'synagogue_edit',
         proposed_data:  proposed,
         current_data: {
           name:         synagogue.name,
