@@ -158,6 +158,72 @@ export async function POST(
         { status: 500 },
       )
     }
+
+  } else if (proposal.proposal_type === 'address_new' && proposal.synagogue_id) {
+    const { error } = await supabase
+      .from('addresses')
+      .insert({
+        synagogue_id:   proposal.synagogue_id,
+        street_address: proposed.street_address ?? null,
+        city:           proposed.city           ?? null,
+        state:          proposed.state          ?? null,
+        zip_code:       proposed.zip_code       ?? null,
+        neighborhood:   proposed.neighborhood   ?? null,
+        start_year:     proposed.start_year     ?? null,
+        end_year:       proposed.end_year       ?? null,
+        is_current:     proposed.is_current     ?? false,
+        approved:       true,
+        created_by:     proposal.created_by,
+      })
+    if (error) {
+      return NextResponse.json(
+        { error: `Failed to insert address: ${error.message}` },
+        { status: 500 },
+      )
+    }
+
+  } else if (proposal.proposal_type === 'rabbi_new' && proposal.synagogue_id) {
+    const { error } = await supabase
+      .from('rabbis')
+      .insert({
+        synagogue_id: proposal.synagogue_id,
+        name:         proposed.name       ?? null,
+        title:        proposed.title      ?? null,
+        start_year:   proposed.start_year ?? null,
+        end_year:     proposed.end_year   ?? null,
+        notes:        proposed.notes      ?? null,
+        approved:     true,
+        created_by:   proposal.created_by,
+      })
+    if (error) {
+      return NextResponse.json(
+        { error: `Failed to insert rabbi: ${error.message}` },
+        { status: 500 },
+      )
+    }
+
+  } else if (proposal.proposal_type === 'history_new' && proposal.synagogue_id) {
+    const { error } = await supabase
+      .from('history_entries')
+      .insert({
+        synagogue_id:     proposal.synagogue_id,
+        content:          proposed.content          ?? null,
+        entry_type:       proposed.entry_type       ?? 'general',
+        year:             proposed.year             ?? null,
+        year_range_start: proposed.year_range_start ?? null,
+        year_range_end:   proposed.year_range_end   ?? null,
+        circa:            proposed.circa            ?? false,
+        source:           proposed.source           ?? null,
+        source_url:       proposed.source_url       ?? null,
+        approved:         true,
+        created_by:       proposal.created_by,
+      })
+    if (error) {
+      return NextResponse.json(
+        { error: `Failed to insert history entry: ${error.message}` },
+        { status: 500 },
+      )
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.
