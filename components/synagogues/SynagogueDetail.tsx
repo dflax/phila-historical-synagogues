@@ -9,6 +9,7 @@ import SuggestRabbiButton from '@/components/edit/SuggestRabbiButton'
 import SuggestHistoryButton from '@/components/edit/SuggestHistoryButton'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 import NavAuth from '@/components/auth/NavAuth'
+import { useUserRole } from '@/hooks/useUserRole'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -141,8 +142,45 @@ function EmptyState({ message }: { message: string }) {
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
-export default function SynagogueDetail({ synagogue, addresses, history, rabbis, images }: Props) {
+function TrashButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      title="Delete"
+      className="flex-shrink-0 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition p-0.5 rounded"
+      aria-label="Delete"
+    >
+      <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+      </svg>
+    </button>
+  )
+}
+
+export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages }: Props) {
+  const { isEditor } = useUserRole()
+
+  const [addresses,   setAddresses]   = useState<Address[]>(initialAddresses)
+  const [history,     setHistory]     = useState<HistoryEntry[]>(initialHistory)
+  const [rabbis,      setRabbis]      = useState<Rabbi[]>(initialRabbis)
+  const [images,      setImages]      = useState<Image[]>(initialImages)
   const [lightboxImg, setLightboxImg] = useState<Image | null>(null)
+
+  async function handleDelete(
+    endpoint: string,
+    id: string,
+    label: string,
+    remove: (id: string) => void,
+  ) {
+    if (!window.confirm(`Are you sure you want to delete this ${label}? This cannot be undone.`)) return
+    const res = await fetch(`/api/${endpoint}/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      remove(id)
+    } else {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error ?? 'Delete failed. Please try again.')
+    }
+  }
 
   const primaryAddr = addresses[0] ?? null
   const mapUrl = primaryAddr?.latitude && primaryAddr?.longitude
@@ -240,23 +278,28 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
               ) : (
                 <div className="space-y-4">
                   {addresses.map(addr => (
-                    <div key={addr.id} className="text-sm">
-                      <div className="font-medium text-gray-800 dark:text-gray-200">{formatAddress(addr)}</div>
-                      {addr.zip_code && (
-                        <div className="text-gray-400 dark:text-gray-500 text-xs">{addr.zip_code}</div>
-                      )}
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {addr.is_current && (
-                          synagogue.status === 'active'
-                            ? <span className="text-xs text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">Current</span>
-                            : <span className="text-xs text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">Last</span>
+                    <div key={addr.id} className="text-sm flex items-start justify-between gap-2 group">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 dark:text-gray-200">{formatAddress(addr)}</div>
+                        {addr.zip_code && (
+                          <div className="text-gray-400 dark:text-gray-500 text-xs">{addr.zip_code}</div>
                         )}
-                        {(addr.start_year || addr.end_year) && (
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
-                            {addr.start_year ?? '?'} – {addr.end_year ?? 'present'}
-                          </span>
-                        )}
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {addr.is_current && (
+                            synagogue.status === 'active'
+                              ? <span className="text-xs text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">Current</span>
+                              : <span className="text-xs text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">Last</span>
+                          )}
+                          {(addr.start_year || addr.end_year) && (
+                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                              {addr.start_year ?? '?'} – {addr.end_year ?? 'present'}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {isEditor && (
+                        <TrashButton onClick={() => handleDelete('addresses', addr.id, 'address', id => setAddresses(prev => prev.filter(a => a.id !== id)))} />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -277,17 +320,22 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
               ) : (
                 <div className="space-y-3">
                   {rabbis.map(r => (
-                    <div key={r.id} className="text-sm border-l-2 border-blue-100 dark:border-blue-800 pl-3">
-                      <div className="font-medium text-gray-800 dark:text-gray-200">
-                        {r.title ? `${r.title} ` : ''}{r.name}
-                      </div>
-                      {(r.start_year || r.end_year) && (
-                        <div className="text-gray-400 dark:text-gray-500 text-xs">
-                          {r.start_year ?? '?'} – {r.end_year ?? 'present'}
+                    <div key={r.id} className="flex items-start justify-between gap-2 group">
+                      <div className="text-sm border-l-2 border-blue-100 dark:border-blue-800 pl-3 flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 dark:text-gray-200">
+                          {r.title ? `${r.title} ` : ''}{r.name}
                         </div>
-                      )}
-                      {r.notes && (
-                        <div className="text-gray-500 dark:text-gray-400 text-xs mt-1 italic">{r.notes}</div>
+                        {(r.start_year || r.end_year) && (
+                          <div className="text-gray-400 dark:text-gray-500 text-xs">
+                            {r.start_year ?? '?'} – {r.end_year ?? 'present'}
+                          </div>
+                        )}
+                        {r.notes && (
+                          <div className="text-gray-500 dark:text-gray-400 text-xs mt-1 italic">{r.notes}</div>
+                        )}
+                      </div>
+                      {isEditor && (
+                        <TrashButton onClick={() => handleDelete('rabbis', r.id, 'rabbi', id => setRabbis(prev => prev.filter(x => x.id !== id)))} />
                       )}
                     </div>
                   ))}
@@ -320,7 +368,7 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                   <div className="absolute left-[52px] top-0 bottom-0 w-px bg-gray-100 dark:bg-gray-700" />
                   <div className="space-y-5">
                     {history.map(entry => (
-                      <div key={entry.id} className="flex gap-4">
+                      <div key={entry.id} className="flex gap-4 group">
                         {/* Year label */}
                         <div className="w-12 flex-shrink-0 text-right">
                           <span className="text-xs font-mono text-gray-400 dark:text-gray-500 leading-5">
@@ -332,7 +380,7 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                           <span className="w-2 h-2 rounded-full bg-blue-300 ring-2 ring-white dark:ring-gray-800" />
                         </div>
                         {/* Content */}
-                        <div className="flex-1 pb-1">
+                        <div className="flex-1 pb-1 min-w-0">
                           {entry.entry_type && entry.entry_type !== 'general' && (
                             <span className="text-xs font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide">
                               {entry.entry_type}
@@ -358,6 +406,9 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                             </div>
                           )}
                         </div>
+                        {isEditor && (
+                          <TrashButton onClick={() => handleDelete('history', entry.id, 'history entry', id => setHistory(prev => prev.filter(h => h.id !== id)))} />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -382,28 +433,44 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {images.map(img => (
-                    <button
-                      key={img.id}
-                      onClick={() => setLightboxImg(img)}
-                      className="group relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition"
-                    >
-                      {img.url ? (
-                        <img
-                          src={img.url}
-                          alt={img.caption ?? img.description ?? synagogue.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600 text-3xl">
-                          🖼️
-                        </div>
+                    <div key={img.id} className="relative group aspect-square">
+                      <button
+                        onClick={() => setLightboxImg(img)}
+                        className="w-full h-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition"
+                      >
+                        {img.url ? (
+                          <img
+                            src={img.url}
+                            alt={img.caption ?? img.description ?? synagogue.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600 text-3xl">
+                            🖼️
+                          </div>
+                        )}
+                        {img.year && (
+                          <span className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+                            {img.circa_year ? 'c. ' : ''}{img.year}
+                          </span>
+                        )}
+                      </button>
+                      {isEditor && (
+                        <button
+                          onClick={() => handleDelete('images', img.id, 'photo', id => {
+                            setImages(prev => prev.filter(i => i.id !== id))
+                            if (lightboxImg?.id === id) setLightboxImg(null)
+                          })}
+                          title="Delete photo"
+                          className="absolute top-1 right-1 bg-black/50 hover:bg-red-600 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition"
+                          aria-label="Delete photo"
+                        >
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
                       )}
-                      {img.year && (
-                        <span className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
-                          {img.circa_year ? 'c. ' : ''}{img.year}
-                        </span>
-                      )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
