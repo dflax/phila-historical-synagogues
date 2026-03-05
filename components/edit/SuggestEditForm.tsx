@@ -53,14 +53,16 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
 
     // ── Rate limit: max 10 proposals per 24 hours ─────────────────────────────
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    console.log('[SuggestEditForm] rate-limit check — userId:', userId, 'cutoff:', cutoff)
     const { count, error: countError } = await supabase
       .from('edit_proposals')
       .select('*', { count: 'exact', head: true })
       .eq('proposed_by', userId)
       .gte('proposed_at', cutoff)
+    console.log('[SuggestEditForm] rate-limit response — count:', count, 'error:', countError)
 
     if (countError) {
-      setError('Could not check submission limit. Please try again.')
+      setError(`Could not check submission limit: [${countError.code}] ${countError.message} (hint: ${countError.hint ?? 'none'}, details: ${countError.details ?? 'none'})`)
       setLoading(false)
       return
     }

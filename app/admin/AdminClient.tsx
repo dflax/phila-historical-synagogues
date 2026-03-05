@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import NavAuth from '@/components/auth/NavAuth'
+import { useUserRole } from '@/hooks/useUserRole'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -84,8 +85,24 @@ function groupProposals(proposals: PendingProposal[]): SynGroup[] {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+const ROLE_BADGE: Record<string, { label: string; className: string }> = {
+  super_admin: {
+    label: 'Super Admin',
+    className: 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800',
+  },
+  admin: {
+    label: 'Admin',
+    className: 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800',
+  },
+  editor: {
+    label: 'Editor',
+    className: 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800',
+  },
+}
+
 export default function AdminClient({ proposals: initialProposals, images: initialImages, userId }: Props) {
   const supabase = createClientComponentClient()
+  const { role } = useUserRole()
 
   const [activeTab,         setActiveTab]         = useState<'proposals' | 'photos'>('proposals')
   const [pendingProposals,  setPendingProposals]   = useState<PendingProposal[]>(initialProposals)
@@ -244,9 +261,11 @@ export default function AdminClient({ proposals: initialProposals, images: initi
               {pendingImages.length} photo{pendingImages.length !== 1 ? 's' : ''} pending
             </p>
           </div>
-          <span className="text-xs font-medium text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 px-2.5 py-1 rounded-full">
-            Editor view
-          </span>
+          {role && ROLE_BADGE[role] && (
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ROLE_BADGE[role].className}`}>
+              {ROLE_BADGE[role].label}
+            </span>
+          )}
         </div>
 
         {/* Error banner */}
