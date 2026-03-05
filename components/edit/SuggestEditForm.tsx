@@ -114,8 +114,8 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
           status:       synagogue.status,
           neighborhood: synagogue.neighborhood,
         },
-        change_summary: note.trim(),
-        proposed_by:    userId,
+        submitter_note: note.trim(),
+        created_by:     userId,
         status:         'pending',
       })
 

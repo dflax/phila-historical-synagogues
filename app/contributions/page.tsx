@@ -19,9 +19,9 @@ export default async function ContributionsPage() {
   // ── Fetch edit proposals ──────────────────────────────────────────────────
   const { data: rawProposals } = await supabase
     .from('edit_proposals')
-    .select('id, synagogue_id, proposal_type, proposed_data, current_data, change_summary, status, reviewer_notes, proposed_at, reviewed_at, synagogues(name)')
-    .eq('proposed_by', user.id)
-    .order('proposed_at', { ascending: false })
+    .select('id, synagogue_id, proposal_type, proposed_data, current_data, submitter_note, status, reviewer_notes, created_at, reviewed_at, synagogues(name)')
+    .eq('created_by', user.id)
+    .order('created_at', { ascending: false })
 
   // ── Fetch image uploads ───────────────────────────────────────────────────
   const { data: rawImages } = await supabase
@@ -48,10 +48,10 @@ export default async function ContributionsPage() {
     proposal_type:  p.proposal_type,
     proposed_data:  p.proposed_data ?? {},
     current_data:   p.current_data ?? null,
-    change_summary: p.change_summary ?? null,
+    submitter_note: p.submitter_note ?? null,
     status:         p.status,
     reviewer_notes: p.reviewer_notes ?? null,
-    proposed_at:    p.proposed_at,
+    created_at:     p.created_at,
     reviewed_at:    p.reviewed_at ?? null,
     synagogue_name: (p.synagogues as any)?.name ?? null,
   }))

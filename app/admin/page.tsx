@@ -30,9 +30,9 @@ export default async function AdminPage() {
   // ── Fetch pending edit proposals ──────────────────────────────────────────
   const { data: rawProposals } = await supabase
     .from('edit_proposals')
-    .select('id, synagogue_id, proposal_type, proposed_data, current_data, change_summary, proposed_at, synagogues(name)')
+    .select('id, synagogue_id, proposal_type, proposed_data, current_data, submitter_note, created_at, synagogues(name)')
     .eq('status', 'pending')
-    .order('proposed_at', { ascending: true })   // oldest first
+    .order('created_at', { ascending: true })    // oldest first
 
   // ── Fetch pending image uploads ───────────────────────────────────────────
   const { data: rawImages } = await supabase
@@ -60,8 +60,8 @@ export default async function AdminPage() {
     proposal_type:  p.proposal_type,
     proposed_data:  p.proposed_data ?? {},
     current_data:   p.current_data ?? null,
-    change_summary: p.change_summary ?? null,
-    proposed_at:    p.proposed_at,
+    submitter_note: p.submitter_note ?? null,
+    created_at:     p.created_at,
   }))
 
   const images: PendingImage[] = (rawImages ?? []).map((img: any) => ({

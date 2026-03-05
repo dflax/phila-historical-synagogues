@@ -135,7 +135,7 @@ export async function POST(
       approved:     true,
       approved_by:  user.id,
       approved_at:  now,
-      created_by:   proposal.proposed_by,
+      created_by:   proposal.created_by,
     }
     const { error } = await supabase.from('synagogues').insert(newRecord)
     if (error) {

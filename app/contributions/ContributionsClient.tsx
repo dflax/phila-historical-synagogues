@@ -12,10 +12,10 @@ export interface EditProposal {
   proposal_type: 'create' | 'update' | 'delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
-  change_summary: string | null
+  submitter_note: string | null
   status: 'pending' | 'approved' | 'rejected' | 'needs_revision'
   reviewer_notes: string | null
-  proposed_at: string
+  created_at: string
   reviewed_at: string | null
   synagogue_name: string | null
 }
@@ -252,7 +252,7 @@ export default function ContributionsClient({ proposals, images }: Props) {
                           </span>
                         </div>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          Submitted {formatDate(proposal.proposed_at)}
+                          Submitted {formatDate(proposal.created_at)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -435,7 +435,7 @@ function EditDetailModal({ proposal, onClose }: { proposal: EditProposal; onClos
               </span>
             </div>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Submitted {formatDate(proposal.proposed_at)}
+              Submitted {formatDate(proposal.created_at)}
               {proposal.reviewed_at && ` · Reviewed ${formatDate(proposal.reviewed_at)}`}
             </p>
           </div>
@@ -449,10 +449,10 @@ function EditDetailModal({ proposal, onClose }: { proposal: EditProposal; onClos
           )}
 
           {/* Change summary */}
-          {proposal.change_summary && (
+          {proposal.submitter_note && (
             <div>
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Summary</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{proposal.change_summary}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{proposal.submitter_note}</p>
             </div>
           )}
 

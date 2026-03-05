@@ -15,8 +15,8 @@ export interface PendingProposal {
   proposal_type: 'create' | 'update' | 'delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
-  change_summary: string | null
-  proposed_at: string
+  submitter_note: string | null
+  created_at: string
 }
 
 export interface PendingImage {
@@ -452,15 +452,15 @@ function ProposalCard({
           {PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type}
         </span>
         <span className="text-xs text-gray-400 dark:text-gray-500">
-          {formatDate(proposal.proposed_at)}
+          {formatDate(proposal.created_at)}
         </span>
       </div>
 
       {/* Reason / change_summary */}
-      {proposal.change_summary && (
+      {proposal.submitter_note && (
         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-lg px-3 py-2">
           <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">Reason given</p>
-          <p className="text-sm text-amber-900 dark:text-amber-200">{proposal.change_summary}</p>
+          <p className="text-sm text-amber-900 dark:text-amber-200">{proposal.submitter_note}</p>
         </div>
       )}
 
