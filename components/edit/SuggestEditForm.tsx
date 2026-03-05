@@ -57,8 +57,8 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
     const { count, error: countError } = await supabase
       .from('edit_proposals')
       .select('*', { count: 'exact', head: true })
-      .eq('proposed_by', userId)
-      .gte('proposed_at', cutoff)
+      .eq('created_by', userId)
+      .gte('created_at', cutoff)
     console.log('[SuggestEditForm] rate-limit response — count:', count, 'error:', countError)
 
     if (countError) {
