@@ -6,6 +6,7 @@ import MiniMap from '@/components/map/MiniMap'
 import SuggestEditButton from '@/components/edit/SuggestEditButton'
 import SuggestAddressButton from '@/components/edit/SuggestAddressButton'
 import SuggestRabbiButton from '@/components/edit/SuggestRabbiButton'
+import SuggestHistoryButton from '@/components/edit/SuggestHistoryButton'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 import NavAuth from '@/components/auth/NavAuth'
 
@@ -362,6 +363,12 @@ export default function SynagogueDetail({ synagogue, addresses, history, rabbis,
                   </div>
                 </div>
               )}
+              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <SuggestHistoryButton
+                  synagogueId={synagogue.id}
+                  synagogueName={synagogue.name}
+                />
+              </div>
             </div>
 
             {/* Images */}
