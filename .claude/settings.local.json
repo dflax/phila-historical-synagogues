@@ -19,7 +19,8 @@
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && git add CLAUDE.md && git commit -m \"$\\(cat <<'EOF'\nCLAUDE.md tracks progress with Claude Code.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\nEOF\n\\)\" && git push)",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && git add README.md && git commit -m \"$\\(cat <<'EOF'\nRewrite README with accurate project documentation\n\nReplaces the placeholder README \\(which described unbuilt features like\nauth, admin dashboard, and NextAuth\\) with a complete, accurate description\nof what's actually live: the interactive map with collapsible sidebar,\ndual-range year filter, mini-map on detail pages, browse directory, and\nall deployment/setup instructions.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\nEOF\n\\)\" && git push)",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npm install 2>&1)",
-      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npm run dev 2>&1)"
+      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npm run dev 2>&1)",
+      "Bash(mkdir -p \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/app/api/users/[id]/promote\" && mkdir -p \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/app/api/users/[id]/demote\")"
     ]
   }
 }

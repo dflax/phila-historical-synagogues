@@ -114,7 +114,7 @@ const ROLE_BADGE: Record<string, { label: string; className: string }> = {
 
 export default function AdminClient({ proposals: initialProposals, images: initialImages, userId }: Props) {
   const supabase = createClientComponentClient()
-  const { role } = useUserRole()
+  const { role, isAdmin } = useUserRole()
 
   const [activeTab,         setActiveTab]         = useState<'proposals' | 'photos'>('proposals')
   const [pendingProposals,  setPendingProposals]   = useState<PendingProposal[]>(initialProposals)
@@ -273,11 +273,24 @@ export default function AdminClient({ proposals: initialProposals, images: initi
               {pendingImages.length} photo{pendingImages.length !== 1 ? 's' : ''} pending
             </p>
           </div>
-          {role && ROLE_BADGE[role] && (
-            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ROLE_BADGE[role].className}`}>
-              {ROLE_BADGE[role].label}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Link
+                href="/admin/users"
+                className="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                Manage Users
+              </Link>
+            )}
+            {role && ROLE_BADGE[role] && (
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ROLE_BADGE[role].className}`}>
+                {ROLE_BADGE[role].label}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Error banner */}
