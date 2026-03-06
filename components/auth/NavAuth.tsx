@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import AuthModal from './AuthModal'
 
 export default function NavAuth() {
   const supabase = createClientComponentClient()
+  const router = useRouter()
   const [user,         setUser]         = useState<User | null>(null)
   const [fullName,     setFullName]     = useState<string | null>(null)
   const [role,         setRole]         = useState<string | null>(null)
@@ -59,6 +61,8 @@ export default function NavAuth() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     setDropdownOpen(false)
+    router.push('/')
+    router.refresh()
   }
 
   // ── Logged out ────────────────────────────────────────────────────────────
