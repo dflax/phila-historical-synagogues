@@ -88,7 +88,7 @@ export default function UsersClient({ users: initialUsers, currentUserId }: Prop
   const [confirm,     setConfirm]     = useState<ConfirmDialog | null>(null)
   const [processing,  setProcessing]  = useState<Set<string>>(new Set())
   const [error,       setError]       = useState<string | null>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLTableSectionElement>(null)
 
   // Close dropdown on outside click
   useEffect(() => {
