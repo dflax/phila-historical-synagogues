@@ -1,16 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Props {
   isOpen: boolean
   title: string
   message: string
   confirmLabel?: string
-  onConfirm: () => void
+  onConfirm: () => Promise<void>
   onCancel: () => void
-  loading?: boolean
-  error?: string | null
 }
 
 export default function ConfirmDialog({
@@ -20,18 +18,27 @@ export default function ConfirmDialog({
   confirmLabel = 'Delete',
   onConfirm,
   onCancel,
-  loading = false,
-  error = null,
 }: Props) {
-  // Escape key cancels
+  const [isLoading, setIsLoading] = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
+
+  // Reset internal state each time the dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(false)
+      setError(null)
+    }
+  }, [isOpen])
+
+  // Escape key cancels (blocked while loading)
   useEffect(() => {
     if (!isOpen) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !loading) onCancel()
+      if (e.key === 'Escape' && !isLoading) onCancel()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [isOpen, loading, onCancel])
+  }, [isOpen, isLoading, onCancel])
 
   // Scroll lock
   useEffect(() => {
@@ -40,12 +47,25 @@ export default function ConfirmDialog({
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
+  async function handleConfirm() {
+    setIsLoading(true)
+    setError(null)
+    try {
+      await onConfirm()
+      // Parent closes modal via onCancel / setPendingDelete(null) on success;
+      // no need to reset loading here — the component will unmount.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed. Please try again.')
+      setIsLoading(false)
+    }
+  }
+
   if (!isOpen) return null
 
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-      onClick={() => { if (!loading) onCancel() }}
+      onClick={() => { if (!isLoading) onCancel() }}
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
@@ -91,23 +111,23 @@ export default function ConfirmDialog({
         <div className="px-6 pb-6 flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            disabled={loading}
+            disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition"
           >
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            disabled={loading}
+            onClick={handleConfirm}
+            disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition flex items-center gap-2"
           >
-            {loading && (
+            {isLoading && (
               <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
             )}
-            {loading ? 'Deleting…' : confirmLabel}
+            {isLoading ? 'Deleting…' : confirmLabel}
           </button>
         </div>
       </div>
