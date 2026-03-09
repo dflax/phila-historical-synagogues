@@ -1,7 +1,33 @@
+import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import NavAuth from '@/components/auth/NavAuth'
 
-export default function Home() {
+// Revalidate at most once per hour — avoids a DB hit on every page load
+export const revalidate = 3600
+
+async function getStats() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const [totalResult, activeResult, earliestResult] = await Promise.all([
+    supabase.from('synagogues').select('*', { count: 'exact', head: true }).eq('approved', true),
+    supabase.from('synagogues').select('*', { count: 'exact', head: true }).eq('approved', true).eq('status', 'active'),
+    supabase.from('synagogues').select('founded_year').eq('approved', true).not('founded_year', 'is', null).order('founded_year', { ascending: true }).limit(1),
+  ])
+
+  const total = totalResult.count ?? 562
+  const active = activeResult.count ?? 83
+  const earliestYear: number = earliestResult.data?.[0]?.founded_year ?? 1745
+  const yearsOfHistory = new Date().getFullYear() - earliestYear
+
+  return { total, active, earliestYear, yearsOfHistory }
+}
+
+export default async function Home() {
+  const { total, active, earliestYear, yearsOfHistory } = await getStats()
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-900">
       {/* Navigation Bar */}
@@ -56,15 +82,15 @@ export default function Home() {
           {/* Stats */}
           <div className="grid md:grid-cols-3 gap-8 mt-16">
             <Link href="/synagogues" className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-700 border border-transparent dark:border-gray-700 transition group">
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2 group-hover:text-blue-700 dark:group-hover:text-blue-300">562</div>
+              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2 group-hover:text-blue-700 dark:group-hover:text-blue-300">{total}</div>
               <div className="text-gray-600 dark:text-gray-400">Historic Synagogues</div>
             </Link>
             <Link href="/synagogues?status=active" className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg hover:border-green-200 dark:hover:border-green-700 border border-transparent dark:border-gray-700 transition group">
-              <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300">83</div>
+              <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300">{active}</div>
               <div className="text-gray-600 dark:text-gray-400">Still Active</div>
             </Link>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-transparent dark:border-gray-700">
-              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">280+</div>
+              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">{yearsOfHistory}+</div>
               <div className="text-gray-600 dark:text-gray-400">Years of History</div>
             </div>
           </div>
@@ -106,7 +132,7 @@ export default function Home() {
               the greater Philadelphia region.
             </p>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              With 562 synagogues documented and 424 locations geocoded, you can explore:
+              With {total} synagogues documented, you can explore:
             </p>
             <ul className="list-disc list-inside text-gray-600 dark:text-gray-400 mb-4 space-y-2">
               <li>Which synagogues were active in any given year</li>
@@ -129,7 +155,7 @@ export default function Home() {
             </p>
             <div className="grid md:grid-cols-4 gap-4 text-center">
               <div className="bg-white/10 rounded-lg p-4">
-                <div className="text-3xl font-bold">1745</div>
+                <div className="text-3xl font-bold">{earliestYear}</div>
                 <div className="text-sm text-blue-100">First Synagogue</div>
               </div>
               <div className="bg-white/10 rounded-lg p-4">
@@ -142,7 +168,7 @@ export default function Home() {
               </div>
               <div className="bg-white/10 rounded-lg p-4">
                 <div className="text-3xl font-bold">Today</div>
-                <div className="text-sm text-blue-100">83 Active</div>
+                <div className="text-sm text-blue-100">{active} Active</div>
               </div>
             </div>
             <Link
