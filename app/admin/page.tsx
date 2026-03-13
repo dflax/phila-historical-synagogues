@@ -30,7 +30,7 @@ export default async function AdminPage() {
   // ── Fetch pending edit proposals ──────────────────────────────────────────
   const { data: rawProposals } = await supabase
     .from('edit_proposals')
-    .select('id, synagogue_id, proposal_type, proposed_data, current_data, submitter_note, created_at, synagogues(name)')
+    .select('id, synagogue_id, entity_id, proposal_type, proposed_data, current_data, submitter_note, created_at, synagogues(name)')
     .eq('status', 'pending')
     .order('created_at', { ascending: true })    // oldest first
 
@@ -57,6 +57,7 @@ export default async function AdminPage() {
   const proposals: PendingProposal[] = (rawProposals ?? []).map((p: any) => ({
     id:             p.id,
     synagogue_id:   p.synagogue_id ?? null,
+    entity_id:      p.entity_id    ?? null,
     synagogue_name: (p.synagogues as any)?.name ?? null,
     proposal_type:  p.proposal_type,
     proposed_data:  p.proposed_data ?? {},

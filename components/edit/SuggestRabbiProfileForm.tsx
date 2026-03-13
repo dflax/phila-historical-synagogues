@@ -119,7 +119,8 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
     const { error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
-        rabbi_id:       profile.id,
+        entity_id:      profile.id,   // generic FK for non-synagogue proposals
+        synagogue_id:   null,
         proposal_type:  'rabbi_profile_edit',
         proposed_data:  proposed,
         current_data: {

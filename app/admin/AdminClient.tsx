@@ -11,8 +11,9 @@ import { useUserRole } from '@/hooks/useUserRole'
 export interface PendingProposal {
   id: string
   synagogue_id: string | null
+  entity_id: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null

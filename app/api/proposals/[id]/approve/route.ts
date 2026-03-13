@@ -224,6 +224,25 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'rabbi_profile_edit' && proposal.entity_id) {
+    const { error } = await supabase
+      .from('rabbi_profiles')
+      .update({
+        canonical_name: proposed.canonical_name ?? undefined,
+        birth_year:     proposed.birth_year  !== undefined ? (proposed.birth_year  ?? null) : undefined,
+        circa_birth:    proposed.circa_birth !== undefined ? (proposed.circa_birth ?? false) : undefined,
+        death_year:     proposed.death_year  !== undefined ? (proposed.death_year  ?? null) : undefined,
+        circa_death:    proposed.circa_death !== undefined ? (proposed.circa_death ?? false) : undefined,
+        biography:      proposed.biography   !== undefined ? (proposed.biography   ?? null) : undefined,
+        updated_at:     now,
+      })
+      .eq('id', proposal.entity_id)
+    if (error) {
+      return NextResponse.json(
+        { error: `Failed to update rabbi profile: ${error.message}` },
+        { status: 500 },
+      )
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.
