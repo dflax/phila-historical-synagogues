@@ -21,7 +21,9 @@
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npm install 2>&1)",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npm run dev 2>&1)",
       "Bash(mkdir -p \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/app/api/users/[id]/promote\" && mkdir -p \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/app/api/users/[id]/demote\")",
-      "Bash(PUB=\"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/public\"\nmagick identify \"$PUB/apple-touch-icon.png\" \"$PUB/icon-192.png\" \"$PUB/icon-512.png\" \"$PUB/favicon.ico\")"
+      "Bash(PUB=\"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/public\"\nmagick identify \"$PUB/apple-touch-icon.png\" \"$PUB/icon-192.png\" \"$PUB/icon-512.png\" \"$PUB/favicon.ico\")",
+      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | head -50)",
+      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && ls app/rabbis/\\\\[slug\\\\]/ components/rabbis/)"
     ]
   }
 }
