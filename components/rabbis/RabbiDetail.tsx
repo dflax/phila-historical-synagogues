@@ -1,12 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import type { User } from '@supabase/supabase-js'
+import { useState } from 'react'
 import NavAuth from '@/components/auth/NavAuth'
 import { useUserRole } from '@/hooks/useUserRole'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
+import SuggestRabbiProfileButton from '@/components/edit/SuggestRabbiProfileButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,52 +65,6 @@ function SectionHeader({ icon, title }: { icon: string; title: string }) {
 function EmptyState({ message }: { message: string }) {
   return (
     <p className="text-sm text-gray-400 dark:text-gray-500 italic py-2">{message}</p>
-  )
-}
-
-// ── Auth-aware "Suggest Edit" button ─────────────────────────────────────────
-
-function SuggestEditButton({ profileId, name }: { profileId: string; name: string }) {
-  const supabase   = createClientComponentClient()
-  const [user,      setUser]      = useState<User | null>(null)
-  const [authReady, setAuthReady] = useState(false)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setAuthReady(true)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
-  }, [supabase]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!authReady) return null
-
-  const pencilIcon = (
-    <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-    </svg>
-  )
-
-  if (user) {
-    return (
-      <button
-        className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition"
-        title={`Suggest an edit for ${name}`}
-      >
-        {pencilIcon}
-        Suggest an Edit
-      </button>
-    )
-  }
-
-  return (
-    <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
-      {pencilIcon}
-      Sign in to suggest edits
-    </span>
   )
 }
 
@@ -240,7 +193,7 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
 
             {/* Suggest edit */}
             <div className="flex-shrink-0">
-              <SuggestEditButton profileId={profile.id} name={profile.canonical_name} />
+              <SuggestRabbiProfileButton profile={profile} />
             </div>
           </div>
 
