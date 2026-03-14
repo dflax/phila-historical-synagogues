@@ -38,7 +38,8 @@ export default async function SynagoguePage({ params }: { params: { id: string }
         id, entry_type, content, year, year_range_start, year_range_end, circa, source, source_url
       ),
       rabbis (
-        id, name, title, start_year, end_year, notes
+        id, name, title, start_year, end_year, notes,
+        rabbi_profiles!profile_id (slug)
       ),
       images (
         id, url, storage_path, storage_provider,
@@ -72,9 +73,12 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     return ay - by
   })
 
-  const rabbis = normalize(synagogue.rabbis).sort((a: any, b: any) =>
-    (a.start_year ?? 9999) - (b.start_year ?? 9999)
-  )
+  const rabbis = normalize(synagogue.rabbis)
+    .sort((a: any, b: any) => (a.start_year ?? 9999) - (b.start_year ?? 9999))
+    .map((r: any) => ({
+      ...r,
+      slug: normalize(r.rabbi_profiles)[0]?.slug ?? null,
+    }))
 
   const rawImages: any[] = normalize(synagogue.images).sort((a: any, b: any) => {
     if (a.is_primary && !b.is_primary) return -1

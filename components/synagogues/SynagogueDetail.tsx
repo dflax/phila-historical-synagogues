@@ -58,6 +58,7 @@ interface Rabbi {
   start_year: number | null
   end_year: number | null
   notes: string | null
+  slug: string | null
 }
 
 interface Image {
@@ -338,7 +339,12 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                     <div key={r.id} className="flex items-start justify-between gap-2 group">
                       <div className="text-sm border-l-2 border-blue-100 dark:border-blue-800 pl-3 flex-1 min-w-0">
                         <div className="font-medium text-gray-800 dark:text-gray-200">
-                          {r.title ? `${r.title} ` : ''}{r.name}
+                          {r.title ? `${r.title} ` : ''}
+                          {r.slug ? (
+                            <Link href={`/rabbis/${r.slug}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                              {r.name}
+                            </Link>
+                          ) : r.name}
                         </div>
                         {(r.start_year || r.end_year) && (
                           <div className="text-gray-400 dark:text-gray-500 text-xs">
