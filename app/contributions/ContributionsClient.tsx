@@ -14,7 +14,7 @@ export interface EditProposal {
   current_data: Record<string, any> | null
   submitter_note: string | null
   status: 'pending' | 'approved' | 'rejected' | 'needs_revision'
-  reviewer_notes: string | null
+  review_notes: string | null
   created_at: string
   reviewed_at: string | null
   synagogue_name: string | null
@@ -448,10 +448,10 @@ function EditDetailModal({ proposal, onClose }: { proposal: EditProposal; onClos
           </div>
 
           {/* Reviewer notes */}
-          {proposal.reviewer_notes && (
+          {proposal.review_notes && (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5">
               <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-1">Reviewer note</p>
-              <p className="text-sm text-amber-800 dark:text-amber-300">{proposal.reviewer_notes}</p>
+              <p className="text-sm text-amber-800 dark:text-amber-300">{proposal.review_notes}</p>
             </div>
           )}
 

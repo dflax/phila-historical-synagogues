@@ -225,7 +225,7 @@ export default function AdminClient({ proposals: initialProposals, images: initi
       .from('edit_proposals')
       .update({
         status:         'rejected',
-        reviewer_notes: rejectNotes.trim() || null,
+        review_notes: rejectNotes.trim() || null,
         reviewed_by:    userId,
         reviewed_at:    new Date().toISOString(),
       })
