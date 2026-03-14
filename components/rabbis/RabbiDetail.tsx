@@ -308,14 +308,25 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
               {lifespan && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">{lifespan}</p>
               )}
-              {affiliations.length > 0 && (
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                  {affiliations.some(a => a.end_year === null)
-                    ? `Is currently affiliated with ${affiliations.length} synagogue${affiliations.length !== 1 ? 's' : ''}`
-                    : `Has been affiliated with ${affiliations.length} synagogue${affiliations.length !== 1 ? 's' : ''}`
-                  }
-                </p>
-              )}
+              {affiliations.length > 0 && (() => {
+                const current = affiliations.filter(a => a.end_year === null)
+                const past    = affiliations.filter(a => a.end_year !== null)
+                const hasBoth = current.length > 0 && past.length > 0
+                return (
+                  <div className="text-sm text-gray-400 dark:text-gray-500 mt-1 space-y-0.5">
+                    {hasBoth ? (
+                      <>
+                        <p>{`Is currently affiliated with ${current.length} synagogue${current.length !== 1 ? 's' : ''}`}</p>
+                        <p>{`Has previously been affiliated with ${past.length} synagogue${past.length !== 1 ? 's' : ''}`}</p>
+                      </>
+                    ) : current.length > 0 ? (
+                      <p>{`Is currently affiliated with ${current.length} synagogue${current.length !== 1 ? 's' : ''}`}</p>
+                    ) : (
+                      <p>{`Has been affiliated with ${past.length} synagogue${past.length !== 1 ? 's' : ''}`}</p>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Suggest edit */}
