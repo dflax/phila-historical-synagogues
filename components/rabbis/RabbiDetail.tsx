@@ -310,7 +310,10 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
               )}
               {affiliations.length > 0 && (
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                  Served at {affiliations.length} synagogue{affiliations.length !== 1 ? 's' : ''}
+                  {affiliations.some(a => a.end_year === null)
+                    ? `Is currently affiliated with ${affiliations.length} synagogue${affiliations.length !== 1 ? 's' : ''}`
+                    : `Has been affiliated with ${affiliations.length} synagogue${affiliations.length !== 1 ? 's' : ''}`
+                  }
                 </p>
               )}
             </div>
