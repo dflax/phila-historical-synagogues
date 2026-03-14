@@ -271,8 +271,9 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
           {/* Action row — both buttons are auth-aware client components */}
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <PhotoUploadButton
-              synagogueId={synagogue.id}
-              synagogueName={synagogue.name}
+              entityType="synagogue"
+              entityId={synagogue.id}
+              entityName={synagogue.name}
             />
             <SuggestEditButton
               synagogue={synagogue}

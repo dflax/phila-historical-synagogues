@@ -6,6 +6,7 @@ import NavAuth from '@/components/auth/NavAuth'
 import { useUserRole } from '@/hooks/useUserRole'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import SuggestRabbiProfileButton from '@/components/edit/SuggestRabbiProfileButton'
+import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,9 +30,24 @@ interface Affiliation {
   synagogue: { id: string; name: string } | null
 }
 
+interface RabbiImage {
+  id: string
+  url: string | null
+  caption: string | null
+  description: string | null
+  year: number | null
+  circa_year: boolean | null
+  is_primary: boolean | null
+  display_order: number | null
+  photographer: string | null
+  source: string | null
+  credit_line: string | null
+}
+
 interface Props {
   profile: RabbiProfile
   affiliations: Affiliation[]
+  photos: RabbiImage[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -119,10 +135,12 @@ interface PendingDelete {
   remove: (id: string) => void
 }
 
-export default function RabbiDetail({ profile, affiliations: initialAffiliations }: Props) {
+export default function RabbiDetail({ profile, affiliations: initialAffiliations, photos: initialPhotos }: Props) {
   const { isEditor, isAdmin } = useUserRole()
 
   const [affiliations,  setAffiliations]  = useState<Affiliation[]>(initialAffiliations)
+  const [photos,        setPhotos]        = useState<RabbiImage[]>(initialPhotos)
+  const [lightboxImg,   setLightboxImg]   = useState<RabbiImage | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
 
   function requestDelete(endpoint: string, id: string, label: string, remove: (id: string) => void) {
@@ -231,12 +249,64 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
               )}
             </div>
 
-            {/* Photos placeholder */}
+            {/* Photos */}
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
               <SectionHeader icon="🖼️" title="Photos" />
-              <div className="py-4 text-center">
-                <p className="text-gray-400 dark:text-gray-500 italic text-sm">No photos yet.</p>
-                <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">Photos will appear here once uploaded.</p>
+              {photos.length === 0 ? (
+                <div className="py-4 text-center">
+                  <p className="text-gray-400 dark:text-gray-500 italic text-sm">No photos yet.</p>
+                  <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">Photos will appear here once uploaded.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {photos.map(img => (
+                    <div key={img.id} className="relative group aspect-square">
+                      <button
+                        onClick={() => setLightboxImg(img)}
+                        className="w-full h-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition"
+                      >
+                        {img.url ? (
+                          <img
+                            src={img.url}
+                            alt={img.caption ?? img.description ?? profile.canonical_name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600 text-3xl">
+                            🖼️
+                          </div>
+                        )}
+                        {img.year && (
+                          <span className="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+                            {img.circa_year ? 'c. ' : ''}{img.year}
+                          </span>
+                        )}
+                      </button>
+                      {isEditor && (
+                        <button
+                          onClick={() => requestDelete('images', img.id, 'photo', id => {
+                            setPhotos(prev => prev.filter(p => p.id !== id))
+                            if (lightboxImg?.id === id) setLightboxImg(null)
+                          })}
+                          title="Delete photo"
+                          className="absolute top-1 right-1 bg-black/50 hover:bg-red-600 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition"
+                          aria-label="Delete photo"
+                        >
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <PhotoUploadButton
+                  entityType="rabbi"
+                  entityId={profile.id}
+                  entityName={profile.canonical_name}
+                />
               </div>
             </div>
 
@@ -320,6 +390,59 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
         onConfirm={executeDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {/* Lightbox */}
+      {lightboxImg && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxImg(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden max-w-2xl w-full shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {lightboxImg.url && (
+              <img
+                src={lightboxImg.url}
+                alt={lightboxImg.caption ?? ''}
+                className="w-full object-contain max-h-[60vh]"
+              />
+            )}
+            <div className="p-4">
+              {lightboxImg.caption && (
+                <p className="text-sm font-medium text-gray-800 dark:text-white">{lightboxImg.caption}</p>
+              )}
+              {lightboxImg.description && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{lightboxImg.description}</p>
+              )}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                {lightboxImg.year && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    {lightboxImg.circa_year ? 'c. ' : ''}{lightboxImg.year}
+                  </span>
+                )}
+                {lightboxImg.photographer && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">📷 {lightboxImg.photographer}</span>
+                )}
+                {lightboxImg.credit_line && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{lightboxImg.credit_line}</span>
+                )}
+                {lightboxImg.source && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">Source: {lightboxImg.source}</span>
+                )}
+              </div>
+            </div>
+            <div className="border-t dark:border-gray-700 px-4 py-3 flex justify-end">
+              <button
+                onClick={() => setLightboxImg(null)}
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

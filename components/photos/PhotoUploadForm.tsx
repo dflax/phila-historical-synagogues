@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface Props {
-  synagogueId: string
+  entityType: 'synagogue' | 'rabbi'
+  entityId: string
+  entityName: string
   userId: string
   /** Called after successful insert. wasApproved=true for editors/admins. */
   onSuccess: (wasApproved: boolean) => void
@@ -25,7 +27,7 @@ function sanitizeFilename(name: string): string {
   return `${base || 'photo'}${ext}`
 }
 
-export default function PhotoUploadForm({ synagogueId, userId, onSuccess }: Props) {
+export default function PhotoUploadForm({ entityType, entityId, entityName, userId, onSuccess }: Props) {
   const supabase = createClientComponentClient()
 
   const [file,        setFile]        = useState<File | null>(null)
@@ -92,7 +94,7 @@ export default function PhotoUploadForm({ synagogueId, userId, onSuccess }: Prop
     setProgress(0)
 
     // ── 1. Upload to storage ─────────────────────────────────────────────────
-    const storagePath = `synagogues/${synagogueId}/${Date.now()}-${sanitizeFilename(file.name)}`
+    const storagePath = `${entityType}s/${entityId}/${Date.now()}-${sanitizeFilename(file.name)}`
 
     const { error: uploadError } = await supabase.storage
       .from('synagogue-images')
@@ -132,7 +134,8 @@ export default function PhotoUploadForm({ synagogueId, userId, onSuccess }: Prop
     const { error: insertError } = await supabase
       .from('images')
       .insert({
-        synagogue_id:      synagogueId,
+        synagogue_id:       entityType === 'synagogue' ? entityId : null,
+        rabbi_profile_id:   entityType === 'rabbi'     ? entityId : null,
         source_type:       'hosted',
         url:               '',             // intentionally blank — path is in storage_path
         storage_path:      storagePath,

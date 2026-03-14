@@ -38,12 +38,19 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
       rabbis (
         id, title, start_year, end_year, notes,
         synagogues (id, name)
+      ),
+      images!rabbi_profile_id (
+        id, url, storage_path, storage_provider, caption,
+        description, photographer, year, circa_year,
+        width, height, is_primary, display_order,
+        source, credit_line
       )
     `)
     .eq('slug', params.slug)
     .eq('approved', true)
     .or('deleted.is.null,deleted.eq.false')
     .or('deleted.is.null,deleted.eq.false', { foreignTable: 'rabbis' })
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'images' })
     .single()
 
   if (error || !profile) notFound()
@@ -64,6 +71,32 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
     }))
     .sort((a, b) => (a.start_year ?? 9999) - (b.start_year ?? 9999))
 
+  // ── Resolve storage_path → full URL for rabbi photos ─────────────────────
+  const rawImages: any[] = normalize(profile.images)
+    .filter((img: any) => img.approved !== false)
+    .sort((a: any, b: any) => {
+      if (a.is_primary && !b.is_primary) return -1
+      if (!a.is_primary && b.is_primary) return 1
+      return (a.display_order ?? 99) - (b.display_order ?? 99)
+    })
+
+  let storageBaseUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/synagogue-images`
+  if (rawImages.some((img: any) => img.storage_path)) {
+    const { data: cfg } = await supabase
+      .from('storage_config')
+      .select('base_url')
+      .eq('provider', 'supabase')
+      .maybeSingle()
+    if (cfg?.base_url) storageBaseUrl = cfg.base_url
+  }
+
+  const photos = rawImages.map((img: any) => ({
+    ...img,
+    url: img.storage_path
+      ? `${storageBaseUrl}/${img.storage_path}`
+      : (img.url || null),
+  }))
+
   return (
     <RabbiDetail
       profile={{
@@ -77,6 +110,7 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
         biography:     profile.biography     ?? null,
       }}
       affiliations={affiliations}
+      photos={photos}
     />
   )
 }

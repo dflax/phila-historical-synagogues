@@ -7,11 +7,12 @@ import AuthModal from '@/components/auth/AuthModal'
 import PhotoUploadForm from './PhotoUploadForm'
 
 interface Props {
-  synagogueId: string
-  synagogueName: string
+  entityType: 'synagogue' | 'rabbi'
+  entityId: string
+  entityName: string
 }
 
-export default function PhotoUploadButton({ synagogueId, synagogueName }: Props) {
+export default function PhotoUploadButton({ entityType, entityId, entityName }: Props) {
   const supabase = createClientComponentClient()
   const [user,      setUser]      = useState<User | null>(null)
   const [authReady, setAuthReady] = useState(false)
@@ -111,8 +112,9 @@ export default function PhotoUploadButton({ synagogueId, synagogueName }: Props)
             {/* Header */}
             <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Upload Photo</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{synagogueName}</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {entityType === 'rabbi' ? `Upload Photo of ${entityName}` : `Upload Photo to ${entityName}`}
+                </h2>
               </div>
               <button
                 onClick={closeUploadModal}
@@ -140,14 +142,16 @@ export default function PhotoUploadButton({ synagogueId, synagogueName }: Props)
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {approved
-                      ? 'Your photo is now visible on the synagogue page.'
+                      ? `Your photo is now visible on the ${entityType} page.`
                       : 'Your photo is pending approval from our editors.'}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">This window will close automatically…</p>
                 </div>
               ) : (
                 <PhotoUploadForm
-                  synagogueId={synagogueId}
+                  entityType={entityType}
+                  entityId={entityId}
+                  entityName={entityName}
                   userId={user!.id}
                   onSuccess={handleSuccess}
                 />
