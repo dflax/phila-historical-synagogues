@@ -53,11 +53,28 @@ export default async function AdminPage() {
     if (cfg?.base_url) storageBaseUrl = cfg.base_url
   }
 
+  // ── Resolve rabbi names for rabbi_profile_* proposals ────────────────────
+  const rabbiProfileIds = (rawProposals ?? [])
+    .filter((p: any) => typeof p.proposal_type === 'string' && p.proposal_type.startsWith('rabbi_profile_') && p.entity_id)
+    .map((p: any) => p.entity_id as string)
+
+  const rabbiMap = new Map<string, string>()
+  if (rabbiProfileIds.length > 0) {
+    const { data: rabbiProfiles } = await supabase
+      .from('rabbi_profiles')
+      .select('id, canonical_name')
+      .in('id', rabbiProfileIds)
+    for (const r of rabbiProfiles ?? []) {
+      rabbiMap.set(r.id as string, r.canonical_name as string)
+    }
+  }
+
   // ── Shape props ───────────────────────────────────────────────────────────
   const proposals: PendingProposal[] = (rawProposals ?? []).map((p: any) => ({
     id:             p.id,
     synagogue_id:   p.synagogue_id ?? null,
     entity_id:      p.entity_id    ?? null,
+    rabbi_name:     p.entity_id ? (rabbiMap.get(p.entity_id) ?? null) : null,
     synagogue_name: (p.synagogues as any)?.name ?? null,
     proposal_type:  p.proposal_type,
     proposed_data:  p.proposed_data ?? {},

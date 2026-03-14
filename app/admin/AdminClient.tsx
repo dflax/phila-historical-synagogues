@@ -12,8 +12,9 @@ export interface PendingProposal {
   id: string
   synagogue_id: string | null
   entity_id: string | null
+  rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -46,35 +47,47 @@ interface Props {
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const FIELD_LABELS: Record<string, string> = {
-  name:         'Name',
-  founded_year: 'Founded Year',
-  closed_year:  'Closed Year',
-  status:       'Status',
-  neighborhood: 'Neighborhood',
+  // Synagogue fields
+  name:           'Name',
+  founded_year:   'Founded Year',
+  closed_year:    'Closed Year',
+  status:         'Status',
+  neighborhood:   'Neighborhood',
+  // Rabbi profile fields
+  canonical_name: 'Full Name',
+  birth_year:     'Birth Year',
+  circa_birth:    'Birth Year Approximate',
+  death_year:     'Death Year',
+  circa_death:    'Death Year Approximate',
+  biography:      'Biography',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
-  synagogue_edit:  'Edit synagogue',
-  synagogue_new:   'New synagogue',
-  address_edit:    'Edit address',
-  address_new:     'New address',
-  rabbi_edit:      'Edit rabbi',
-  rabbi_new:       'New rabbi',
-  history_edit:    'Edit history',
-  history_new:     'New history entry',
-  photo_upload:    'Photo upload',
+  synagogue_edit:      'Edit synagogue',
+  synagogue_new:       'New synagogue',
+  address_edit:        'Edit address',
+  address_new:         'New address',
+  rabbi_edit:          'Edit rabbi',
+  rabbi_new:           'New rabbi',
+  history_edit:        'Edit history',
+  history_new:         'New history entry',
+  photo_upload:        'Photo upload',
+  rabbi_profile_edit:  'Edit rabbi profile',
+  rabbi_profile_new:   'New rabbi profile',
 }
 
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
-  synagogue_edit:  'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-  synagogue_new:   'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-  address_edit:    'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-  address_new:     'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-  rabbi_edit:      'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-  rabbi_new:       'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-  history_edit:    'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-  history_new:     'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-  photo_upload:    'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+  synagogue_edit:      'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  synagogue_new:       'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  address_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  address_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  rabbi_edit:          'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  rabbi_new:           'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  history_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  history_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  photo_upload:        'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+  rabbi_profile_edit:  'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  rabbi_profile_new:   'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -84,15 +97,63 @@ function formatDate(iso: string | null | undefined): string {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-type SynGroup = { synagogue_id: string | null; synagogue_name: string; items: PendingProposal[] }
+type EntityType = 'synagogue' | 'rabbi' | 'ungrouped'
 
-function groupProposals(proposals: PendingProposal[]): SynGroup[] {
-  const map = new Map<string, SynGroup>()
+interface ProposalGroup {
+  key: string
+  entity_type: EntityType
+  entity_id: string | null
+  display_name: string
+  items: PendingProposal[]
+}
+
+function groupProposals(proposals: PendingProposal[]): ProposalGroup[] {
+  const map = new Map<string, ProposalGroup>()
+
   for (const p of proposals) {
-    const key = p.synagogue_id ?? '__new__'
-    if (!map.has(key)) map.set(key, { synagogue_id: p.synagogue_id, synagogue_name: p.synagogue_name ?? 'New Synagogue', items: [] })
+    let key: string
+
+    if (p.proposal_type.startsWith('rabbi_profile_')) {
+      // Group rabbi profile proposals by their entity_id
+      key = `rabbi__${p.entity_id ?? '__unknown__'}`
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          entity_type:  'rabbi',
+          entity_id:    p.entity_id,
+          display_name: p.rabbi_name ?? 'Unknown Rabbi',
+          items: [],
+        })
+      }
+    } else if (p.synagogue_id) {
+      // Group synagogue-linked proposals by synagogue_id
+      key = `synagogue__${p.synagogue_id}`
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          entity_type:  'synagogue',
+          entity_id:    p.synagogue_id,
+          display_name: p.synagogue_name ?? 'Unknown Synagogue',
+          items: [],
+        })
+      }
+    } else {
+      // New synagogue proposals and any unknown types land here
+      key = '__ungrouped__'
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          entity_type:  'ungrouped',
+          entity_id:    null,
+          display_name: 'New / Ungrouped',
+          items: [],
+        })
+      }
+    }
+
     map.get(key)!.items.push(p)
   }
+
   return [...map.values()]
 }
 
@@ -176,7 +237,7 @@ export default function AdminClient({ proposals: initialProposals, images: initi
     setRejectNotes('')
   }
 
-  async function approveAllInGroup(group: SynGroup) {
+  async function approveAllInGroup(group: ProposalGroup) {
     const ids = group.items.map(p => p.id)
     ids.forEach(addProcessing)
     setError(null)
@@ -330,16 +391,44 @@ export default function AdminClient({ proposals: initialProposals, images: initi
           ) : (
             <div className="space-y-3">
               {groups.map(group => {
-                const key = group.synagogue_id ?? '__new__'
-                const isOpen = expandedGroups.has(key)
+                const isOpen    = expandedGroups.has(group.key)
                 const groupBusy = group.items.every(p => processing.has(p.id))
+
+                // Entity-type prefix badge
+                const entityBadge = group.entity_type === 'rabbi' ? (
+                  <span className="flex-shrink-0 text-xs font-medium text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 px-1.5 py-0.5 rounded">
+                    Rabbi
+                  </span>
+                ) : group.entity_type === 'synagogue' ? (
+                  <span className="flex-shrink-0 text-xs font-medium text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded">
+                    Synagogue
+                  </span>
+                ) : (
+                  <span className="flex-shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded">
+                    New
+                  </span>
+                )
+
+                // External link — synagogues have a page; rabbi profiles do too
+                const entityLink = group.entity_type === 'synagogue' && group.entity_id ? (
+                  <Link
+                    href={`/synagogues/${group.entity_id}`}
+                    target="_blank"
+                    onClick={e => e.stopPropagation()}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex-shrink-0"
+                    title="View synagogue"
+                  >
+                    ↗
+                  </Link>
+                ) : null
+
                 return (
-                  <div key={key} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <div key={group.key} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
 
                     {/* Group header */}
                     <div className="flex items-center gap-3 px-4 py-3">
                       <button
-                        onClick={() => toggleGroup(key)}
+                        onClick={() => toggleGroup(group.key)}
                         className="flex items-center gap-2 flex-1 min-w-0 text-left"
                         aria-expanded={isOpen}
                       >
@@ -349,17 +438,9 @@ export default function AdminClient({ proposals: initialProposals, images: initi
                         >
                           <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                         </svg>
-                        <span className="font-semibold text-gray-900 dark:text-white truncate">{group.synagogue_name}</span>
-                        {group.synagogue_id && (
-                          <Link
-                            href={`/synagogues/${group.synagogue_id}`}
-                            target="_blank"
-                            onClick={e => e.stopPropagation()}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex-shrink-0"
-                          >
-                            ↗
-                          </Link>
-                        )}
+                        {entityBadge}
+                        <span className="font-semibold text-gray-900 dark:text-white truncate">{group.display_name}</span>
+                        {entityLink}
                       </button>
                       <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full flex-shrink-0">
                         {group.items.length} pending
