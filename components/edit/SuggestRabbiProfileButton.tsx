@@ -14,6 +14,14 @@ interface RabbiProfile {
   circa_birth: boolean | null
   circa_death: boolean | null
   biography: string | null
+  birthplace: string | null
+  death_place: string | null
+  seminary: string | null
+  ordination_year: number | null
+  denomination: string | null
+  languages: string[] | null
+  publications: string | null
+  achievements: string | null
 }
 
 interface Props {

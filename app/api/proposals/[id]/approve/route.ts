@@ -228,13 +228,21 @@ export async function POST(
     const { error } = await supabase
       .from('rabbi_profiles')
       .update({
-        canonical_name: proposed.canonical_name ?? undefined,
-        birth_year:     proposed.birth_year  !== undefined ? (proposed.birth_year  ?? null) : undefined,
-        circa_birth:    proposed.circa_birth !== undefined ? (proposed.circa_birth ?? false) : undefined,
-        death_year:     proposed.death_year  !== undefined ? (proposed.death_year  ?? null) : undefined,
-        circa_death:    proposed.circa_death !== undefined ? (proposed.circa_death ?? false) : undefined,
-        biography:      proposed.biography   !== undefined ? (proposed.biography   ?? null) : undefined,
-        updated_at:     now,
+        canonical_name:  proposed.canonical_name  ?? undefined,
+        birth_year:      proposed.birth_year      !== undefined ? (proposed.birth_year      ?? null)  : undefined,
+        circa_birth:     proposed.circa_birth     !== undefined ? (proposed.circa_birth     ?? false) : undefined,
+        death_year:      proposed.death_year      !== undefined ? (proposed.death_year      ?? null)  : undefined,
+        circa_death:     proposed.circa_death     !== undefined ? (proposed.circa_death     ?? false) : undefined,
+        biography:       proposed.biography       !== undefined ? (proposed.biography       ?? null)  : undefined,
+        birthplace:      proposed.birthplace      !== undefined ? (proposed.birthplace      ?? null)  : undefined,
+        death_place:     proposed.death_place     !== undefined ? (proposed.death_place     ?? null)  : undefined,
+        seminary:        proposed.seminary        !== undefined ? (proposed.seminary        ?? null)  : undefined,
+        ordination_year: proposed.ordination_year !== undefined ? (proposed.ordination_year ?? null)  : undefined,
+        denomination:    proposed.denomination    !== undefined ? (proposed.denomination    ?? null)  : undefined,
+        languages:       proposed.languages       !== undefined ? (proposed.languages       ?? null)  : undefined,
+        publications:    proposed.publications    !== undefined ? (proposed.publications    ?? null)  : undefined,
+        achievements:    proposed.achievements    !== undefined ? (proposed.achievements    ?? null)  : undefined,
+        updated_at:      now,
       })
       .eq('id', proposal.entity_id)
     if (error) {

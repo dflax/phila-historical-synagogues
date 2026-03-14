@@ -100,14 +100,22 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
   return (
     <RabbiDetail
       profile={{
-        id:            profile.id,
-        slug:          profile.slug,
-        canonical_name: profile.canonical_name,
-        birth_year:    profile.birth_year    ?? null,
-        death_year:    profile.death_year    ?? null,
-        circa_birth:   profile.circa_birth   ?? null,
-        circa_death:   profile.circa_death   ?? null,
-        biography:     profile.biography     ?? null,
+        id:              profile.id,
+        slug:            profile.slug,
+        canonical_name:  profile.canonical_name,
+        birth_year:      profile.birth_year      ?? null,
+        death_year:      profile.death_year      ?? null,
+        circa_birth:     profile.circa_birth     ?? null,
+        circa_death:     profile.circa_death     ?? null,
+        biography:       profile.biography       ?? null,
+        birthplace:      profile.birthplace      ?? null,
+        death_place:     profile.death_place     ?? null,
+        seminary:        profile.seminary        ?? null,
+        ordination_year: profile.ordination_year ?? null,
+        denomination:    profile.denomination    ?? null,
+        languages:       profile.languages       ?? null,
+        publications:    profile.publications    ?? null,
+        achievements:    profile.achievements    ?? null,
       }}
       affiliations={affiliations}
       photos={photos}

@@ -19,6 +19,14 @@ interface RabbiProfile {
   circa_birth: boolean | null
   circa_death: boolean | null
   biography: string | null
+  birthplace: string | null
+  death_place: string | null
+  seminary: string | null
+  ordination_year: number | null
+  denomination: string | null
+  languages: string[] | null
+  publications: string | null
+  achievements: string | null
 }
 
 interface Affiliation {
@@ -86,25 +94,122 @@ function EmptyState({ message }: { message: string }) {
 
 // ── Biography (expandable) ───────────────────────────────────────────────────
 
-const BIO_COLLAPSE_THRESHOLD = 400 // characters
+const BIO_COLLAPSE_THRESHOLD  = 400  // characters
+const LONG_COLLAPSE_THRESHOLD = 300  // characters for publications / achievements
 
-function Biography({ text }: { text: string }) {
-  const isLong   = text.length > BIO_COLLAPSE_THRESHOLD
+function ExpandableText({ text, threshold = LONG_COLLAPSE_THRESHOLD, className = '' }: {
+  text: string
+  threshold?: number
+  className?: string
+}) {
+  const isLong = text.length > threshold
   const [expanded, setExpanded] = useState(!isLong)
 
   return (
     <div>
-      <p className={`text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap ${!expanded ? 'line-clamp-6' : ''}`}>
+      <p className={`text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap ${!expanded ? 'line-clamp-4' : ''} ${className}`}>
         {text}
       </p>
       {isLong && (
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+          className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
         >
           {expanded ? 'Show less' : 'Read more'}
         </button>
       )}
+    </div>
+  )
+}
+
+function Biography({ text }: { text: string }) {
+  return <ExpandableText text={text} threshold={BIO_COLLAPSE_THRESHOLD} />
+}
+
+// ── Biographical Details section ─────────────────────────────────────────────
+
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-2 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+      <dt className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide w-24 flex-shrink-0 pt-0.5">
+        {label}
+      </dt>
+      <dd className="flex-1 text-sm text-gray-700 dark:text-gray-300">
+        {children}
+      </dd>
+    </div>
+  )
+}
+
+function BiographicalDetails({ profile }: { profile: RabbiProfile }) {
+  // Build year strings with circa
+  const bornParts: string[] = []
+  if (profile.birthplace)  bornParts.push(profile.birthplace)
+  if (profile.birth_year)  bornParts.push(profile.circa_birth ? `c. ${profile.birth_year}` : String(profile.birth_year))
+
+  const diedParts: string[] = []
+  if (profile.death_place) diedParts.push(profile.death_place)
+  if (profile.death_year)  diedParts.push(profile.circa_death ? `c. ${profile.death_year}` : String(profile.death_year))
+
+  const hasBorn         = bornParts.length > 0
+  const hasDied         = diedParts.length > 0
+  const hasSeminary     = !!profile.seminary
+  const hasOrdination   = !!profile.ordination_year
+  const hasDenomination = !!profile.denomination
+  const hasLanguages    = !!(profile.languages && profile.languages.length > 0)
+  const hasPublications = !!profile.publications
+  const hasAchievements = !!profile.achievements
+
+  const hasAny = hasBorn || hasDied || hasSeminary || hasOrdination ||
+    hasDenomination || hasLanguages || hasPublications || hasAchievements
+
+  if (!hasAny) return null
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <SectionHeader icon="🔍" title="Biographical Details" />
+      <dl>
+        {hasBorn && (
+          <DetailRow label="Born">
+            {bornParts.join(', ')}
+          </DetailRow>
+        )}
+        {hasDied && (
+          <DetailRow label="Died">
+            {diedParts.join(', ')}
+          </DetailRow>
+        )}
+        {hasSeminary && (
+          <DetailRow label="Education">
+            {profile.seminary}
+          </DetailRow>
+        )}
+        {hasOrdination && (
+          <DetailRow label="Ordained">
+            {profile.ordination_year}
+          </DetailRow>
+        )}
+        {hasDenomination && (
+          <DetailRow label="Movement">
+            {profile.denomination}
+          </DetailRow>
+        )}
+        {hasLanguages && (
+          <DetailRow label="Languages">
+            {profile.languages!.join(', ')}
+          </DetailRow>
+        )}
+        {hasPublications && (
+          <DetailRow label="Publications">
+            <ExpandableText text={profile.publications!} />
+          </DetailRow>
+        )}
+        {hasAchievements && (
+          <DetailRow label="Achievements">
+            <ExpandableText text={profile.achievements!} />
+          </DetailRow>
+        )}
+      </dl>
     </div>
   )
 }
@@ -179,6 +284,7 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
               <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Home</Link>
               <Link href="/map" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Map</Link>
               <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Browse</Link>
+              <Link href="/rabbis" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Rabbis</Link>
               <NavAuth />
             </div>
           </div>
@@ -248,6 +354,9 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
                 <EmptyState message="No biography on record" />
               )}
             </div>
+
+            {/* Biographical Details */}
+            <BiographicalDetails profile={profile} />
 
             {/* Photos */}
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">

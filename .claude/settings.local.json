@@ -24,7 +24,8 @@
       "Bash(PUB=\"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues/public\"\nmagick identify \"$PUB/apple-touch-icon.png\" \"$PUB/icon-192.png\" \"$PUB/icon-512.png\" \"$PUB/favicon.ico\")",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | head -50)",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && ls app/rabbis/\\\\[slug\\\\]/ components/rabbis/)",
-      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | head -60)"
+      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | head -60)",
+      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | grep -v \"^npm notice\")"
     ]
   }
 }

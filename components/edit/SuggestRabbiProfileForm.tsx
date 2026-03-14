@@ -3,7 +3,18 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-const BIO_MAX = 10_000
+const BIO_MAX  = 10_000
+const LONG_MAX = 2_000
+
+const DENOMINATIONS = [
+  'Orthodox',
+  'Conservative',
+  'Reform',
+  'Reconstructionist',
+  'Renewal',
+  'Humanistic',
+  'Other',
+]
 
 interface ProfileSnapshot {
   id: string
@@ -13,6 +24,15 @@ interface ProfileSnapshot {
   circa_birth: boolean | null
   circa_death: boolean | null
   biography: string | null
+  // new biographical fields
+  birthplace: string | null
+  death_place: string | null
+  seminary: string | null
+  ordination_year: number | null
+  denomination: string | null
+  languages: string[] | null
+  publications: string | null
+  achievements: string | null
 }
 
 interface Props {
@@ -26,45 +46,97 @@ const inputClass =
 const labelClass =
   'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
 
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 pt-2">
+      <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider whitespace-nowrap">
+        {label}
+      </span>
+      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+    </div>
+  )
+}
+
+function CharCount({ current, max }: { current: number; max: number }) {
+  const left = max - current
+  return (
+    <div className={`text-xs mt-1 text-right ${left < 200 ? 'text-amber-500 dark:text-amber-400' : 'text-gray-400 dark:text-gray-500'}`}>
+      {current.toLocaleString()} / {max.toLocaleString()} characters
+    </div>
+  )
+}
+
 export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: Props) {
   const supabase = createClientComponentClient()
 
-  // Form state — pre-filled from current profile
-  const [name,       setName]       = useState(profile.canonical_name)
-  const [birthYear,  setBirthYear]  = useState(profile.birth_year?.toString()  ?? '')
-  const [birthCirca, setBirthCirca] = useState(profile.circa_birth  ?? false)
-  const [deathYear,  setDeathYear]  = useState(profile.death_year?.toString()  ?? '')
-  const [deathCirca, setDeathCirca] = useState(profile.circa_death  ?? false)
-  const [biography,  setBiography]  = useState(profile.biography    ?? '')
-  const [note,       setNote]       = useState('')
+  // ── Form state — pre-filled from current profile ─────────────────────────
+  const [name,            setName]            = useState(profile.canonical_name)
+  const [birthYear,       setBirthYear]       = useState(profile.birth_year?.toString() ?? '')
+  const [birthCirca,      setBirthCirca]      = useState(profile.circa_birth  ?? false)
+  const [deathYear,       setDeathYear]       = useState(profile.death_year?.toString() ?? '')
+  const [deathCirca,      setDeathCirca]      = useState(profile.circa_death  ?? false)
+
+  const [birthplace,      setBirthplace]      = useState(profile.birthplace      ?? '')
+  const [deathPlace,      setDeathPlace]      = useState(profile.death_place     ?? '')
+
+  const [seminary,        setSeminary]        = useState(profile.seminary        ?? '')
+  const [ordinationYear,  setOrdinationYear]  = useState(profile.ordination_year?.toString() ?? '')
+  const [denomination,    setDenomination]    = useState(profile.denomination    ?? '')
+
+  const [languages,       setLanguages]       = useState((profile.languages ?? []).join(', '))
+  const [publications,    setPublications]    = useState(profile.publications    ?? '')
+  const [achievements,    setAchievements]    = useState(profile.achievements    ?? '')
+
+  const [biography,       setBiography]       = useState(profile.biography       ?? '')
+  const [note,            setNote]            = useState('')
 
   const [error,   setError]   = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Derived counts / validation
-  const bioCharsLeft = BIO_MAX - biography.length
-  const parsedBirth  = birthYear  ? parseInt(birthYear,  10) : null
-  const parsedDeath  = deathYear  ? parseInt(deathYear,  10) : null
+  // ── Derived / validation ──────────────────────────────────────────────────
+  const parsedBirth       = birthYear       ? parseInt(birthYear,       10) : null
+  const parsedDeath       = deathYear       ? parseInt(deathYear,       10) : null
+  const parsedOrdination  = ordinationYear  ? parseInt(ordinationYear,  10) : null
+
+  const deathBeforeBirth    = parsedBirth !== null && parsedDeath !== null && parsedDeath < parsedBirth
+  const ordinationBeforeBirth =
+    parsedBirth !== null && parsedOrdination !== null && parsedOrdination < parsedBirth
+
+  const hasCharError =
+    biography.length    > BIO_MAX  ||
+    publications.length > LONG_MAX ||
+    achievements.length > LONG_MAX
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    // ── Client-side validation ──────────────────────────────────────────────
     if (!name.trim()) {
       setError('Name is required.')
       return
     }
-    if (parsedBirth !== null && parsedDeath !== null && parsedDeath < parsedBirth) {
+    if (deathBeforeBirth) {
       setError('Death year cannot be earlier than birth year.')
+      return
+    }
+    if (ordinationBeforeBirth) {
+      setError('Ordination year cannot be earlier than birth year.')
       return
     }
     if (biography.length > BIO_MAX) {
       setError(`Biography must be ${BIO_MAX.toLocaleString()} characters or fewer.`)
       return
     }
+    if (publications.length > LONG_MAX) {
+      setError(`Publications must be ${LONG_MAX.toLocaleString()} characters or fewer.`)
+      return
+    }
+    if (achievements.length > LONG_MAX) {
+      setError(`Achievements must be ${LONG_MAX.toLocaleString()} characters or fewer.`)
+      return
+    }
     if (!note.trim()) {
-      setError('Please explain what you\'re changing and why.')
+      setError("Please explain what you're changing and why.")
       return
     }
 
@@ -84,7 +156,7 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
       return
     }
     if ((count ?? 0) >= 10) {
-      setError('You\'ve reached the limit of 10 edit proposals per day. Please try again tomorrow.')
+      setError("You've reached the limit of 10 edit proposals per day. Please try again tomorrow.")
       setLoading(false)
       return
     }
@@ -105,6 +177,38 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
     if (deathCirca !== (profile.circa_death ?? false))
       proposed.circa_death = deathCirca
 
+    const newBirthplace = birthplace.trim() || null
+    if (newBirthplace !== profile.birthplace)
+      proposed.birthplace = newBirthplace
+
+    const newDeathPlace = deathPlace.trim() || null
+    if (newDeathPlace !== profile.death_place)
+      proposed.death_place = newDeathPlace
+
+    const newSeminary = seminary.trim() || null
+    if (newSeminary !== profile.seminary)
+      proposed.seminary = newSeminary
+
+    if (parsedOrdination !== profile.ordination_year)
+      proposed.ordination_year = parsedOrdination
+
+    const newDenomination = denomination || null
+    if (newDenomination !== profile.denomination)
+      proposed.denomination = newDenomination
+
+    const newLanguages = languages.split(',').map(l => l.trim()).filter(Boolean)
+    const oldLanguages = profile.languages ?? []
+    if (JSON.stringify(newLanguages) !== JSON.stringify(oldLanguages))
+      proposed.languages = newLanguages
+
+    const newPublications = publications.trim() || null
+    if (newPublications !== profile.publications)
+      proposed.publications = newPublications
+
+    const newAchievements = achievements.trim() || null
+    if (newAchievements !== profile.achievements)
+      proposed.achievements = newAchievements
+
     const newBio = biography.trim() || null
     if (newBio !== profile.biography)
       proposed.biography = newBio
@@ -119,17 +223,25 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
     const { error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
-        entity_id:      profile.id,   // generic FK for non-synagogue proposals
+        entity_id:      profile.id,
         synagogue_id:   null,
         proposal_type:  'rabbi_profile_edit',
         proposed_data:  proposed,
         current_data: {
-          canonical_name: profile.canonical_name,
-          birth_year:     profile.birth_year,
-          circa_birth:    profile.circa_birth,
-          death_year:     profile.death_year,
-          circa_death:    profile.circa_death,
-          biography:      profile.biography,
+          canonical_name:  profile.canonical_name,
+          birth_year:      profile.birth_year,
+          circa_birth:     profile.circa_birth,
+          death_year:      profile.death_year,
+          circa_death:     profile.circa_death,
+          birthplace:      profile.birthplace,
+          death_place:     profile.death_place,
+          seminary:        profile.seminary,
+          ordination_year: profile.ordination_year,
+          denomination:    profile.denomination,
+          languages:       profile.languages,
+          publications:    profile.publications,
+          achievements:    profile.achievements,
+          biography:       profile.biography,
         },
         submitter_note: note.trim(),
         created_by:     userId,
@@ -157,6 +269,9 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
           {error}
         </div>
       )}
+
+      {/* ── Basic Info ─────────────────────────────────────────────────────── */}
+      <SectionDivider label="Basic Info" />
 
       {/* Name */}
       <div>
@@ -224,12 +339,132 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
             Approximate (circa)
           </label>
         </div>
-        {parsedBirth !== null && parsedDeath !== null && parsedDeath < parsedBirth && (
+        {deathBeforeBirth && (
           <p className="mt-1 text-xs text-red-500 dark:text-red-400">Death year must be after birth year.</p>
         )}
       </div>
 
-      {/* Biography */}
+      {/* ── Life Details ───────────────────────────────────────────────────── */}
+      <SectionDivider label="Life Details" />
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="rp-birthplace" className={labelClass}>Birthplace</label>
+          <input
+            id="rp-birthplace"
+            type="text"
+            value={birthplace}
+            onChange={e => setBirthplace(e.target.value)}
+            className={inputClass}
+            placeholder="City, Country"
+          />
+        </div>
+        <div>
+          <label htmlFor="rp-deathplace" className={labelClass}>Place of death</label>
+          <input
+            id="rp-deathplace"
+            type="text"
+            value={deathPlace}
+            onChange={e => setDeathPlace(e.target.value)}
+            className={inputClass}
+            placeholder="City, Country"
+          />
+        </div>
+      </div>
+
+      {/* ── Education & Career ─────────────────────────────────────────────── */}
+      <SectionDivider label="Education & Career" />
+
+      <div>
+        <label htmlFor="rp-seminary" className={labelClass}>Seminary</label>
+        <input
+          id="rp-seminary"
+          type="text"
+          value={seminary}
+          onChange={e => setSeminary(e.target.value)}
+          className={inputClass}
+          placeholder="Hebrew Union College, Jewish Theological Seminary, etc."
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="rp-ordination" className={labelClass}>Ordination year</label>
+          <input
+            id="rp-ordination"
+            type="number"
+            min="1600"
+            max={new Date().getFullYear()}
+            value={ordinationYear}
+            onChange={e => setOrdinationYear(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. 1905"
+          />
+          {ordinationBeforeBirth && (
+            <p className="mt-1 text-xs text-red-500 dark:text-red-400">Must be after birth year.</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="rp-denomination" className={labelClass}>Denomination</label>
+          <select
+            id="rp-denomination"
+            value={denomination}
+            onChange={e => setDenomination(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">— select —</option>
+            {DENOMINATIONS.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* ── Languages & Works ──────────────────────────────────────────────── */}
+      <SectionDivider label="Languages & Works" />
+
+      <div>
+        <label htmlFor="rp-languages" className={labelClass}>Languages</label>
+        <input
+          id="rp-languages"
+          type="text"
+          value={languages}
+          onChange={e => setLanguages(e.target.value)}
+          className={inputClass}
+          placeholder="Hebrew, Yiddish, English"
+        />
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Separate multiple languages with commas.</p>
+      </div>
+
+      <div>
+        <label htmlFor="rp-publications" className={labelClass}>Publications</label>
+        <textarea
+          id="rp-publications"
+          rows={3}
+          value={publications}
+          onChange={e => setPublications(e.target.value)}
+          className={inputClass}
+          placeholder="Notable books, articles, or writings"
+        />
+        <CharCount current={publications.length} max={LONG_MAX} />
+      </div>
+
+      <div>
+        <label htmlFor="rp-achievements" className={labelClass}>Achievements</label>
+        <textarea
+          id="rp-achievements"
+          rows={3}
+          value={achievements}
+          onChange={e => setAchievements(e.target.value)}
+          className={inputClass}
+          placeholder="Awards, honors, community leadership"
+        />
+        <CharCount current={achievements.length} max={LONG_MAX} />
+      </div>
+
+      {/* ── Biography ──────────────────────────────────────────────────────── */}
+      <SectionDivider label="Biography" />
+
       <div>
         <label htmlFor="rp-bio" className={labelClass}>Biography</label>
         <textarea
@@ -240,12 +475,12 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
           className={inputClass}
           placeholder="Brief biographical notes — ordination, education, community role…"
         />
-        <div className={`text-xs mt-1 text-right ${bioCharsLeft < 500 ? 'text-amber-500 dark:text-amber-400' : 'text-gray-400 dark:text-gray-500'}`}>
-          {biography.length.toLocaleString()} / {BIO_MAX.toLocaleString()} characters
-        </div>
+        <CharCount current={biography.length} max={BIO_MAX} />
       </div>
 
-      {/* Submitter note — required */}
+      {/* ── Submitter note ─────────────────────────────────────────────────── */}
+      <SectionDivider label="Your Note" />
+
       <div>
         <label htmlFor="rp-note" className={labelClass}>
           Explain your changes <span className="text-red-500" aria-hidden="true">*</span>
@@ -263,7 +498,7 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
 
       <button
         type="submit"
-        disabled={loading || biography.length > BIO_MAX}
+        disabled={loading || hasCharError}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 px-4 rounded-lg font-medium text-sm transition"
       >
         {loading ? 'Submitting…' : 'Submit edit proposal'}
