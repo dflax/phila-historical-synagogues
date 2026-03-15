@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
 import { createServerSupabase } from '@/lib/supabase/server'
 import AdminClient from './AdminClient'
 import type { PendingProposal, PendingImage } from './AdminClient'
@@ -30,7 +31,7 @@ export default async function AdminPage() {
   // ── Fetch pending edit proposals ──────────────────────────────────────────
   const { data: rawProposals } = await supabase
     .from('edit_proposals')
-    .select('id, synagogue_id, entity_id, proposal_type, proposed_data, current_data, submitter_note, created_at, synagogues(name)')
+    .select('id, synagogue_id, entity_id, proposal_type, proposed_data, current_data, submitter_note, created_at, created_by, synagogues(name)')
     .eq('status', 'pending')
     .order('created_at', { ascending: true })    // oldest first
 
@@ -69,6 +70,37 @@ export default async function AdminPage() {
     }
   }
 
+  // ── Fetch contributor names and emails ───────────────────────────────────
+  const creatorIds = [...new Set(
+    (rawProposals ?? []).map((p: any) => p.created_by).filter(Boolean) as string[]
+  )]
+
+  const profileMap = new Map<string, string>()
+  const authUserMap = new Map<string, string>()
+
+  if (creatorIds.length > 0) {
+    const { data: userProfiles } = await supabase
+      .from('user_profiles')
+      .select('id, full_name')
+      .in('id', creatorIds)
+    for (const u of userProfiles ?? []) {
+      profileMap.set(u.id as string, u.full_name as string)
+    }
+
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (serviceKey) {
+      const serviceClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceKey,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+      const { data: authData } = await serviceClient.auth.admin.listUsers()
+      for (const u of authData?.users ?? []) {
+        if (u.email) authUserMap.set(u.id, u.email)
+      }
+    }
+  }
+
   // ── Shape props ───────────────────────────────────────────────────────────
   const proposals: PendingProposal[] = (rawProposals ?? []).map((p: any) => ({
     id:             p.id,
@@ -79,8 +111,10 @@ export default async function AdminPage() {
     proposal_type:  p.proposal_type,
     proposed_data:  p.proposed_data ?? {},
     current_data:   p.current_data ?? null,
-    submitter_note: p.submitter_note ?? null,
-    created_at:     p.created_at,
+    submitter_note:     p.submitter_note ?? null,
+    created_at:         p.created_at,
+    contributor_name:   profileMap.get(p.created_by) ?? 'Unknown',
+    contributor_email:  authUserMap.get(p.created_by) ?? null,
   }))
 
   const images: PendingImage[] = (rawImages ?? []).map((img: any) => ({

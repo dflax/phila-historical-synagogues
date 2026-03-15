@@ -19,6 +19,8 @@ export interface PendingProposal {
   current_data: Record<string, any> | null
   submitter_note: string | null
   created_at: string
+  contributor_name: string
+  contributor_email: string | null
 }
 
 export interface PendingImage {
@@ -603,6 +605,21 @@ function ProposalCard({
         <span className="text-xs text-gray-400 dark:text-gray-500">
           {formatDate(proposal.created_at)}
         </span>
+      </div>
+
+      {/* Contributor */}
+      <div className="text-xs text-gray-500 dark:text-gray-400">
+        Submitted by:{' '}
+        {proposal.contributor_email ? (
+          <a
+            href={`mailto:${proposal.contributor_email}`}
+            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+          >
+            {proposal.contributor_name}
+          </a>
+        ) : (
+          <span className="font-medium text-gray-700 dark:text-gray-300">{proposal.contributor_name}</span>
+        )}
       </div>
 
       {/* Reason / change_summary */}
