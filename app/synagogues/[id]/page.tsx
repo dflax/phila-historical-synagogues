@@ -15,7 +15,8 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     .from('synagogues')
     .select('name')
     .eq('id', params.id)
-    .single()
+    .or('deleted.is.null,deleted.eq.false')
+    .maybeSingle()
   return {
     title: data?.name
       ? `${data.name} - Philadelphia Historical Synagogues`
@@ -48,6 +49,7 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       )
     `)
     .eq('id', params.id)
+    .or('deleted.is.null,deleted.eq.false')
     // Exclude soft-deleted records from each related table.
     // .or() with foreignTable filters nested resources without affecting the parent query.
     .or('deleted.is.null,deleted.eq.false', { foreignTable: 'addresses' })

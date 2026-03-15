@@ -40,6 +40,7 @@ export default async function SynagoguesPage() {
         end_year
       )
     `)
+    .or('deleted.is.null,deleted.eq.false')
     .order('name'),
     supabase
       .from('addresses')
