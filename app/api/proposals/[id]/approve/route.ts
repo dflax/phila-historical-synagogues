@@ -224,6 +224,56 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'rabbi_profile_new') {
+    const candidateName = typeof proposed.canonical_name === 'string'
+      ? proposed.canonical_name.trim()
+      : 'unknown'
+
+    // Build base slug from name
+    const baseSlug = candidateName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .substring(0, 100)
+
+    // Ensure uniqueness by appending a counter if needed
+    let finalSlug = baseSlug
+    let counter   = 1
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { data: existing } = await supabase
+        .from('rabbi_profiles')
+        .select('id')
+        .eq('slug', finalSlug)
+        .maybeSingle()
+      if (!existing) break
+      finalSlug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    const { error } = await supabase
+      .from('rabbi_profiles')
+      .insert({
+        canonical_name:  candidateName,
+        slug:            finalSlug,
+        birth_year:      proposed.birth_year      ?? null,
+        circa_birth:     proposed.circa_birth     ?? false,
+        death_year:      proposed.death_year      ?? null,
+        circa_death:     proposed.circa_death     ?? false,
+        biography:       proposed.biography       ?? null,
+        approved:        true,
+        approved_by:     user.id,
+        approved_at:     now,
+        created_by:      proposal.created_by,
+      })
+    if (error) {
+      return NextResponse.json(
+        { error: `Failed to create rabbi profile: ${error.message}` },
+        { status: 500 },
+      )
+    }
+
   } else if (proposal.proposal_type === 'rabbi_profile_edit' && proposal.entity_id) {
     const { error } = await supabase
       .from('rabbi_profiles')

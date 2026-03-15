@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import NavAuth from '@/components/auth/NavAuth'
+import CreateRabbiButton from '@/components/edit/CreateRabbiButton'
 
 interface RabbiRow {
   id: string
@@ -75,9 +76,14 @@ export default function RabbisClient({ rabbis }: Props) {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
 
         {/* Page header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rabbis</h1>
-          <p className="text-gray-500 dark:text-gray-400">{rabbis.length} rabbis documented in Philadelphia-area synagogue records</p>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rabbis</h1>
+            <p className="text-gray-500 dark:text-gray-400">{rabbis.length} rabbis documented in Philadelphia-area synagogue records</p>
+          </div>
+          <div className="flex-shrink-0 mt-1">
+            <CreateRabbiButton />
+          </div>
         </div>
 
         {/* Search */}

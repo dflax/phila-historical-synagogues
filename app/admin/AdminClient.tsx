@@ -113,8 +113,23 @@ function groupProposals(proposals: PendingProposal[]): ProposalGroup[] {
   for (const p of proposals) {
     let key: string
 
-    if (p.proposal_type.startsWith('rabbi_profile_')) {
-      // Group rabbi profile proposals by their entity_id
+    if (p.proposal_type === 'rabbi_profile_new') {
+      // Each new-rabbi proposal gets its own group keyed by proposal id
+      key = `new_rabbi__${p.id}`
+      const proposedName =
+        typeof p.proposed_data?.canonical_name === 'string'
+          ? p.proposed_data.canonical_name
+          : null
+      map.set(key, {
+        key,
+        entity_type:  'rabbi',
+        entity_id:    null,
+        display_name: proposedName ? `(New) ${proposedName}` : '(New Rabbi)',
+        items: [p],
+      })
+      continue  // items already populated above
+    } else if (p.proposal_type.startsWith('rabbi_profile_')) {
+      // Group existing rabbi profile proposals by their entity_id
       key = `rabbi__${p.entity_id ?? '__unknown__'}`
       if (!map.has(key)) {
         map.set(key, {

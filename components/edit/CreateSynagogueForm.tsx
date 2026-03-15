@@ -18,12 +18,11 @@ interface Props {
 export default function CreateSynagogueForm({ userId, onSuccess }: Props) {
   const supabase = createClientComponentClient()
 
-  const [name,         setName]         = useState('')
-  const [status,       setStatus]       = useState('unknown')
-  const [foundedYear,  setFoundedYear]  = useState('')
-  const [closedYear,   setClosedYear]   = useState('')
-  const [neighborhood, setNeighborhood] = useState('')
-  const [note,         setNote]         = useState('')
+  const [name,        setName]        = useState('')
+  const [status,      setStatus]      = useState('unknown')
+  const [foundedYear, setFoundedYear] = useState('')
+  const [closedYear,  setClosedYear]  = useState('')
+  const [note,        setNote]        = useState('')
 
   const [error,   setError]   = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -85,7 +84,6 @@ export default function CreateSynagogueForm({ userId, onSuccess }: Props) {
           status,
           founded_year: fYear,
           closed_year:  cYear,
-          neighborhood: neighborhood.trim() || null,
         },
         current_data:   null,
         submitter_note: note.trim() || null,
@@ -191,19 +189,6 @@ export default function CreateSynagogueForm({ userId, onSuccess }: Props) {
             disabled={!closedYearApplicable}
           />
         </div>
-      </div>
-
-      {/* Neighborhood */}
-      <div>
-        <label htmlFor="new-neighborhood" className={labelClass}>Neighborhood</label>
-        <input
-          id="new-neighborhood"
-          type="text"
-          value={neighborhood}
-          onChange={e => setNeighborhood(e.target.value)}
-          className={inputClass}
-          placeholder="e.g. Strawberry Mansion"
-        />
       </div>
 
       {/* Note */}
