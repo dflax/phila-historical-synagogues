@@ -137,15 +137,29 @@ function groupProposals(proposals: PendingProposal[]): ProposalGroup[] {
           items: [],
         })
       }
+    } else if (p.proposal_type === 'synagogue_new') {
+      // Each new-synagogue proposal gets its own group keyed by proposal id,
+      // showing the proposed name so reviewers can distinguish them at a glance.
+      key = `new_synagogue__${p.id}`
+      const proposedName =
+        typeof p.proposed_data?.name === 'string' ? p.proposed_data.name : null
+      map.set(key, {
+        key,
+        entity_type:  'ungrouped',
+        entity_id:    null,
+        display_name: proposedName ? `(New) ${proposedName}` : '(New Synagogue)',
+        items: [p],
+      })
+      continue  // items already populated above
     } else {
-      // New synagogue proposals and any unknown types land here
+      // Unknown types without a synagogue land here
       key = '__ungrouped__'
       if (!map.has(key)) {
         map.set(key, {
           key,
           entity_type:  'ungrouped',
           entity_id:    null,
-          display_name: 'New / Ungrouped',
+          display_name: 'Ungrouped',
           items: [],
         })
       }

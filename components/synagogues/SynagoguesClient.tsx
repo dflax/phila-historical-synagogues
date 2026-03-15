@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import NavAuth from '@/components/auth/NavAuth'
+import CreateSynagogueButton from '@/components/edit/CreateSynagogueButton'
 
 interface Address {
   id: string
@@ -179,9 +180,14 @@ export default function SynagoguesClient({ synagogues }: Props) {
 
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Page header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Synagogue Directory</h1>
-          <p className="text-gray-500 dark:text-gray-400">{synagogues.length} congregations documented in the Philadelphia area</p>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Synagogue Directory</h1>
+            <p className="text-gray-500 dark:text-gray-400">{synagogues.length} congregations documented in the Philadelphia area</p>
+          </div>
+          <div className="flex-shrink-0 mt-1">
+            <CreateSynagogueButton />
+          </div>
         </div>
 
         {/* Status quick-filter pills */}
