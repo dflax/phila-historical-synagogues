@@ -117,15 +117,6 @@ function formatHistoryYear(entry: HistoryEntry): string {
   return ''
 }
 
-function formatAddress(addr: Address): string {
-  const parts = [
-    addr.street_address,
-    addr.neighborhood,
-    addr.city && addr.city.toLowerCase() !== 'philadelphia' ? addr.city : null,
-    addr.state && addr.state.toUpperCase() !== 'PA' ? addr.state : null,
-  ].filter(Boolean)
-  return parts.join(', ') || 'Address on record'
-}
 
 function SectionHeader({ icon, title }: { icon: string; title: string }) {
   return (
@@ -297,9 +288,27 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   {addresses.map(addr => (
                     <div key={addr.id} className="text-sm flex items-start justify-between gap-2 group">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-800 dark:text-gray-200">{formatAddress(addr)}</div>
-                        {addr.zip_code && (
-                          <div className="text-gray-400 dark:text-gray-500 text-xs">{addr.zip_code}</div>
+                        {/* Line 1: street address */}
+                        <div className="font-medium text-gray-800 dark:text-gray-200">
+                          {addr.street_address || 'Address on record'}
+                        </div>
+                        {/* Line 2: city, state zip */}
+                        {(addr.city || addr.state || addr.zip_code) && (
+                          <div className="text-gray-600 dark:text-gray-400">
+                            {[
+                              [addr.city, addr.state].filter(Boolean).join(', '),
+                              addr.zip_code,
+                            ].filter(Boolean).join(' ')}
+                          </div>
+                        )}
+                        {/* Line 3: neighborhood (linked to filtered browse) */}
+                        {addr.neighborhood && (
+                          <Link
+                            href={`/synagogues?neighborhood=${encodeURIComponent(addr.neighborhood)}`}
+                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            {addr.neighborhood}
+                          </Link>
                         )}
                         <div className="flex flex-wrap gap-2 mt-1">
                           {addr.is_current && (
