@@ -11,6 +11,7 @@ import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 import NavAuth from '@/components/auth/NavAuth'
 import { useUserRole } from '@/hooks/useUserRole'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
+import DeleteSynagogueButton from '@/components/edit/DeleteSynagogueButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -508,6 +509,20 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
             </div>
 
           </div>
+        </div>
+      </div>
+
+      {/* Delete synagogue — proposal-based, any logged-in contributor */}
+      <div className="container mx-auto px-4 pb-8 max-w-4xl">
+        <div className="flex justify-end">
+          <DeleteSynagogueButton
+            synagogueId={synagogue.id}
+            synagogueName={synagogue.name}
+            addressCount={addresses.length}
+            historyCount={history.length}
+            photoCount={images.length}
+            rabbiCount={rabbis.length}
+          />
         </div>
       </div>
 

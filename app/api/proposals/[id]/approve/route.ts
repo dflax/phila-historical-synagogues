@@ -147,17 +147,56 @@ export async function POST(
     }
 
   } else if (proposal.proposal_type === 'synagogue_delete' && proposal.synagogue_id) {
-    // Soft-close rather than hard delete to preserve historical data.
-    // A hard delete can be done manually if truly needed.
-    const { error } = await supabase
+    // 1. Soft-delete the synagogue row
+    const { error: synError } = await supabase
       .from('synagogues')
-      .update({ status: 'closed' })
+      .update({ deleted: true, deleted_by: user.id, deleted_at: now })
       .eq('id', proposal.synagogue_id)
-    if (error) {
+    if (synError) {
       return NextResponse.json(
-        { error: `Failed to update synagogue: ${error.message}` },
+        { error: `Failed to delete synagogue: ${synError.message}` },
         { status: 500 },
       )
+    }
+
+    // 2. Hard-delete addresses
+    await supabase
+      .from('addresses')
+      .delete()
+      .eq('synagogue_id', proposal.synagogue_id)
+
+    // 3. Hard-delete history entries
+    await supabase
+      .from('history_entries')
+      .delete()
+      .eq('synagogue_id', proposal.synagogue_id)
+
+    // 4. Hard-delete rabbi affiliation records (NOT rabbi_profiles)
+    await supabase
+      .from('rabbis')
+      .delete()
+      .eq('synagogue_id', proposal.synagogue_id)
+
+    // 5. Delete images and attempt storage cleanup
+    const { data: linkedImages } = await supabase
+      .from('images')
+      .select('id, storage_path')
+      .eq('synagogue_id', proposal.synagogue_id)
+
+    if (linkedImages?.length) {
+      await supabase
+        .from('images')
+        .delete()
+        .eq('synagogue_id', proposal.synagogue_id)
+
+      const paths = linkedImages
+        .map(i => i.storage_path)
+        .filter((p): p is string => typeof p === 'string' && p.length > 0)
+
+      if (paths.length) {
+        // Fire-and-forget storage cleanup
+        supabase.storage.from('synagogue-images').remove(paths).catch(() => {})
+      }
     }
 
   } else if (proposal.proposal_type === 'address_new' && proposal.synagogue_id) {

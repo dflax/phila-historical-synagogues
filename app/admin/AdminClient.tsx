@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -64,12 +64,16 @@ const FIELD_LABELS: Record<string, string> = {
   action:              'Action',
   biographical_fields: 'Biographical Fields',
   affiliation_count:   'Synagogue Affiliations',
+  address_count:       'Addresses',
+  history_count:       'Historical Entries',
+  rabbi_count:         'Rabbi Affiliations',
   photo_count:         'Photos',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   synagogue_edit:      'Edit synagogue',
   synagogue_new:       'New synagogue',
+  synagogue_delete:    'Delete synagogue',
   address_edit:        'Edit address',
   address_new:         'New address',
   rabbi_edit:          'Edit rabbi',
@@ -85,6 +89,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   synagogue_edit:      'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   synagogue_new:       'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  synagogue_delete:    'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
   address_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   address_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_edit:          'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
