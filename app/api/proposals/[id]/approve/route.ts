@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { getNeighborhoodFromAddress } from '@/lib/geocoding'
 
 const ADMIN_ROLES = ['editor', 'admin', 'super_admin']
 
@@ -160,6 +161,20 @@ export async function POST(
     }
 
   } else if (proposal.proposal_type === 'address_new' && proposal.synagogue_id) {
+    // If no neighborhood was provided, try to infer it from the street address.
+    // Failure is non-fatal — the address is still created without a neighborhood.
+    let neighborhood = typeof proposed.neighborhood === 'string' && proposed.neighborhood.trim()
+      ? proposed.neighborhood.trim()
+      : null
+
+    if (!neighborhood && proposed.street_address) {
+      neighborhood = await getNeighborhoodFromAddress(
+        String(proposed.street_address),
+        String(proposed.city  ?? 'Philadelphia'),
+        String(proposed.state ?? 'PA'),
+      )
+    }
+
     const { error } = await supabase
       .from('addresses')
       .insert({
@@ -168,7 +183,7 @@ export async function POST(
         city:           proposed.city           ?? null,
         state:          proposed.state          ?? null,
         zip_code:       proposed.zip_code       ?? null,
-        neighborhood:   proposed.neighborhood   ?? null,
+        neighborhood,
         start_year:     proposed.start_year     ?? null,
         end_year:       proposed.end_year       ?? null,
         is_current:     proposed.is_current     ?? false,
@@ -224,6 +239,47 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'rabbi_profile_delete' && proposal.entity_id) {
+    // 1. Soft-delete the rabbi_profiles row
+    const { error: profileError } = await supabase
+      .from('rabbi_profiles')
+      .update({ deleted: true })
+      .eq('id', proposal.entity_id)
+    if (profileError) {
+      return NextResponse.json(
+        { error: `Failed to delete rabbi profile: ${profileError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // 2. Delete linked rabbi affiliation records (rabbis.rabbi_profile_id FK)
+    await supabase
+      .from('rabbis')
+      .delete()
+      .eq('rabbi_profile_id', proposal.entity_id)
+    // Non-fatal: if the column doesn't exist the delete is a no-op
+
+    // 3. Delete linked images and attempt storage cleanup
+    const { data: linkedImages } = await supabase
+      .from('images')
+      .select('id, storage_path')
+      .eq('rabbi_profile_id', proposal.entity_id)
+
+    if (linkedImages?.length) {
+      await supabase
+        .from('images')
+        .delete()
+        .eq('rabbi_profile_id', proposal.entity_id)
+
+      const paths = linkedImages
+        .map(i => i.storage_path)
+        .filter((p): p is string => typeof p === 'string' && p.length > 0)
+      if (paths.length) {
+        // fire-and-forget; storage cleanup failure is non-critical
+        supabase.storage.from('synagogue-images').remove(paths).catch(() => {})
+      }
+    }
+
   } else if (proposal.proposal_type === 'rabbi_profile_new') {
     const candidateName = typeof proposed.canonical_name === 'string'
       ? proposed.canonical_name.trim()

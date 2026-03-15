@@ -22,8 +22,9 @@ export default function SuggestAddressForm({ synagogueId, userId, onSuccess }: P
   const [isCurrent,     setIsCurrent]     = useState(false)
   const [note,          setNote]          = useState('')
 
-  const [error,   setError]   = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [error,             setError]             = useState<string | null>(null)
+  const [loading,           setLoading]           = useState(false)
+  const [detectingNeighbor, setDetectingNeighbor] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -96,6 +97,34 @@ export default function SuggestAddressForm({ synagogueId, userId, onSuccess }: P
     onSuccess()
   }
 
+  async function detectNeighborhood() {
+    const addr = streetAddress.trim()
+    if (!addr) return
+    setDetectingNeighbor(true)
+    try {
+      const query = encodeURIComponent(`${addr}, ${city.trim() || 'Philadelphia'}, ${state.trim() || 'PA'}`)
+      const key   = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      const res   = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${key}`,
+      )
+      const data = await res.json()
+      if (data.status === 'OK' && data.results?.[0]) {
+        const components: Array<{ types: string[]; long_name: string }> =
+          data.results[0].address_components ?? []
+        const match = components.find(c =>
+          c.types.includes('neighborhood') ||
+          c.types.includes('sublocality_level_1') ||
+          c.types.includes('sublocality'),
+        )
+        if (match) setNeighborhood(match.long_name)
+      }
+    } catch {
+      // Silently fail — user can still type manually
+    } finally {
+      setDetectingNeighbor(false)
+    }
+  }
+
   const inputClass =
     'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm'
   const labelClass =
@@ -166,7 +195,20 @@ export default function SuggestAddressForm({ synagogueId, userId, onSuccess }: P
           />
         </div>
         <div>
-          <label htmlFor="addr-neighborhood" className={labelClass}>Neighborhood</label>
+          <div className="flex items-center justify-between mb-1">
+            <label htmlFor="addr-neighborhood" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Neighborhood
+            </label>
+            <button
+              type="button"
+              onClick={detectNeighborhood}
+              disabled={detectingNeighbor || !streetAddress.trim()}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              title={streetAddress.trim() ? 'Auto-detect from street address' : 'Enter a street address first'}
+            >
+              {detectingNeighbor ? 'Detecting…' : 'Auto-detect'}
+            </button>
+          </div>
           <input
             id="addr-neighborhood"
             type="text"

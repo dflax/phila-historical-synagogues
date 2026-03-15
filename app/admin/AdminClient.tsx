@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -48,18 +48,23 @@ interface Props {
 
 const FIELD_LABELS: Record<string, string> = {
   // Synagogue fields
-  name:           'Name',
-  founded_year:   'Founded Year',
-  closed_year:    'Closed Year',
-  status:         'Status',
-  neighborhood:   'Neighborhood',
+  name:                'Name',
+  founded_year:        'Founded Year',
+  closed_year:         'Closed Year',
+  status:              'Status',
+  neighborhood:        'Neighborhood',
   // Rabbi profile fields
-  canonical_name: 'Full Name',
-  birth_year:     'Birth Year',
-  circa_birth:    'Birth Year Approximate',
-  death_year:     'Death Year',
-  circa_death:    'Death Year Approximate',
-  biography:      'Biography',
+  canonical_name:      'Full Name',
+  birth_year:          'Birth Year',
+  circa_birth:         'Birth Year Approximate',
+  death_year:          'Death Year',
+  circa_death:         'Death Year Approximate',
+  biography:           'Biography',
+  // Deletion proposal summary fields
+  action:              'Action',
+  biographical_fields: 'Biographical Fields',
+  affiliation_count:   'Synagogue Affiliations',
+  photo_count:         'Photos',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
@@ -72,8 +77,9 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   history_edit:        'Edit history',
   history_new:         'New history entry',
   photo_upload:        'Photo upload',
-  rabbi_profile_edit:  'Edit rabbi profile',
-  rabbi_profile_new:   'New rabbi profile',
+  rabbi_profile_edit:   'Edit rabbi profile',
+  rabbi_profile_new:    'New rabbi profile',
+  rabbi_profile_delete: 'Delete rabbi',
 }
 
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
@@ -86,8 +92,9 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   history_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   history_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   photo_upload:        'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
-  rabbi_profile_edit:  'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-  rabbi_profile_new:   'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  rabbi_profile_edit:   'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  rabbi_profile_new:    'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  rabbi_profile_delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
