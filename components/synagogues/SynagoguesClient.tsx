@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import NavAuth from '@/components/auth/NavAuth'
 import CreateSynagogueButton from '@/components/edit/CreateSynagogueButton'
@@ -32,6 +32,7 @@ interface Synagogue {
 
 interface Props {
   synagogues: Synagogue[]
+  neighborhoods: string[]
 }
 
 const STATUS_CONFIG: Record<string, { label: string; textColor: string; bgColor: string; dotColor: string }> = {
@@ -88,27 +89,102 @@ function ChevronIcon({ open }: { open: boolean }) {
   )
 }
 
-export default function SynagoguesClient({ synagogues }: Props) {
+export default function SynagoguesClient({ synagogues, neighborhoods }: Props) {
   const searchParams = useSearchParams()
-  const [search, setSearch] = useState('')
+  const router       = useRouter()
+
+  // Local-only filters (no URL sync needed)
+  const [search,       setSearch]       = useState('')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'all')
-  const [yearMin, setYearMin] = useState('')
-  const [yearMax, setYearMax] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [sortField, setSortField] = useState<'name' | 'founded_year' | 'closed_year'>('name')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [expandedId,   setExpandedId]   = useState<string | null>(null)
+  const [sortField,    setSortField]    = useState<'name' | 'founded_year' | 'closed_year'>('name')
+  const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('asc')
+
+  // URL-synced filters (support deep-linking from detail pages)
+  const [neighborhoodFilter, setNeighborhoodFilter] = useState(searchParams.get('neighborhood') ?? '')
+  const [yearStart,          setYearStart]          = useState(searchParams.get('yearStart')    ?? '')
+  const [yearEnd,            setYearEnd]            = useState(searchParams.get('yearEnd')      ?? '')
+
+  // Push updated URL params without a page reload
+  function applyUrlFilters(neighborhood: string, ys: string, ye: string) {
+    const p = new URLSearchParams()
+    if (neighborhood) p.set('neighborhood', neighborhood)
+    if (ys)           p.set('yearStart', ys)
+    if (ye)           p.set('yearEnd',   ye)
+    const q = p.toString()
+    router.replace(q ? `/synagogues?${q}` : '/synagogues', { scroll: false })
+  }
+
+  function handleNeighborhoodChange(val: string) {
+    setNeighborhoodFilter(val)
+    applyUrlFilters(val, yearStart, yearEnd)
+  }
+
+  function handleYearStartChange(val: string) {
+    setYearStart(val)
+    applyUrlFilters(neighborhoodFilter, val, yearEnd)
+  }
+
+  function handleYearEndChange(val: string) {
+    setYearEnd(val)
+    applyUrlFilters(neighborhoodFilter, yearStart, val)
+  }
+
+  // ── Filter logic ────────────────────────────────────────────────────────────
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim()
-    const yMin = yearMin ? parseInt(yearMin) : null
-    const yMax = yearMax ? parseInt(yearMax) : null
+    const q      = search.toLowerCase().trim()
+    const yStart = yearStart ? parseInt(yearStart) : null
+    const yEnd   = yearEnd   ? parseInt(yearEnd)   : null
 
     return synagogues
       .filter(s => {
+        // Name search
         if (q && !s.name.toLowerCase().includes(q)) return false
+
+        // Status pill
         if (statusFilter !== 'all' && s.status !== statusFilter) return false
-        if (yMin !== null && (s.founded_year ?? s.closed_year ?? 0) < yMin) return false
-        if (yMax !== null && (s.founded_year ?? s.closed_year ?? 9999) > yMax) return false
+
+        // Neighborhood: any of the synagogue's addresses must match
+        if (neighborhoodFilter) {
+          const matches = s.addresses.some(a => a.neighborhood === neighborhoodFilter)
+          if (!matches) return false
+        }
+
+        // "Active between" year range: any address period overlaps the range.
+        // Falls back to the synagogue's own founded/closed years when addresses
+        // have no year data, so synagogues without address years stay visible.
+        if (yStart !== null || yEnd !== null) {
+          const rangeStart = yStart ?? 1700
+          const rangeEnd   = yEnd   ?? 2026
+
+          let passes = false
+
+          if (s.addresses.length > 0) {
+            const addressesWithYears = s.addresses.filter(a => a.start_year || a.end_year)
+
+            if (addressesWithYears.length > 0) {
+              passes = addressesWithYears.some(a => {
+                const aStart = a.start_year ?? 1700
+                const aEnd   = a.end_year   ?? 2026
+                return aStart <= rangeEnd && aEnd >= rangeStart
+              })
+            } else {
+              // Addresses exist but none have year data — fall back to synagogue years
+              const synStart = s.founded_year ?? 1700
+              const synEnd   = s.closed_year  ?? 2026
+              passes = synStart <= rangeEnd && synEnd >= rangeStart
+            }
+          } else {
+            // No addresses at all — use synagogue founded/closed years
+            const synStart = s.founded_year ?? 1700
+            const synEnd   = s.closed_year  ?? 2026
+            passes = synStart <= rangeEnd && synEnd >= rangeStart
+          }
+
+          if (!passes) return false
+        }
+
         return true
       })
       .sort((a, b) => {
@@ -124,7 +200,7 @@ export default function SynagoguesClient({ synagogues }: Props) {
         const cmp = av < bv ? -1 : 1
         return sortDir === 'asc' ? cmp : -cmp
       })
-  }, [synagogues, search, statusFilter, yearMin, yearMax, sortField, sortDir])
+  }, [synagogues, search, statusFilter, neighborhoodFilter, yearStart, yearEnd, sortField, sortDir])
 
   function toggleSort(field: typeof sortField) {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -148,15 +224,26 @@ export default function SynagoguesClient({ synagogues }: Props) {
     )
   }
 
-  const hasFilters = search || statusFilter !== 'all' || yearMin || yearMax
-  const clearFilters = () => { setSearch(''); setStatusFilter('all'); setYearMin(''); setYearMax('') }
+  const hasFilters = !!(search || statusFilter !== 'all' || neighborhoodFilter || yearStart || yearEnd)
 
-  // Counts per status for filter badges
+  function clearFilters() {
+    setSearch('')
+    setStatusFilter('all')
+    setNeighborhoodFilter('')
+    setYearStart('')
+    setYearEnd('')
+    router.replace('/synagogues', { scroll: false })
+  }
+
+  // Counts per status for the pill filters
   const counts = useMemo(() => {
     const c: Record<string, number> = { active: 0, closed: 0, merged: 0, unknown: 0 }
     synagogues.forEach(s => { c[s.status] = (c[s.status] ?? 0) + 1 })
     return c
   }, [synagogues])
+
+  const inputClass =
+    'px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-900">
@@ -179,6 +266,7 @@ export default function SynagoguesClient({ synagogues }: Props) {
       </nav>
 
       <div className="container mx-auto px-4 py-8 max-w-5xl">
+
         {/* Page header */}
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -193,8 +281,8 @@ export default function SynagoguesClient({ synagogues }: Props) {
         {/* Status quick-filter pills */}
         <div className="flex flex-wrap gap-2 mb-4">
           {(['all', 'active', 'closed', 'merged', 'unknown'] as const).map(s => {
-            const cfg = s === 'all' ? null : STATUS_CONFIG[s]
-            const count = s === 'all' ? synagogues.length : counts[s] ?? 0
+            const cfg    = s === 'all' ? null : STATUS_CONFIG[s]
+            const count  = s === 'all' ? synagogues.length : counts[s] ?? 0
             const active = statusFilter === s
             return (
               <button
@@ -216,9 +304,12 @@ export default function SynagoguesClient({ synagogues }: Props) {
           })}
         </div>
 
-        {/* Search + year range */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        {/* Search + filters card */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 space-y-3">
+
+          {/* Row 1: search + neighborhood */}
           <div className="flex flex-col sm:flex-row gap-3">
+            {/* Name search */}
             <div className="flex-1 relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -228,36 +319,87 @@ export default function SynagoguesClient({ synagogues }: Props) {
                 placeholder="Search by name…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                className={`w-full pl-9 pr-3 ${inputClass}`}
               />
             </div>
+
+            {/* Neighborhood dropdown */}
+            <div className="sm:w-56">
+              <select
+                value={neighborhoodFilter}
+                onChange={e => handleNeighborhoodChange(e.target.value)}
+                className={`w-full ${inputClass}`}
+                aria-label="Filter by neighborhood"
+              >
+                <option value="">All neighborhoods</option>
+                {neighborhoods.map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 2: active-between year range */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Active between:</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Founded:</span>
               <input
                 type="number"
-                placeholder="From"
-                value={yearMin}
-                onChange={e => setYearMin(e.target.value)}
-                className="w-24 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                min={1700} max={2024}
+                placeholder="From year"
+                value={yearStart}
+                onChange={e => handleYearStartChange(e.target.value)}
+                className={`w-28 ${inputClass}`}
+                min={1700} max={2026}
               />
               <span className="text-gray-400 dark:text-gray-500">–</span>
               <input
                 type="number"
-                placeholder="To"
-                value={yearMax}
-                onChange={e => setYearMax(e.target.value)}
-                className="w-24 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                min={1700} max={2024}
+                placeholder="To year"
+                value={yearEnd}
+                onChange={e => handleYearEndChange(e.target.value)}
+                className={`w-28 ${inputClass}`}
+                min={1700} max={2026}
               />
             </div>
             {hasFilters && (
-              <button onClick={clearFilters} className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline whitespace-nowrap">
+              <button
+                onClick={clearFilters}
+                className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline whitespace-nowrap sm:ml-auto"
+              >
                 Clear all
               </button>
             )}
           </div>
         </div>
+
+        {/* Active filter chips (URL-based filters only) */}
+        {(neighborhoodFilter || yearStart || yearEnd) && (
+          <div className="flex flex-wrap items-center gap-2 mb-3 px-1">
+            <span className="text-xs text-gray-400 dark:text-gray-500">Filtered by:</span>
+            {neighborhoodFilter && (
+              <button
+                onClick={() => handleNeighborhoodChange('')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition"
+              >
+                {neighborhoodFilter}
+                <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+            {(yearStart || yearEnd) && (
+              <button
+                onClick={() => { handleYearStartChange(''); handleYearEndChange('') }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition"
+              >
+                {yearStart || '…'} – {yearEnd || '…'}
+                <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Results bar + sort */}
         <div className="flex items-center justify-between mb-2 px-1">
@@ -278,7 +420,7 @@ export default function SynagoguesClient({ synagogues }: Props) {
         {filtered.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
             <p className="text-4xl mb-3">🕍</p>
-            <p className="font-semibold text-gray-700 dark:text-gray-200">No synagogues match your search</p>
+            <p className="font-semibold text-gray-700 dark:text-gray-200">No synagogues match your filters</p>
             <button onClick={clearFilters} className="mt-2 text-blue-600 dark:text-blue-400 text-sm hover:underline">
               Clear filters
             </button>
@@ -286,7 +428,7 @@ export default function SynagoguesClient({ synagogues }: Props) {
         ) : (
           <div className="space-y-1">
             {filtered.map(s => {
-              const isOpen = expandedId === s.id
+              const isOpen      = expandedId === s.id
               const primaryAddr = s.addresses[0] ?? null
 
               return (

@@ -16,7 +16,8 @@ const supabase = createClient(
 )
 
 export default async function SynagoguesPage() {
-  const { data, error } = await supabase
+  const [{ data, error }, { data: neighborhoodData }] = await Promise.all([
+    supabase
     .from('synagogues')
     .select(`
       id,
@@ -39,7 +40,13 @@ export default async function SynagoguesPage() {
         end_year
       )
     `)
-    .order('name')
+    .order('name'),
+    supabase
+      .from('addresses')
+      .select('neighborhood')
+      .not('neighborhood', 'is', null)
+      .order('neighborhood'),
+  ])
 
   if (error) {
     return (
@@ -88,9 +95,13 @@ export default async function SynagoguesPage() {
     }
   })
 
+  const uniqueNeighborhoods = [...new Set(
+    neighborhoodData?.map(a => a.neighborhood).filter(Boolean) as string[]
+  )].sort()
+
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" /></div>}>
-      <SynagoguesClient synagogues={synagogues} />
+      <SynagoguesClient synagogues={synagogues} neighborhoods={uniqueNeighborhoods} />
     </Suspense>
   )
 }
