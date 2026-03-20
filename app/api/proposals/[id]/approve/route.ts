@@ -129,6 +129,122 @@ export async function POST(
       })
       .eq('id', mergeTargetId)
 
+  } else if (proposal.proposal_type === 'synagogue_split' && proposal.synagogue_id) {
+    const origId       = proposal.synagogue_id
+    const origFields   = (proposed.original_fields ?? {}) as Record<string, unknown>
+    const newFields    = (proposed.new_fields       ?? {}) as Record<string, unknown>
+    const assignments  = (proposed.assignments      ?? {}) as {
+      addresses:       Record<string, string>
+      rabbis:          Record<string, string>
+      history_entries: Record<string, string>
+      images:          Record<string, string>
+    }
+
+    // 1. Update the original synagogue with its revised fields
+    await supabase
+      .from('synagogues')
+      .update({
+        name:         origFields.name         !== undefined ? (origFields.name         ?? undefined) : undefined,
+        status:       origFields.status       !== undefined ? (origFields.status       ?? undefined) : undefined,
+        founded_year: origFields.founded_year !== undefined ? (origFields.founded_year ?? null)      : undefined,
+        closed_year:  origFields.closed_year  !== undefined ? (origFields.closed_year  ?? null)      : undefined,
+      })
+      .eq('id', origId)
+
+    // 2. Create the new synagogue
+    const { data: newSyn, error: newSynError } = await supabase
+      .from('synagogues')
+      .insert({
+        name:         typeof newFields.name   === 'string' ? newFields.name.trim() : 'Unknown',
+        status:       typeof newFields.status === 'string' ? newFields.status      : 'unknown',
+        founded_year: newFields.founded_year ?? null,
+        closed_year:  newFields.closed_year  ?? null,
+        approved:     true,
+        approved_by:  user.id,
+        approved_at:  now,
+        created_by:   proposal.created_by,
+      })
+      .select('id')
+      .single()
+
+    if (newSynError || !newSyn) {
+      return NextResponse.json(
+        { error: `Failed to create new synagogue: ${newSynError?.message ?? 'unknown error'}` },
+        { status: 500 },
+      )
+    }
+
+    const newId = newSyn.id
+
+    // 3. Process address assignments
+    for (const [addrId, action] of Object.entries(assignments.addresses ?? {})) {
+      if (action === 'new') {
+        await supabase.from('addresses').update({ synagogue_id: newId }).eq('id', addrId)
+      } else if (action === 'both') {
+        const { data: row } = await supabase.from('addresses').select('*').eq('id', addrId).single()
+        if (row) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _id, ...rest } = row as Record<string, unknown>
+          await supabase.from('addresses').insert({ ...rest, synagogue_id: newId })
+        }
+      } else if (action === 'neither') {
+        await supabase.from('addresses').delete().eq('id', addrId)
+      }
+      // 'original': no-op
+    }
+
+    // 4. Process rabbi affiliation assignments
+    for (const [rabbiId, action] of Object.entries(assignments.rabbis ?? {})) {
+      if (action === 'new') {
+        await supabase.from('rabbis').update({ synagogue_id: newId }).eq('id', rabbiId)
+      } else if (action === 'both') {
+        const { data: row } = await supabase.from('rabbis').select('*').eq('id', rabbiId).single()
+        if (row) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _id, ...rest } = row as Record<string, unknown>
+          await supabase.from('rabbis').insert({ ...rest, synagogue_id: newId })
+        }
+      } else if (action === 'neither') {
+        await supabase.from('rabbis').delete().eq('id', rabbiId)
+      }
+    }
+
+    // 5. Process history entry assignments
+    for (const [histId, action] of Object.entries(assignments.history_entries ?? {})) {
+      if (action === 'new') {
+        await supabase.from('history_entries').update({ synagogue_id: newId }).eq('id', histId)
+      } else if (action === 'both') {
+        const { data: row } = await supabase.from('history_entries').select('*').eq('id', histId).single()
+        if (row) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _id, ...rest } = row as Record<string, unknown>
+          await supabase.from('history_entries').insert({ ...rest, synagogue_id: newId })
+        }
+      } else if (action === 'neither') {
+        await supabase.from('history_entries').delete().eq('id', histId)
+      }
+    }
+
+    // 6. Process image assignments
+    for (const [imgId, action] of Object.entries(assignments.images ?? {})) {
+      if (action === 'new') {
+        await supabase.from('images').update({ synagogue_id: newId }).eq('id', imgId)
+      } else if (action === 'both') {
+        const { data: row } = await supabase.from('images').select('*').eq('id', imgId).single()
+        if (row) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _id, storage_path: _sp, ...rest } = row as Record<string, unknown>
+          await supabase.from('images').insert({ ...rest, synagogue_id: newId })
+        }
+      } else if (action === 'neither') {
+        const { data: img } = await supabase.from('images').select('id, storage_path').eq('id', imgId).single()
+        await supabase.from('images').delete().eq('id', imgId)
+        if (img?.storage_path && typeof img.storage_path === 'string') {
+          supabase.storage.from('synagogue-images').remove([img.storage_path]).catch(() => {})
+        }
+      }
+    }
+
   } else if (proposal.proposal_type === 'synagogue_edit' && proposal.synagogue_id) {
     // Split fields by their target table
     const synagogueChanges: Record<string, unknown> = {}

@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -81,6 +81,12 @@ const FIELD_LABELS: Record<string, string> = {
   relationships_count: 'Total Relationships',
   rabbi1_name:         'Current Rabbi 1',
   rabbi2_name:         'Current Rabbi 2',
+  // Split proposal fields
+  original_synagogue_name: 'Original Synagogue',
+  new_synagogue_name:      'New Synagogue',
+  original_fields:         'Original Fields',
+  new_fields:              'New Fields',
+  assignments:             'Item Assignments',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
@@ -88,6 +94,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   synagogue_new:       'New synagogue',
   synagogue_delete:    'Delete synagogue',
   synagogue_merge:     'Merge synagogues',
+  synagogue_split:     'Split synagogue',
   address_edit:        'Edit address',
   address_new:         'New address',
   rabbi_edit:          'Edit rabbi',
@@ -106,6 +113,7 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   synagogue_new:       'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   synagogue_delete:    'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
   synagogue_merge:     'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+  synagogue_split:     'text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20',
   address_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   address_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_edit:          'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
@@ -645,8 +653,77 @@ function ProposalCard({
         </div>
       )}
 
-      {/* Merge summary (replaces diff table for merge proposals) */}
-      {(proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (
+      {/* Split summary */}
+      {proposal.proposal_type === 'synagogue_split' && (() => {
+        const assignments = proposal.proposed_data?.assignments as Record<string, Record<string, string>> | undefined
+        const origName    = proposal.current_data?.original_synagogue_name ?? '—'
+        const newName     = proposal.current_data?.new_synagogue_name      ?? '—'
+        const newFields   = proposal.proposed_data?.new_fields as Record<string, unknown> | undefined
+
+        function countByType(map: Record<string, string> = {}) {
+          const c = { original: 0, new: 0, both: 0, neither: 0 }
+          for (const v of Object.values(map)) {
+            if (v === 'original' || v === 'new' || v === 'both' || v === 'neither') c[v]++
+          }
+          return c
+        }
+
+        const rows: { label: string; key: string }[] = [
+          { label: 'Addresses',       key: 'addresses' },
+          { label: 'Rabbis',          key: 'rabbis' },
+          { label: 'History entries', key: 'history_entries' },
+          { label: 'Photos',          key: 'images' },
+        ]
+
+        return (
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 space-y-3">
+            <h4 className="text-xs font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-wide">
+              Split Operation
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Original (kept):</div>
+                <div className="font-semibold text-gray-900 dark:text-white">{origName}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">New (created):</div>
+                <div className="font-semibold text-green-700 dark:text-green-400">
+                  {String(newFields?.name ?? newName)}
+                </div>
+              </div>
+            </div>
+            {assignments && (
+              <div className="border border-indigo-200 dark:border-indigo-700 rounded-lg overflow-hidden text-xs">
+                <div className="grid grid-cols-5 gap-1 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-1.5 font-semibold text-indigo-700 dark:text-indigo-400">
+                  <div className="col-span-1">Category</div>
+                  <div className="text-center">Orig</div>
+                  <div className="text-center">New</div>
+                  <div className="text-center">Both</div>
+                  <div className="text-center">Del</div>
+                </div>
+                {rows.map(row => {
+                  const map = assignments[row.key] ?? {}
+                  const total = Object.keys(map).length
+                  if (total === 0) return null
+                  const c = countByType(map)
+                  return (
+                    <div key={row.key} className="grid grid-cols-5 gap-1 px-2 py-1.5 border-t border-indigo-100 dark:border-indigo-800 text-gray-700 dark:text-gray-300">
+                      <div className="col-span-1 font-medium">{row.label}</div>
+                      <div className="text-center">{c.original}</div>
+                      <div className="text-center text-green-700 dark:text-green-400">{c.new}</div>
+                      <div className="text-center text-amber-600 dark:text-amber-400">{c.both}</div>
+                      <div className="text-center text-red-500 dark:text-red-400">{c.neither}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* Merge summary (replaces diff table for merge/split proposals) */}
+      {proposal.proposal_type !== 'synagogue_split' && ((proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (
         <div className="space-y-3">
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
             <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">
@@ -761,7 +838,7 @@ function ProposalCard({
             </table>
           </div>
         )
-      )}
+      ))}
 
       {/* Action buttons */}
       {!isRejecting ? (

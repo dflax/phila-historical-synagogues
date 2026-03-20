@@ -13,6 +13,7 @@ import { useUserRole } from '@/hooks/useUserRole'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import DeleteSynagogueButton from '@/components/edit/DeleteSynagogueButton'
 import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
+import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -516,6 +517,20 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
       {/* Merge & delete actions — proposal-based, any logged-in contributor */}
       <div className="container mx-auto px-4 pb-8 max-w-4xl">
         <div className="flex items-center justify-end gap-4">
+          <SplitSynagogueButton
+            synagogueId={synagogue.id}
+            synagogueName={synagogue.name}
+            synagogueData={{
+              name:         synagogue.name,
+              status:       synagogue.status,
+              founded_year: synagogue.founded_year,
+              closed_year:  synagogue.closed_year,
+            }}
+            addresses={addresses}
+            rabbis={rabbis}
+            history={history}
+            images={images}
+          />
           <MergeSynagogueButton
             synagogueId={synagogue.id}
             synagogueName={synagogue.name}
