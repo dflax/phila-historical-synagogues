@@ -7,6 +7,7 @@ import { useUserRole } from '@/hooks/useUserRole'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import SuggestRabbiProfileButton from '@/components/edit/SuggestRabbiProfileButton'
 import DeleteRabbiButton from '@/components/edit/DeleteRabbiButton'
+import MergeRabbiButton from '@/components/edit/MergeRabbiButton'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -336,8 +337,12 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
             </div>
           </div>
 
-          {/* Propose deletion — available to any logged-in contributor */}
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+          {/* Merge & delete actions */}
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
+            <MergeRabbiButton
+              rabbiId={profile.id}
+              rabbiName={profile.canonical_name}
+            />
             <DeleteRabbiButton
               profile={profile}
               affiliationCount={affiliations.length}

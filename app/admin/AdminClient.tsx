@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -70,6 +70,15 @@ const FIELD_LABELS: Record<string, string> = {
   history_count:       'Historical Entries',
   rabbi_count:         'Rabbi Affiliations',
   photo_count:         'Photos',
+  // Merge proposal fields
+  merge_source_id:     'Keeping Rabbi (ID)',
+  merge_target_id:     'Merging Rabbi (ID)',
+  merged_fields:       'Merged Data',
+  affiliations_count:  'Total Affiliations',
+  photos_count:        'Total Photos',
+  relationships_count: 'Total Relationships',
+  rabbi1_name:         'Current Rabbi 1',
+  rabbi2_name:         'Current Rabbi 2',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
@@ -86,6 +95,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   rabbi_profile_edit:   'Edit rabbi profile',
   rabbi_profile_new:    'New rabbi profile',
   rabbi_profile_delete: 'Delete rabbi',
+  rabbi_profile_merge:  'Merge rabbis',
 }
 
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
@@ -102,6 +112,7 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   rabbi_profile_edit:   'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   rabbi_profile_new:    'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_profile_delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+  rabbi_profile_merge:  'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -630,38 +641,99 @@ function ProposalCard({
         </div>
       )}
 
-      {/* Diff table */}
-      {changedFields.length > 0 && (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-sm">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 w-1/4">Field</th>
-                <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 w-5/12">Current</th>
-                <th className="text-left px-3 py-2 text-xs font-semibold text-gray-900 dark:text-white w-5/12">Proposed</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
-              {changedFields.map(field => {
-                const before = proposal.current_data?.[field]
-                const after  = proposal.proposed_data[field]
-                return (
-                  <tr key={field}>
-                    <td className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {FIELD_LABELS[field] ?? field}
-                    </td>
-                    <td className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
-                      {before != null && before !== '' ? String(before) : <span className="italic">—</span>}
-                    </td>
-                    <td className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                      {after != null && after !== '' ? String(after) : <span className="italic font-normal text-gray-400">—</span>}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+      {/* Merge summary (replaces diff table for merge proposals) */}
+      {proposal.proposal_type === 'rabbi_profile_merge' ? (
+        <div className="space-y-3">
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">
+              Merge Operation
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Keeping (source):</div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {proposal.current_data?.rabbi1_name ?? '—'}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Absorbing (will be deleted):</div>
+                <div className="font-semibold text-red-700 dark:text-red-400">
+                  {proposal.current_data?.rabbi2_name ?? '—'}
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
+              {proposal.proposed_data?.affiliations_count != null && (
+                <div>Combined affiliations: <span className="font-medium">{String(proposal.proposed_data.affiliations_count)}</span></div>
+              )}
+              {proposal.proposed_data?.photos_count != null && (
+                <div>Combined photos: <span className="font-medium">{String(proposal.proposed_data.photos_count)}</span></div>
+              )}
+              {proposal.proposed_data?.relationships_count != null && Number(proposal.proposed_data.relationships_count) > 0 && (
+                <div>Combined relationships: <span className="font-medium">{String(proposal.proposed_data.relationships_count)}</span></div>
+              )}
+            </div>
+          </div>
+
+          {/* Show merged field values */}
+          {proposal.proposed_data?.merged_fields && typeof proposal.proposed_data.merged_fields === 'object' && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-sm">
+              <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2">
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Merged field values</span>
+              </div>
+              <table className="w-full">
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+                  {Object.entries(proposal.proposed_data.merged_fields as Record<string, unknown>)
+                    .filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0))
+                    .map(([field, value]) => (
+                      <tr key={field}>
+                        <td className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap w-1/3">
+                          {FIELD_LABELS[field] ?? field}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-700 dark:text-gray-300 font-medium">
+                          {Array.isArray(value) ? value.join(', ') : String(value)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+      ) : (
+        /* Standard diff table */
+        changedFields.length > 0 && (
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-sm">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 w-1/4">Field</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 w-5/12">Current</th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold text-gray-900 dark:text-white w-5/12">Proposed</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+                {changedFields.map(field => {
+                  const before = proposal.current_data?.[field]
+                  const after  = proposal.proposed_data[field]
+                  return (
+                    <tr key={field}>
+                      <td className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {FIELD_LABELS[field] ?? field}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
+                        {before != null && before !== '' ? String(before) : <span className="italic">—</span>}
+                      </td>
+                      <td className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                        {after != null && after !== '' ? String(after) : <span className="italic font-normal text-gray-400">—</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
       )}
 
       {/* Action buttons */}

@@ -396,6 +396,80 @@ export async function POST(
         { status: 500 },
       )
     }
+
+  } else if (proposal.proposal_type === 'rabbi_profile_merge' && proposal.entity_id) {
+    const mergeSourceId = proposal.entity_id
+    const mergeTargetId = proposed.merge_target_id as string | undefined
+
+    if (!mergeTargetId) {
+      return NextResponse.json({ error: 'Missing merge target' }, { status: 400 })
+    }
+
+    const merged = (proposed.merged_fields ?? {}) as Record<string, unknown>
+
+    // 1. Update the source rabbi_profiles row with the merged data
+    const { error: updateError } = await supabase
+      .from('rabbi_profiles')
+      .update({
+        canonical_name:  merged.canonical_name  ?? undefined,
+        birth_year:      merged.birth_year      !== undefined ? (merged.birth_year      ?? null)  : undefined,
+        circa_birth:     merged.circa_birth     !== undefined ? (merged.circa_birth     ?? false) : undefined,
+        death_year:      merged.death_year      !== undefined ? (merged.death_year      ?? null)  : undefined,
+        circa_death:     merged.circa_death     !== undefined ? (merged.circa_death     ?? false) : undefined,
+        biography:       merged.biography       !== undefined ? (merged.biography       ?? null)  : undefined,
+        birthplace:      merged.birthplace      !== undefined ? (merged.birthplace      ?? null)  : undefined,
+        death_place:     merged.death_place     !== undefined ? (merged.death_place     ?? null)  : undefined,
+        seminary:        merged.seminary        !== undefined ? (merged.seminary        ?? null)  : undefined,
+        ordination_year: merged.ordination_year !== undefined ? (merged.ordination_year ?? null)  : undefined,
+        denomination:    merged.denomination    !== undefined ? (merged.denomination    ?? null)  : undefined,
+        languages:       merged.languages       !== undefined ? (merged.languages       ?? null)  : undefined,
+        publications:    merged.publications    !== undefined ? (merged.publications    ?? null)  : undefined,
+        achievements:    merged.achievements    !== undefined ? (merged.achievements    ?? null)  : undefined,
+        updated_at:      now,
+      })
+      .eq('id', mergeSourceId)
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: `Failed to update rabbi profile: ${updateError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // 2. Move synagogue affiliations from target to source
+    await supabase
+      .from('rabbis')
+      .update({ rabbi_profile_id: mergeSourceId })
+      .eq('rabbi_profile_id', mergeTargetId)
+
+    // 3. Move photos from target to source
+    await supabase
+      .from('images')
+      .update({ rabbi_profile_id: mergeSourceId })
+      .eq('rabbi_profile_id', mergeTargetId)
+
+    // 4. Move rabbi_relationships (if table exists) — errors returned in {error} field, non-fatal
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from('rabbi_relationships')
+      .update({ rabbi_id: mergeSourceId })
+      .eq('rabbi_id', mergeTargetId)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from('rabbi_relationships')
+      .update({ related_rabbi_id: mergeSourceId })
+      .eq('related_rabbi_id', mergeTargetId)
+
+    // 5. Soft-delete the target rabbi
+    await supabase
+      .from('rabbi_profiles')
+      .update({
+        deleted:    true,
+        deleted_by: user.id,
+        deleted_at: now,
+      })
+      .eq('id', mergeTargetId)
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.
