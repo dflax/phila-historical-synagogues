@@ -51,24 +51,12 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
 
     setLoading(true)
 
-    // ── Rate limit: max 10 proposals per 24 hours ─────────────────────────────
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    console.log('[SuggestEditForm] rate-limit check — userId:', userId, 'cutoff:', cutoff)
-    const { count, error: countError } = await supabase
-      .from('edit_proposals')
-      .select('*', { count: 'exact', head: true })
-      .eq('created_by', userId)
-      .gte('created_at', cutoff)
-    console.log('[SuggestEditForm] rate-limit response — count:', count, 'error:', countError)
+    // ── Rate limit check ──────────────────────────────────────────────────────
+    const { data: canSubmit, error: rateLimitError } = await supabase
+      .rpc('check_proposal_rate_limit', { user_id: userId })
 
-    if (countError) {
-      setError(`Could not check submission limit: [${countError.code}] ${countError.message} (hint: ${countError.hint ?? 'none'}, details: ${countError.details ?? 'none'})`)
-      setLoading(false)
-      return
-    }
-
-    if ((count ?? 0) >= 10) {
-      setError('You\'ve reached the limit of 10 edit proposals per day. Please try again tomorrow.')
+    if (rateLimitError || !canSubmit) {
+      setError("You've reached your daily proposal limit. Please try again tomorrow.")
       setLoading(false)
       return
     }

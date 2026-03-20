@@ -647,15 +647,11 @@ export default function MergeSynagogueButton({ synagogueId, synagogueName }: Pro
     setLoading(true)
 
     // Rate limit check
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    const { count } = await supabase
-      .from('edit_proposals')
-      .select('*', { count: 'exact', head: true })
-      .eq('created_by', user.id)
-      .gte('created_at', cutoff)
+    const { data: canSubmit, error: rateLimitError } = await supabase
+      .rpc('check_proposal_rate_limit', { user_id: user.id })
 
-    if ((count ?? 0) >= 10) {
-      setError("You've reached the limit of 10 proposals per day. Please try again tomorrow.")
+    if (rateLimitError || !canSubmit) {
+      setError("You've reached your daily proposal limit. Please try again tomorrow.")
       setLoading(false)
       return
     }
