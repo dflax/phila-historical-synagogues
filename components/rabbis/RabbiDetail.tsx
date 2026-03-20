@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog'
 import SuggestRabbiProfileButton from '@/components/edit/SuggestRabbiProfileButton'
 import DeleteRabbiButton from '@/components/edit/DeleteRabbiButton'
 import MergeRabbiButton from '@/components/edit/MergeRabbiButton'
+import SplitRabbiButton from '@/components/edit/SplitRabbiButton'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -339,6 +340,28 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
 
           {/* Merge & delete actions */}
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
+            <SplitRabbiButton
+              rabbiId={profile.id}
+              rabbiName={profile.canonical_name}
+              rabbiData={{
+                canonical_name:  profile.canonical_name,
+                birth_year:      profile.birth_year,
+                circa_birth:     profile.circa_birth,
+                death_year:      profile.death_year,
+                circa_death:     profile.circa_death,
+                biography:       profile.biography,
+                birthplace:      profile.birthplace,
+                death_place:     profile.death_place,
+                seminary:        profile.seminary,
+                ordination_year: profile.ordination_year,
+                denomination:    profile.denomination,
+                languages:       profile.languages,
+                publications:    profile.publications,
+                achievements:    profile.achievements,
+              }}
+              affiliations={affiliations}
+              images={photos}
+            />
             <MergeRabbiButton
               rabbiId={profile.id}
               rabbiName={profile.canonical_name}

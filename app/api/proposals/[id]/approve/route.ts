@@ -648,6 +648,136 @@ export async function POST(
         deleted_at: now,
       })
       .eq('id', mergeTargetId)
+
+  } else if (proposal.proposal_type === 'rabbi_profile_split' && proposal.entity_id) {
+    const origId      = proposal.entity_id
+    const origFields  = (proposed.original_fields ?? {}) as Record<string, unknown>
+    const newFields   = (proposed.new_fields       ?? {}) as Record<string, unknown>
+    const assignments = (proposed.assignments      ?? {}) as {
+      rabbis: Record<string, string>
+      images: Record<string, string>
+    }
+
+    // 1. Update the original rabbi_profiles row with its revised fields
+    await supabase
+      .from('rabbi_profiles')
+      .update({
+        canonical_name:  origFields.canonical_name  ?? undefined,
+        birth_year:      origFields.birth_year      !== undefined ? (origFields.birth_year      ?? null)  : undefined,
+        circa_birth:     origFields.circa_birth     !== undefined ? (origFields.circa_birth     ?? false) : undefined,
+        death_year:      origFields.death_year      !== undefined ? (origFields.death_year      ?? null)  : undefined,
+        circa_death:     origFields.circa_death     !== undefined ? (origFields.circa_death     ?? false) : undefined,
+        biography:       origFields.biography       !== undefined ? (origFields.biography       ?? null)  : undefined,
+        birthplace:      origFields.birthplace      !== undefined ? (origFields.birthplace      ?? null)  : undefined,
+        death_place:     origFields.death_place     !== undefined ? (origFields.death_place     ?? null)  : undefined,
+        seminary:        origFields.seminary        !== undefined ? (origFields.seminary        ?? null)  : undefined,
+        ordination_year: origFields.ordination_year !== undefined ? (origFields.ordination_year ?? null)  : undefined,
+        denomination:    origFields.denomination    !== undefined ? (origFields.denomination    ?? null)  : undefined,
+        languages:       origFields.languages       !== undefined ? (origFields.languages       ?? null)  : undefined,
+        publications:    origFields.publications    !== undefined ? (origFields.publications    ?? null)  : undefined,
+        achievements:    origFields.achievements    !== undefined ? (origFields.achievements    ?? null)  : undefined,
+        updated_at:      now,
+      })
+      .eq('id', origId)
+
+    // 2. Build a unique slug for the new rabbi profile
+    const candidateName = typeof newFields.canonical_name === 'string'
+      ? newFields.canonical_name.trim()
+      : 'unknown'
+
+    const baseSlug = candidateName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .substring(0, 100)
+
+    let finalSlug = baseSlug
+    let counter   = 1
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { data: existing } = await supabase
+        .from('rabbi_profiles')
+        .select('id')
+        .eq('slug', finalSlug)
+        .maybeSingle()
+      if (!existing) break
+      finalSlug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    // 3. Insert the new rabbi profile
+    const { data: newRabbi, error: newRabbiError } = await supabase
+      .from('rabbi_profiles')
+      .insert({
+        canonical_name:  candidateName,
+        slug:            finalSlug,
+        birth_year:      newFields.birth_year      ?? null,
+        circa_birth:     newFields.circa_birth     ?? false,
+        death_year:      newFields.death_year      ?? null,
+        circa_death:     newFields.circa_death     ?? false,
+        biography:       newFields.biography       ?? null,
+        birthplace:      newFields.birthplace      ?? null,
+        death_place:     newFields.death_place     ?? null,
+        seminary:        newFields.seminary        ?? null,
+        ordination_year: newFields.ordination_year ?? null,
+        denomination:    newFields.denomination    ?? null,
+        languages:       newFields.languages       ?? null,
+        publications:    newFields.publications    ?? null,
+        achievements:    newFields.achievements    ?? null,
+        approved:        true,
+        approved_by:     user.id,
+        approved_at:     now,
+        created_by:      proposal.created_by,
+      })
+      .select('id')
+      .single()
+
+    if (newRabbiError || !newRabbi) {
+      return NextResponse.json(
+        { error: `Failed to create new rabbi profile: ${newRabbiError?.message ?? 'unknown error'}` },
+        { status: 500 },
+      )
+    }
+
+    const newRabbiId = newRabbi.id
+
+    // 4. Process affiliation (rabbis table) assignments
+    for (const [affId, action] of Object.entries(assignments.rabbis ?? {})) {
+      if (action === 'new') {
+        await supabase.from('rabbis').update({ rabbi_profile_id: newRabbiId }).eq('id', affId)
+      } else if (action === 'both') {
+        const { data: row } = await supabase.from('rabbis').select('*').eq('id', affId).single()
+        if (row) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _id, ...rest } = row as Record<string, unknown>
+          await supabase.from('rabbis').insert({ ...rest, rabbi_profile_id: newRabbiId })
+        }
+      } else if (action === 'neither') {
+        await supabase.from('rabbis').delete().eq('id', affId)
+      }
+      // 'original': no-op
+    }
+
+    // 5. Process image assignments
+    for (const [imgId, action] of Object.entries(assignments.images ?? {})) {
+      if (action === 'new') {
+        await supabase.from('images').update({ rabbi_profile_id: newRabbiId }).eq('id', imgId)
+      } else if (action === 'both') {
+        const { data: row } = await supabase.from('images').select('*').eq('id', imgId).single()
+        if (row) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _id, storage_path: _sp, ...rest } = row as Record<string, unknown>
+          await supabase.from('images').insert({ ...rest, rabbi_profile_id: newRabbiId })
+        }
+      } else if (action === 'neither') {
+        const { data: img } = await supabase.from('images').select('id, storage_path').eq('id', imgId).single()
+        await supabase.from('images').delete().eq('id', imgId)
+        if (img?.storage_path && typeof img.storage_path === 'string') {
+          supabase.storage.from('synagogue-images').remove([img.storage_path]).catch(() => {})
+        }
+      }
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.

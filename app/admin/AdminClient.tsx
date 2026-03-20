@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -106,6 +106,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   rabbi_profile_new:    'New rabbi profile',
   rabbi_profile_delete: 'Delete rabbi',
   rabbi_profile_merge:  'Merge rabbis',
+  rabbi_profile_split:  'Split rabbi',
 }
 
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
@@ -125,6 +126,7 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   rabbi_profile_new:    'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_profile_delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
   rabbi_profile_merge:  'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+  rabbi_profile_split:  'text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -654,10 +656,15 @@ function ProposalCard({
       )}
 
       {/* Split summary */}
-      {proposal.proposal_type === 'synagogue_split' && (() => {
+      {(proposal.proposal_type === 'synagogue_split' || proposal.proposal_type === 'rabbi_profile_split') && (() => {
+        const isSynSplit  = proposal.proposal_type === 'synagogue_split'
         const assignments = proposal.proposed_data?.assignments as Record<string, Record<string, string>> | undefined
-        const origName    = proposal.current_data?.original_synagogue_name ?? '—'
-        const newName     = proposal.current_data?.new_synagogue_name      ?? '—'
+        const origName    = isSynSplit
+          ? (proposal.current_data?.original_synagogue_name ?? '—')
+          : (proposal.current_data?.original_rabbi_name     ?? '—')
+        const newName     = isSynSplit
+          ? (proposal.current_data?.new_synagogue_name ?? '—')
+          : (proposal.current_data?.new_rabbi_name     ?? '—')
         const newFields   = proposal.proposed_data?.new_fields as Record<string, unknown> | undefined
 
         function countByType(map: Record<string, string> = {}) {
@@ -668,12 +675,17 @@ function ProposalCard({
           return c
         }
 
-        const rows: { label: string; key: string }[] = [
-          { label: 'Addresses',       key: 'addresses' },
-          { label: 'Rabbis',          key: 'rabbis' },
-          { label: 'History entries', key: 'history_entries' },
-          { label: 'Photos',          key: 'images' },
-        ]
+        const rows: { label: string; key: string }[] = isSynSplit
+          ? [
+              { label: 'Addresses',       key: 'addresses' },
+              { label: 'Rabbis',          key: 'rabbis' },
+              { label: 'History entries', key: 'history_entries' },
+              { label: 'Photos',          key: 'images' },
+            ]
+          : [
+              { label: 'Affiliations', key: 'rabbis' },
+              { label: 'Photos',       key: 'images' },
+            ]
 
         return (
           <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 space-y-3">
@@ -688,7 +700,9 @@ function ProposalCard({
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">New (created):</div>
                 <div className="font-semibold text-green-700 dark:text-green-400">
-                  {String(newFields?.name ?? newName)}
+                  {isSynSplit
+                    ? String(newFields?.name             ?? newName)
+                    : String(newFields?.canonical_name   ?? newName)}
                 </div>
               </div>
             </div>
@@ -723,7 +737,7 @@ function ProposalCard({
       })()}
 
       {/* Merge summary (replaces diff table for merge/split proposals) */}
-      {proposal.proposal_type !== 'synagogue_split' && ((proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (
+      {proposal.proposal_type !== 'synagogue_split' && proposal.proposal_type !== 'rabbi_profile_split' && ((proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (
         <div className="space-y-3">
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
             <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">
