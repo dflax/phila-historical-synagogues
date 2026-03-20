@@ -45,7 +45,7 @@ export default async function Home() {
                 Map
               </Link>
               <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                Browse
+                Synagogues
               </Link>
               <Link href="/rabbis" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
                 Rabbis
