@@ -104,15 +104,16 @@ export default function AddSynagogueAffiliationButton({ rabbiId, rabbiName }: Pr
 
     setSearching(true)
     const timer = setTimeout(async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('synagogues')
         .select('id, name, status, neighborhood, founded_year, closed_year')
         .ilike('name', `%${searchQuery.trim()}%`)
         .eq('approved', true)
-        .or('deleted.is.null,deleted.eq.false')
+        .is('deleted', null)
         .order('name')
         .limit(20)
 
+      if (error) console.error('Synagogue search error:', error)
       setSearchResults(data ?? [])
       setSearching(false)
     }, 300)
