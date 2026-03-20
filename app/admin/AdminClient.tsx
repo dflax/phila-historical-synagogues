@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -71,8 +71,10 @@ const FIELD_LABELS: Record<string, string> = {
   rabbi_count:         'Rabbi Affiliations',
   photo_count:         'Photos',
   // Merge proposal fields
-  merge_source_id:     'Keeping Rabbi (ID)',
-  merge_target_id:     'Merging Rabbi (ID)',
+  synagogue1_name:     'Current Synagogue 1',
+  synagogue2_name:     'Current Synagogue 2',
+  merge_source_id:     'Keeping (ID)',
+  merge_target_id:     'Merging (ID)',
   merged_fields:       'Merged Data',
   affiliations_count:  'Total Affiliations',
   photos_count:        'Total Photos',
@@ -85,6 +87,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   synagogue_edit:      'Edit synagogue',
   synagogue_new:       'New synagogue',
   synagogue_delete:    'Delete synagogue',
+  synagogue_merge:     'Merge synagogues',
   address_edit:        'Edit address',
   address_new:         'New address',
   rabbi_edit:          'Edit rabbi',
@@ -102,6 +105,7 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   synagogue_edit:      'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   synagogue_new:       'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   synagogue_delete:    'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+  synagogue_merge:     'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
   address_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   address_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_edit:          'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
@@ -642,7 +646,7 @@ function ProposalCard({
       )}
 
       {/* Merge summary (replaces diff table for merge proposals) */}
-      {proposal.proposal_type === 'rabbi_profile_merge' ? (
+      {(proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (
         <div className="space-y-3">
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
             <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">
@@ -652,25 +656,48 @@ function ProposalCard({
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Keeping (source):</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
-                  {proposal.current_data?.rabbi1_name ?? '—'}
+                  {proposal.proposal_type === 'rabbi_profile_merge'
+                    ? (proposal.current_data?.rabbi1_name ?? '—')
+                    : (proposal.current_data?.synagogue1_name ?? '—')}
                 </div>
               </div>
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Absorbing (will be deleted):</div>
                 <div className="font-semibold text-red-700 dark:text-red-400">
-                  {proposal.current_data?.rabbi2_name ?? '—'}
+                  {proposal.proposal_type === 'rabbi_profile_merge'
+                    ? (proposal.current_data?.rabbi2_name ?? '—')
+                    : (proposal.current_data?.synagogue2_name ?? '—')}
                 </div>
               </div>
             </div>
             <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
-              {proposal.proposed_data?.affiliations_count != null && (
-                <div>Combined affiliations: <span className="font-medium">{String(proposal.proposed_data.affiliations_count)}</span></div>
-              )}
-              {proposal.proposed_data?.photos_count != null && (
-                <div>Combined photos: <span className="font-medium">{String(proposal.proposed_data.photos_count)}</span></div>
-              )}
-              {proposal.proposed_data?.relationships_count != null && Number(proposal.proposed_data.relationships_count) > 0 && (
-                <div>Combined relationships: <span className="font-medium">{String(proposal.proposed_data.relationships_count)}</span></div>
+              {proposal.proposal_type === 'rabbi_profile_merge' ? (
+                <>
+                  {proposal.proposed_data?.affiliations_count != null && (
+                    <div>Combined affiliations: <span className="font-medium">{String(proposal.proposed_data.affiliations_count)}</span></div>
+                  )}
+                  {proposal.proposed_data?.photos_count != null && (
+                    <div>Combined photos: <span className="font-medium">{String(proposal.proposed_data.photos_count)}</span></div>
+                  )}
+                  {proposal.proposed_data?.relationships_count != null && Number(proposal.proposed_data.relationships_count) > 0 && (
+                    <div>Combined relationships: <span className="font-medium">{String(proposal.proposed_data.relationships_count)}</span></div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {proposal.proposed_data?.addresses_count != null && (
+                    <div>Combined addresses: <span className="font-medium">{String(proposal.proposed_data.addresses_count)}</span></div>
+                  )}
+                  {proposal.proposed_data?.rabbis_count != null && (
+                    <div>Combined rabbi affiliations: <span className="font-medium">{String(proposal.proposed_data.rabbis_count)}</span></div>
+                  )}
+                  {proposal.proposed_data?.history_count != null && (
+                    <div>Combined history entries: <span className="font-medium">{String(proposal.proposed_data.history_count)}</span></div>
+                  )}
+                  {proposal.proposed_data?.photos_count != null && (
+                    <div>Combined photos: <span className="font-medium">{String(proposal.proposed_data.photos_count)}</span></div>
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -67,7 +67,69 @@ export async function POST(
 
   // ── 4. Apply changes based on proposal_type ──────────────────────────────
 
-  if (proposal.proposal_type === 'synagogue_edit' && proposal.synagogue_id) {
+  if (proposal.proposal_type === 'synagogue_merge' && proposal.synagogue_id) {
+    const mergeSourceId = proposal.synagogue_id
+    const mergeTargetId = proposed.merge_target_id as string | undefined
+
+    if (!mergeTargetId) {
+      return NextResponse.json({ error: 'Missing merge target' }, { status: 400 })
+    }
+
+    const merged = (proposed.merged_fields ?? {}) as Record<string, unknown>
+
+    // 1. Update source synagogue with merged field values
+    const { error: updateError } = await supabase
+      .from('synagogues')
+      .update({
+        name:         merged.name         !== undefined ? (merged.name         ?? undefined) : undefined,
+        status:       merged.status       !== undefined ? (merged.status       ?? undefined) : undefined,
+        founded_year: merged.founded_year !== undefined ? (merged.founded_year ?? null)      : undefined,
+        closed_year:  merged.closed_year  !== undefined ? (merged.closed_year  ?? null)      : undefined,
+      })
+      .eq('id', mergeSourceId)
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: `Failed to update synagogue: ${updateError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // 2. Move addresses from target to source
+    await supabase
+      .from('addresses')
+      .update({ synagogue_id: mergeSourceId })
+      .eq('synagogue_id', mergeTargetId)
+
+    // 3. Move rabbi affiliations from target to source
+    await supabase
+      .from('rabbis')
+      .update({ synagogue_id: mergeSourceId })
+      .eq('synagogue_id', mergeTargetId)
+
+    // 4. Move history entries from target to source
+    await supabase
+      .from('history_entries')
+      .update({ synagogue_id: mergeSourceId })
+      .eq('synagogue_id', mergeTargetId)
+
+    // 5. Move photos from target to source
+    await supabase
+      .from('images')
+      .update({ synagogue_id: mergeSourceId })
+      .eq('synagogue_id', mergeTargetId)
+
+    // 6. Soft-delete the target synagogue
+    await supabase
+      .from('synagogues')
+      .update({
+        deleted:    true,
+        deleted_by: user.id,
+        deleted_at: now,
+      })
+      .eq('id', mergeTargetId)
+
+  } else if (proposal.proposal_type === 'synagogue_edit' && proposal.synagogue_id) {
     // Split fields by their target table
     const synagogueChanges: Record<string, unknown> = {}
     const addressChanges: Record<string, unknown> = {}
