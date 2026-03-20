@@ -14,6 +14,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog'
 import DeleteSynagogueButton from '@/components/edit/DeleteSynagogueButton'
 import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
 import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
+import AddRabbiAffiliationButton from '@/components/edit/AddRabbiAffiliationButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -343,7 +344,16 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
 
             {/* Rabbis */}
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
-              <SectionHeader icon="✡️" title="Rabbis" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">✡️</span>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Rabbis</h2>
+                </div>
+                <AddRabbiAffiliationButton
+                  synagogueId={synagogue.id}
+                  synagogueName={synagogue.name}
+                />
+              </div>
               {rabbis.length === 0 ? (
                 <EmptyState message="No rabbis on record" />
               ) : (

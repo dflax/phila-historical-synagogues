@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -87,6 +87,13 @@ const FIELD_LABELS: Record<string, string> = {
   original_fields:         'Original Fields',
   new_fields:              'New Fields',
   assignments:             'Item Assignments',
+  // Affiliation proposal fields
+  rabbi_profile_id:        'Rabbi',
+  synagogue_id:            'Synagogue',
+  start_year:              'Start Year',
+  end_year:                'End Year',
+  notes:                   'Notes',
+  title:                   'Title',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
@@ -98,8 +105,9 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   address_edit:        'Edit address',
   address_new:         'New address',
   rabbi_edit:          'Edit rabbi',
-  rabbi_new:           'New rabbi',
-  history_edit:        'Edit history',
+  rabbi_new:              'New rabbi',
+  rabbi_affiliation_new:  'Add rabbi affiliation',
+  history_edit:           'Edit history',
   history_new:         'New history entry',
   photo_upload:        'Photo upload',
   rabbi_profile_edit:   'Edit rabbi profile',
@@ -118,8 +126,9 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   address_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   address_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_edit:          'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-  rabbi_new:           'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-  history_edit:        'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  rabbi_new:              'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  rabbi_affiliation_new:  'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  history_edit:           'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   history_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   photo_upload:        'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
   rabbi_profile_edit:   'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',

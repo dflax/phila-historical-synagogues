@@ -9,6 +9,7 @@ import SuggestRabbiProfileButton from '@/components/edit/SuggestRabbiProfileButt
 import DeleteRabbiButton from '@/components/edit/DeleteRabbiButton'
 import MergeRabbiButton from '@/components/edit/MergeRabbiButton'
 import SplitRabbiButton from '@/components/edit/SplitRabbiButton'
+import AddSynagogueAffiliationButton from '@/components/edit/AddSynagogueAffiliationButton'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -459,7 +460,16 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
           <div className="lg:col-span-2 space-y-6">
 
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
-              <SectionHeader icon="✡️" title="Synagogue Affiliations" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">✡️</span>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Synagogue Affiliations</h2>
+                </div>
+                <AddSynagogueAffiliationButton
+                  rabbiId={profile.id}
+                  rabbiName={profile.canonical_name}
+                />
+              </div>
 
               {affiliations.length === 0 ? (
                 <EmptyState message="No synagogue affiliations on record" />

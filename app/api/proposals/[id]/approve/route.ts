@@ -778,6 +778,36 @@ export async function POST(
         }
       }
     }
+  } else if (proposal.proposal_type === 'rabbi_affiliation_new') {
+    const rabbiProfileId = proposed.rabbi_profile_id as string | undefined
+    const affSynagogueId = proposed.synagogue_id     as string | undefined
+
+    if (!rabbiProfileId || !affSynagogueId) {
+      return NextResponse.json(
+        { error: 'Missing rabbi_profile_id or synagogue_id' },
+        { status: 400 },
+      )
+    }
+
+    const { error: insertError } = await supabase
+      .from('rabbis')
+      .insert({
+        rabbi_profile_id: rabbiProfileId,
+        synagogue_id:     affSynagogueId,
+        title:            proposed.title      ?? null,
+        start_year:       proposed.start_year ?? null,
+        end_year:         proposed.end_year   ?? null,
+        notes:            proposed.notes      ?? null,
+        approved:         true,
+        created_by:       proposal.created_by,
+      })
+
+    if (insertError) {
+      return NextResponse.json(
+        { error: `Failed to create affiliation: ${insertError.message}` },
+        { status: 500 },
+      )
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.
