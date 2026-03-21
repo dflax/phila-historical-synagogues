@@ -957,6 +957,58 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'synagogue_relationship_delete' && proposal.entity_id) {
+    const relationshipId     = proposal.entity_id
+    const synagogueId        = proposed.synagogue_id         as string | undefined
+    const relatedSynagogueId = proposed.related_synagogue_id as string | undefined
+    const relationshipType   = proposed.relationship_type    as string | undefined
+    const reverseType        = proposed.reverse_relationship_type as string | undefined
+
+    if (!synagogueId || !relatedSynagogueId || !relationshipType || !reverseType) {
+      return NextResponse.json(
+        { error: 'Missing required relationship data' },
+        { status: 400 },
+      )
+    }
+
+    // Soft-delete the primary relationship
+    const { error: deleteError } = await supabase
+      .from('synagogue_relationships')
+      .update({ deleted: true, deleted_by: user.id, deleted_at: now })
+      .eq('id', relationshipId)
+
+    if (deleteError) {
+      return NextResponse.json(
+        { error: `Failed to delete relationship: ${deleteError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // Locate and soft-delete the reverse relationship (best-effort)
+    const { data: reverseRows, error: findReverseError } = await supabase
+      .from('synagogue_relationships')
+      .select('id')
+      .eq('synagogue_id',         relatedSynagogueId)
+      .eq('related_synagogue_id', synagogueId)
+      .eq('relationship_type',    reverseType)
+      .or('deleted.is.null,deleted.eq.false')
+
+    if (findReverseError) {
+      console.error('Error finding reverse relationship:', findReverseError)
+    } else if (reverseRows && reverseRows.length > 0) {
+      for (const row of reverseRows) {
+        const { error: deleteReverseError } = await supabase
+          .from('synagogue_relationships')
+          .update({ deleted: true, deleted_by: user.id, deleted_at: now })
+          .eq('id', row.id)
+
+        if (deleteReverseError) {
+          console.error('Error deleting reverse relationship:', deleteReverseError)
+        }
+      }
+    } else {
+      console.log('No reverse relationship found — may have been deleted previously')
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.

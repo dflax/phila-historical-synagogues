@@ -16,6 +16,7 @@ import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
 import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
 import AddRabbiAffiliationButton from '@/components/edit/AddRabbiAffiliationButton'
 import AddRelationshipButton from '@/components/edit/AddRelationshipButton'
+import DeleteRelationshipModal from '@/components/edit/DeleteRelationshipModal'
 import AddLinkButton from '@/components/edit/AddLinkButton'
 import LinksSection from '@/components/common/LinksSection'
 
@@ -213,14 +214,15 @@ interface PendingDelete {
 }
 
 export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages, links, relationships }: Props) {
-  const { isEditor } = useUserRole()
+  const { isEditor, isContributor } = useUserRole()
 
   const [addresses,     setAddresses]     = useState<Address[]>(initialAddresses)
   const [history,       setHistory]       = useState<HistoryEntry[]>(initialHistory)
   const [rabbis,        setRabbis]        = useState<Rabbi[]>(initialRabbis)
   const [images,        setImages]        = useState<Image[]>(initialImages)
-  const [lightboxImg,   setLightboxImg]   = useState<Image | null>(null)
-  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+  const [lightboxImg,           setLightboxImg]           = useState<Image | null>(null)
+  const [pendingDelete,         setPendingDelete]         = useState<PendingDelete | null>(null)
+  const [relationshipToDelete,  setRelationshipToDelete]  = useState<Relationship | null>(null)
 
   function requestDelete(endpoint: string, id: string, label: string, remove: (id: string) => void) {
     setPendingDelete({ endpoint, id, label, remove })
@@ -302,22 +304,38 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                 {relationships
                   .filter(rel => rel.related_synagogue !== null)
                   .map(rel => (
-                    <Link
-                      key={rel.id}
-                      href={`/synagogues/${rel.related_synagogue!.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-                    >
-                      <span aria-hidden="true">
-                        {getRelationshipIcon(rel.relationship_type)}
-                      </span>
-                      <span className="text-xs font-medium">
-                        {getRelationshipLabel(
-                          rel.relationship_type,
-                          rel.related_synagogue!.name,
-                          rel.relationship_year,
-                        )}
-                      </span>
-                    </Link>
+                    <div key={rel.id} className="relative group">
+                      <Link
+                        href={`/synagogues/${rel.related_synagogue!.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                      >
+                        <span aria-hidden="true">
+                          {getRelationshipIcon(rel.relationship_type)}
+                        </span>
+                        <span className="text-xs font-medium">
+                          {getRelationshipLabel(
+                            rel.relationship_type,
+                            rel.related_synagogue!.name,
+                            rel.relationship_year,
+                          )}
+                        </span>
+                      </Link>
+
+                      {isContributor && (
+                        <button
+                          onClick={e => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setRelationshipToDelete(rel)
+                          }}
+                          className="absolute -top-1.5 -right-1.5 z-10 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold transition-opacity shadow-sm pointer-events-auto"
+                          title="Propose deletion of this relationship"
+                          aria-label="Delete relationship"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   ))}
                 <AddRelationshipButton
                   synagogueId={synagogue.id}
@@ -660,6 +678,17 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
           />
         </div>
       </div>
+
+      {/* Relationship deletion proposal modal */}
+      {relationshipToDelete && (
+        <DeleteRelationshipModal
+          relationship={relationshipToDelete}
+          synagogueId={synagogue.id}
+          synagogueName={synagogue.name}
+          onClose={() => setRelationshipToDelete(null)}
+          onSuccess={() => setRelationshipToDelete(null)}
+        />
+      )}
 
       {/* Delete confirmation dialog */}
       <ConfirmDialog

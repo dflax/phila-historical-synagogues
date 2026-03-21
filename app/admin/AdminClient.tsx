@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split' | 'link_new' | 'link_edit' | 'link_delete' | 'synagogue_relationship_new'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split' | 'link_new' | 'link_edit' | 'link_delete' | 'synagogue_relationship_new' | 'synagogue_relationship_delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -129,7 +129,8 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   link_new:                    'Add link',
   link_edit:                   'Edit link',
   link_delete:                 'Delete link',
-  synagogue_relationship_new:  'Add synagogue relationship',
+  synagogue_relationship_new:    'Add synagogue relationship',
+  synagogue_relationship_delete: 'Delete synagogue relationship',
 }
 
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
@@ -154,7 +155,8 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   link_new:                    'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   link_edit:                   'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   link_delete:                 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
-  synagogue_relationship_new:  'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20',
+  synagogue_relationship_new:    'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20',
+  synagogue_relationship_delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -651,6 +653,7 @@ function ProposalCard({
   const LINK_ENTITY_FIELDS      = new Set(['entity_type', 'entity_id'])
   // For relationship proposals: show only notes in the diff table; everything else is in the summary block
   const RELATIONSHIP_HIDE_FIELDS = new Set(['synagogue_id', 'related_synagogue_id', 'relationship_type', 'relationship_year', 'reverse_relationship_type'])
+  const RELATIONSHIP_DELETE_HIDE_FIELDS = new Set(['relationship_id', 'synagogue_id', 'related_synagogue_id', 'relationship_type', 'reverse_relationship_type'])
   const changedFields = Object.keys(proposal.proposed_data).filter(f => {
     if (proposal.proposal_type === 'rabbi_affiliation_new' && UUID_FIELDS_FOR_AFFILIATION.has(f)) return false
     // link_new and link_delete: all fields shown in summary block, nothing in diff table
@@ -659,6 +662,8 @@ function ProposalCard({
     if (proposal.proposal_type === 'link_edit' && LINK_ENTITY_FIELDS.has(f)) return false
     // relationship_new: all structural fields shown in summary block; only notes shown in diff table
     if (proposal.proposal_type === 'synagogue_relationship_new' && RELATIONSHIP_HIDE_FIELDS.has(f)) return false
+    // relationship_delete: all structural fields shown in summary block; nothing in diff table
+    if (proposal.proposal_type === 'synagogue_relationship_delete' && RELATIONSHIP_DELETE_HIDE_FIELDS.has(f)) return false
     return true
   })
   const typeColor = PROPOSAL_TYPE_COLORS[proposal.proposal_type] ?? PROPOSAL_TYPE_COLORS.update
@@ -914,6 +919,32 @@ function ProposalCard({
                 <span>({proposal.proposed_data.relationship_year as number})</span>
               )}
               <span className="text-xs italic">(auto-created)</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Relationship delete summary */}
+      {proposal.proposal_type === 'synagogue_relationship_delete' && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <h4 className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide mb-3">
+            Relationships to Delete
+          </h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2 flex-wrap text-gray-900 dark:text-white">
+              <span className="font-semibold">{proposal.current_data?.synagogue_name ?? '—'}</span>
+              <span className="text-red-600 dark:text-red-400 font-medium">
+                {String(proposal.current_data?.relationship_type ?? '').replace(/_/g, ' ')}
+              </span>
+              <span className="font-semibold">{proposal.current_data?.related_synagogue_name ?? '—'}</span>
+              {proposal.current_data?.relationship_year && (
+                <span className="text-gray-500 dark:text-gray-400">
+                  ({proposal.current_data.relationship_year as number})
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs italic">
+              <span>+ Reverse relationship (auto-deleted)</span>
             </div>
           </div>
         </div>
