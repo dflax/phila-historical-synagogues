@@ -118,6 +118,11 @@ export default function AddSynagogueAffiliationButton({ rabbiId, rabbiName }: Pr
       setSearching(false)
     }, 300)
 
+// Add right after the query
+console.log('Search query:', searchQuery)
+console.log('Search results:', data)
+console.log('Total results:', data?.length)
+
     return () => clearTimeout(timer)
   }, [searchQuery, supabase])
 
