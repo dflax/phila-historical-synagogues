@@ -203,10 +203,4 @@ Original data compiled from historical records into an Excel file (`20260221_Phi
 
 ---
 
-## License
-
-MIT — feel free to adapt this for similar historical preservation projects.
-
----
-
 *Built to preserve Philadelphia's Jewish heritage.*
