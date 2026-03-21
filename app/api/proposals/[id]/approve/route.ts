@@ -1,4 +1,5 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { getNeighborhoodFromAddress } from '@/lib/geocoding'
@@ -29,6 +30,15 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   const supabase = createRouteHandlerClient({ cookies })
+
+  // Service-role client bypasses RLS for data mutations that admins must be
+  // able to perform regardless of per-row policies (e.g. soft-deleting rows
+  // in tables where the session user is not the row owner).
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  )
 
   // ── 1. Auth ──────────────────────────────────────────────────────────────
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -916,8 +926,8 @@ export async function POST(
       created_by:        proposal.created_by,
     }
 
-    // Insert primary relationship
-    const { error: insertError } = await supabase
+    // Insert primary relationship — use service role to bypass RLS
+    const { error: insertError } = await supabaseAdmin
       .from('synagogue_relationships')
       .insert({
         synagogue_id:         synagogueId,
@@ -934,7 +944,7 @@ export async function POST(
     }
 
     // Insert reverse relationship; if it fails, roll back the primary
-    const { error: reverseError } = await supabase
+    const { error: reverseError } = await supabaseAdmin
       .from('synagogue_relationships')
       .insert({
         synagogue_id:         relatedSynagogueId,
@@ -945,7 +955,7 @@ export async function POST(
 
     if (reverseError) {
       // Roll back the primary to keep the table consistent
-      await supabase
+      await supabaseAdmin
         .from('synagogue_relationships')
         .delete()
         .eq('synagogue_id',         synagogueId)
@@ -958,49 +968,97 @@ export async function POST(
       )
     }
   } else if (proposal.proposal_type === 'synagogue_relationship_delete' && proposal.entity_id) {
+    console.log('=== RELATIONSHIP DELETE HANDLER START ===')
+    console.log('Timestamp:', new Date().toISOString())
+    console.log('User:', { id: user.id, email: user.email })
+    console.log('Proposal ID:', params.id)
+    console.log('Entity ID (relationship ID):', proposal.entity_id)
+
     const relationshipId     = proposal.entity_id
-    const synagogueId        = proposed.synagogue_id         as string | undefined
+    // Fallback: some older proposals stored synagogue_id only in the top-level column
+    const synagogueId        = (proposed.synagogue_id         as string | undefined) || proposal.synagogue_id
     const relatedSynagogueId = proposed.related_synagogue_id as string | undefined
     const relationshipType   = proposed.relationship_type    as string | undefined
     const reverseType        = proposed.reverse_relationship_type as string | undefined
 
+    console.log('Extracted data:', { relationshipId, synagogueId, relatedSynagogueId, relationshipType, reverseType })
+    console.log('Full proposed_data:', JSON.stringify(proposed, null, 2))
+    console.log('proposal.synagogue_id (top-level):', proposal.synagogue_id)
+
     if (!synagogueId || !relatedSynagogueId || !relationshipType || !reverseType) {
+      console.error('=== MISSING DATA ERROR ===', {
+        synagogueId: !synagogueId,
+        relatedSynagogueId: !relatedSynagogueId,
+        relationshipType: !relationshipType,
+        reverseType: !reverseType,
+      })
       return NextResponse.json(
         { error: 'Missing required relationship data' },
         { status: 400 },
       )
     }
 
-    // Soft-delete the primary relationship
-    const { error: deleteError } = await supabase
+    // Check whether the row exists before attempting the soft-delete
+    const { data: existingRel, error: checkError } = await supabaseAdmin
+      .from('synagogue_relationships')
+      .select('*')
+      .eq('id', relationshipId)
+      .single()
+
+    console.log('=== PRE-DELETE ROW CHECK ===')
+    console.log('Found:', !!existingRel, '| checkError:', checkError)
+    console.log('Row data:', existingRel)
+
+    // Soft-delete the primary relationship — use service role to bypass RLS
+    console.log('=== ATTEMPTING PRIMARY SOFT-DELETE ===')
+    console.log('Params:', { relationshipId, userId: user.id, now })
+
+    const { data: deleteResult, error: deleteError } = await supabaseAdmin
       .from('synagogue_relationships')
       .update({ deleted: true, deleted_by: user.id, deleted_at: now })
       .eq('id', relationshipId)
+      .select()
+
+    console.log('=== PRIMARY DELETE RESULT ===')
+    console.log('Success:', !deleteError)
+    console.log('Rows affected:', deleteResult)
+    console.log('Error:', deleteError ? JSON.stringify(deleteError, null, 2) : 'none')
 
     if (deleteError) {
+      console.error('=== PRIMARY DELETE FAILED ===', deleteError)
       return NextResponse.json(
         { error: `Failed to delete relationship: ${deleteError.message}` },
         { status: 500 },
       )
     }
 
+    console.log('=== PRIMARY DELETE SUCCESSFUL ===')
+    console.log('=== FINDING REVERSE RELATIONSHIP ===')
+    console.log('Query:', { synagogue_id: relatedSynagogueId, related_synagogue_id: synagogueId, relationship_type: reverseType })
+
     // Locate and soft-delete the reverse relationship (best-effort)
-    const { data: reverseRows, error: findReverseError } = await supabase
+    const { data: reverseRows, error: findReverseError } = await supabaseAdmin
       .from('synagogue_relationships')
       .select('id')
       .eq('synagogue_id',         relatedSynagogueId)
       .eq('related_synagogue_id', synagogueId)
       .eq('relationship_type',    reverseType)
-      .or('deleted.is.null,deleted.eq.false')
+      .eq('deleted', false)
+
+    console.log('Reverse lookup result:', { rows: reverseRows, error: findReverseError })
 
     if (findReverseError) {
       console.error('Error finding reverse relationship:', findReverseError)
     } else if (reverseRows && reverseRows.length > 0) {
       for (const row of reverseRows) {
-        const { error: deleteReverseError } = await supabase
+        console.log('Soft-deleting reverse row:', row.id)
+        const { data: reverseDeleteResult, error: deleteReverseError } = await supabaseAdmin
           .from('synagogue_relationships')
           .update({ deleted: true, deleted_by: user.id, deleted_at: now })
           .eq('id', row.id)
+          .select()
+
+        console.log('Reverse delete result:', { data: reverseDeleteResult, error: deleteReverseError })
 
         if (deleteReverseError) {
           console.error('Error deleting reverse relationship:', deleteReverseError)
@@ -1009,6 +1067,8 @@ export async function POST(
     } else {
       console.log('No reverse relationship found — may have been deleted previously')
     }
+
+    console.log('=== RELATIONSHIP DELETE HANDLER END ===')
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.
