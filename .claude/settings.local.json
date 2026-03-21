@@ -27,7 +27,9 @@
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | head -60)",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && npx tsc --noEmit 2>&1 | grep -v \"^npm notice\")",
       "Bash(cd:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "WebFetch(domain:developers.google.com)",
+      "WebSearch"
     ]
   }
 }

@@ -415,21 +415,32 @@ function MapClientInner({ synagogues }: MapClientProps) {
       return () => clearInterval(checkLoaded);
     }
 
+    // loading=async in the URL is Google's recommended flag for async loading.
+    // It requires a &callback parameter — the callback fires once all libraries
+    // are fully initialised (unlike onload, which fires before sub-modules are ready).
+    ;(window as any).__mapsCallback = () => {
+      setIsLoaded(true)
+      delete (window as any).__mapsCallback
+    }
+
     const script = document.createElement('script');
     script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async&callback=__mapsCallback`;
     script.async = true;
 
-    script.onload = () => setIsLoaded(true);
-    script.onerror = () =>
+    script.onerror = () => {
+      delete (window as any).__mapsCallback
       setLoadError(
         'Failed to load Google Maps script. Check your API key and network connection.'
-      );
+      )
+    }
 
     document.head.appendChild(script);
 
     return () => {
-      // Don't remove the script on unmount — causes issues with remounting
+      // Clean up callback if component unmounts before the script fires it.
+      // The script stays in the DOM so other components can still use it.
+      delete (window as any).__mapsCallback
     };
   }, [apiKey]);
 
@@ -438,8 +449,6 @@ function MapClientInner({ synagogues }: MapClientProps) {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
     if (!window.google?.maps) return;
 
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
     mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
       center: hasFocus ? { lat: focusLat, lng: focusLng } : { lat: 39.9526, lng: -75.1652 },
       zoom: hasFocus ? 16 : 12,
@@ -447,21 +456,13 @@ function MapClientInner({ synagogues }: MapClientProps) {
       streetViewControl: true,
       fullscreenControl: true,
       // mapId is required for AdvancedMarkerElement.
-      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in env vars for production.
-      // styles below are applied with DEMO_MAP_ID; use Cloud Styling for production dark mode.
+      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in Vercel env vars for production.
+      // Note: styles cannot be set when mapId is present — configure dark mode
+      // and POI suppression via Cloud Styling in the Google Cloud Console.
       mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? 'DEMO_MAP_ID',
-      styles: isDark ? [...BASE_MAP_STYLES, ...DARK_MAP_STYLES] : BASE_MAP_STYLES,
     });
 
     infoWindowRef.current = new window.google.maps.InfoWindow();
-
-    // Listen for OS theme changes and update map style dynamically
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onThemeChange = (e: MediaQueryListEvent) => {
-      mapInstanceRef.current?.setOptions({ styles: e.matches ? [...BASE_MAP_STYLES, ...DARK_MAP_STYLES] : BASE_MAP_STYLES });
-    };
-    mq.addEventListener('change', onThemeChange);
-    return () => mq.removeEventListener('change', onThemeChange);
   }, [isLoaded]);
 
   // Update markers when map is ready, year filter, or search filter changes
@@ -535,6 +536,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
         title: s.name,
         content: markerEl,
         zIndex: isFocused ? 9999 : 1,
+        gmpClickable: true,
       });
 
       const infoContent = `

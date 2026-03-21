@@ -24,26 +24,6 @@ const STATUS_BORDER_COLORS: Record<string, string> = {
   unknown: '#1f2937',
 }
 
-const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
-  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
-  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
-  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] },
-]
 
 export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
@@ -69,12 +49,20 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
       return () => clearInterval(check)
     }
 
+    // loading=async requires a &callback parameter — the callback fires once all
+    // libraries are fully initialised (unlike onload, which can fire too early).
+    ;(window as any).__mapsCallback = () => {
+      setIsLoaded(true)
+      delete (window as any).__mapsCallback
+    }
+
     const script = document.createElement('script')
     script.id = 'google-maps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async&callback=__mapsCallback`
     script.async = true
-    script.onload = () => setIsLoaded(true)
     document.head.appendChild(script)
+
+    return () => { delete (window as any).__mapsCallback }
   }, [apiKey])
 
   // Initialize map once script is ready
@@ -84,7 +72,6 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
 
     const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown
     const borderColor = STATUS_BORDER_COLORS[status] ?? STATUS_BORDER_COLORS.unknown
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
     const map = new window.google.maps.Map(mapRef.current, {
       center: { lat, lng },
@@ -94,10 +81,10 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
       clickableIcons: false,
       keyboardShortcuts: false,
       // mapId is required for AdvancedMarkerElement.
-      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in env vars for production.
-      // styles below are applied with DEMO_MAP_ID; use Cloud Styling for production dark mode.
+      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in Vercel env vars for production.
+      // Note: styles cannot be set when mapId is present — configure dark mode
+      // via Cloud Styling in the Google Cloud Console.
       mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? 'DEMO_MAP_ID',
-      styles: isDark ? DARK_MAP_STYLES : [],
     })
 
     const markerEl = document.createElement('div')
