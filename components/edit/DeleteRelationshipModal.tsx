@@ -127,7 +127,7 @@ export default function DeleteRelationshipModal({
       .from('edit_proposals')
       .insert({
         synagogue_id:  synagogueId,
-        entity_id:     null,
+        entity_id:     relationship.id,
         proposal_type: 'synagogue_relationship_delete',
         proposed_data: {
           relationship_id:           relationship.id,
