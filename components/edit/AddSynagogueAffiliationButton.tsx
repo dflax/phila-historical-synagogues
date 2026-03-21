@@ -109,7 +109,7 @@ export default function AddSynagogueAffiliationButton({ rabbiId, rabbiName }: Pr
         .select('id, name, status, founded_year, closed_year')
         .ilike('name', `%${searchQuery.trim()}%`)
         .eq('approved', true)
-        .is('deleted', null)
+        .or('deleted.is.null,deleted.eq.false')
         .order('name')
         .limit(20)
 
@@ -117,11 +117,6 @@ export default function AddSynagogueAffiliationButton({ rabbiId, rabbiName }: Pr
       setSearchResults(data ?? [])
       setSearching(false)
     }, 300)
-
-// Add right after the query
-console.log('Search query:', searchQuery)
-console.log('Search results:', data)
-console.log('Total results:', data?.length)
 
     return () => clearTimeout(timer)
   }, [searchQuery, supabase])
