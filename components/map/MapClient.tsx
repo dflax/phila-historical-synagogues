@@ -306,7 +306,7 @@ function RangeSlider({
 function MapClientInner({ synagogues }: MapClientProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
@@ -417,7 +417,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
 
     const script = document.createElement('script');
     script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`;
     script.async = true;
     script.defer = true;
 
@@ -446,6 +446,10 @@ function MapClientInner({ synagogues }: MapClientProps) {
       mapTypeControl: false,
       streetViewControl: true,
       fullscreenControl: true,
+      // mapId is required for AdvancedMarkerElement.
+      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in env vars for production.
+      // styles below are applied with DEMO_MAP_ID; use Cloud Styling for production dark mode.
+      mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? 'DEMO_MAP_ID',
       styles: isDark ? [...BASE_MAP_STYLES, ...DARK_MAP_STYLES] : BASE_MAP_STYLES,
     });
 
@@ -464,7 +468,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    markersRef.current.forEach(m => m.setMap(null));
+    markersRef.current.forEach(m => { m.map = null });
     markersRef.current = [];
 
     const filtered = synagogues.filter(s => {
@@ -491,35 +495,46 @@ function MapClientInner({ synagogues }: MapClientProps) {
       const isFocused = focusId ? s.id === focusId : false;
       const display = displayCoords.get(s.id) ?? { lat: addr.latitude, lng: addr.longitude };
 
-      const marker = new window.google.maps.Marker({
+      // Inject bounce-animation CSS once
+      if (!document.getElementById('gm-marker-styles')) {
+        const style = document.createElement('style')
+        style.id = 'gm-marker-styles'
+        style.textContent = `
+          @keyframes gm-bounce {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-10px); }
+          }
+          .gm-marker-bounce { animation: gm-bounce 0.6s ease-in-out infinite; }
+        `
+        document.head.appendChild(style)
+      }
+
+      // Build SVG content element for the marker
+      const markerEl = document.createElement('div')
+      markerEl.style.cursor = 'pointer'
+      if (isFocused) {
+        markerEl.innerHTML =
+          `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">` +
+          `<circle cx="24" cy="24" r="22" fill="#facc15" stroke="#92400e" stroke-width="3"/>` +
+          `<text x="24" y="24" font-size="20" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+          `</svg>`
+        markerEl.classList.add('gm-marker-bounce')
+      } else {
+        markerEl.innerHTML =
+          `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">` +
+          `<defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%">` +
+          `<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.35"/></filter></defs>` +
+          `<circle cx="18" cy="18" r="15" fill="${color}" stroke="${borderColor}" stroke-width="2.5" filter="url(#s)"/>` +
+          `<text x="18" y="18" font-size="12" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+          `</svg>`
+      }
+
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
         position: display,
         map: mapInstanceRef.current!,
         title: s.name,
-        icon: isFocused
-          ? {
-              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">` +
-                  `<circle cx="24" cy="24" r="22" fill="#facc15" stroke="#92400e" stroke-width="3"/>` +
-                  `<text x="24" y="24" font-size="20" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
-                  `</svg>`
-              )}`,
-              scaledSize: new window.google.maps.Size(48, 48),
-              anchor: new window.google.maps.Point(24, 24),
-            }
-          : {
-              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">` +
-                  `<defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%">` +
-                  `<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.35"/></filter></defs>` +
-                  `<circle cx="18" cy="18" r="15" fill="${color}" stroke="${borderColor}" stroke-width="2.5" filter="url(#s)"/>` +
-                  `<text x="18" y="18" font-size="12" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
-                  `</svg>`
-              )}`,
-              scaledSize: new window.google.maps.Size(36, 36),
-              anchor: new window.google.maps.Point(18, 18),
-            },
+        content: markerEl,
         zIndex: isFocused ? 9999 : 1,
-        animation: isFocused ? window.google.maps.Animation.BOUNCE : undefined,
       });
 
       const infoContent = `
@@ -553,7 +568,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
       if (isFocused) {
         infoWindowRef.current?.setContent(infoContent);
         infoWindowRef.current?.open(mapInstanceRef.current!, marker);
-        setTimeout(() => marker.setAnimation(null), 3000);
+        setTimeout(() => markerEl.classList.remove('gm-marker-bounce'), 3000);
       }
 
       markersRef.current.push(marker);

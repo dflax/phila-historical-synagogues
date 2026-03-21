@@ -71,9 +71,8 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
 
     const script = document.createElement('script')
     script.id = 'google-maps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`
     script.async = true
-    script.defer = true
     script.onload = () => setIsLoaded(true)
     document.head.appendChild(script)
   }, [apiKey])
@@ -93,22 +92,23 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
       gestureHandling: 'none',
       clickableIcons: false,
       keyboardShortcuts: false,
+      // mapId is required for AdvancedMarkerElement.
+      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in env vars for production.
+      // styles below are applied with DEMO_MAP_ID; use Cloud Styling for production dark mode.
+      mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? 'DEMO_MAP_ID',
       styles: isDark ? DARK_MAP_STYLES : [],
     })
 
-    new window.google.maps.Marker({
+    const markerEl = document.createElement('div')
+    markerEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
+      `<circle cx="16" cy="16" r="14" fill="${color}" stroke="${borderColor}" stroke-width="3"/>` +
+      `<text x="16" y="16" font-size="11" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
+      `</svg>`
+
+    new window.google.maps.marker.AdvancedMarkerElement({
       position: { lat, lng },
       map,
-      icon: {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
-          `<circle cx="16" cy="16" r="14" fill="${color}" stroke="${borderColor}" stroke-width="3"/>` +
-          `<text x="16" y="16" font-size="11" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
-          `</svg>`
-        )}`,
-        scaledSize: new window.google.maps.Size(32, 32),
-        anchor: new window.google.maps.Point(16, 16),
-      },
+      content: markerEl,
     })
   }, [isLoaded, lat, lng, status])
 
