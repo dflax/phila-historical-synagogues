@@ -10,6 +10,8 @@ import DeleteRabbiButton from '@/components/edit/DeleteRabbiButton'
 import MergeRabbiButton from '@/components/edit/MergeRabbiButton'
 import SplitRabbiButton from '@/components/edit/SplitRabbiButton'
 import AddSynagogueAffiliationButton from '@/components/edit/AddSynagogueAffiliationButton'
+import AddLinkButton from '@/components/edit/AddLinkButton'
+import LinksSection from '@/components/common/LinksSection'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -56,10 +58,19 @@ interface RabbiImage {
   credit_line: string | null
 }
 
+interface LinkItem {
+  id:          string
+  link_type:   string
+  url:         string
+  title:       string | null
+  description: string | null
+}
+
 interface Props {
-  profile: RabbiProfile
+  profile:      RabbiProfile
   affiliations: Affiliation[]
-  photos: RabbiImage[]
+  photos:       RabbiImage[]
+  links:        LinkItem[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -244,7 +255,7 @@ interface PendingDelete {
   remove: (id: string) => void
 }
 
-export default function RabbiDetail({ profile, affiliations: initialAffiliations, photos: initialPhotos }: Props) {
+export default function RabbiDetail({ profile, affiliations: initialAffiliations, photos: initialPhotos, links }: Props) {
   const { isEditor, isAdmin } = useUserRole()
 
   const [affiliations,  setAffiliations]  = useState<Affiliation[]>(initialAffiliations)
@@ -528,6 +539,25 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* Links & Resources */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <SectionHeader icon="🔗" title="Links & Resources" />
+                <AddLinkButton
+                  entityType="rabbi"
+                  entityId={profile.id}
+                  entityName={profile.canonical_name}
+                />
+              </div>
+              {links.length > 0 ? (
+                <LinksSection links={links} />
+              ) : (
+                <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                  No links have been added yet.
+                </p>
               )}
             </div>
 

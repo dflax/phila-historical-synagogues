@@ -15,6 +15,8 @@ import DeleteSynagogueButton from '@/components/edit/DeleteSynagogueButton'
 import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
 import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
 import AddRabbiAffiliationButton from '@/components/edit/AddRabbiAffiliationButton'
+import AddLinkButton from '@/components/edit/AddLinkButton'
+import LinksSection from '@/components/common/LinksSection'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -79,12 +81,21 @@ interface Image {
   credit_line: string | null
 }
 
+interface LinkItem {
+  id:          string
+  link_type:   string
+  url:         string
+  title:       string | null
+  description: string | null
+}
+
 interface Props {
   synagogue: Synagogue
   addresses: Address[]
   history: HistoryEntry[]
   rabbis: Rabbi[]
   images: Image[]
+  links: LinkItem[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -161,7 +172,7 @@ interface PendingDelete {
   remove: (id: string) => void
 }
 
-export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages }: Props) {
+export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages, links }: Props) {
   const { isEditor } = useUserRole()
 
   const [addresses,     setAddresses]     = useState<Address[]>(initialAddresses)
@@ -521,6 +532,26 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
             </div>
 
           </div>
+
+          {/* Links & Resources */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-3">
+              <SectionHeader icon="🔗" title="Links & Resources" />
+              <AddLinkButton
+                entityType="synagogue"
+                entityId={synagogue.id}
+                entityName={synagogue.name}
+              />
+            </div>
+            {links.length > 0 ? (
+              <LinksSection links={links} />
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                No links have been added yet.
+              </p>
+            )}
+          </div>
+
         </div>
       </div>
 

@@ -816,6 +816,84 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'link_new') {
+    const linkEntityType = proposed.entity_type as string | undefined
+    const linkEntityId   = proposed.entity_id   as string | undefined
+
+    if (!linkEntityType || !linkEntityId) {
+      return NextResponse.json(
+        { error: 'Missing entity_type or entity_id' },
+        { status: 400 },
+      )
+    }
+
+    if (linkEntityType !== 'synagogue' && linkEntityType !== 'rabbi') {
+      return NextResponse.json(
+        { error: 'Invalid entity_type' },
+        { status: 400 },
+      )
+    }
+
+    const { error: linkInsertError } = await supabase
+      .from('links')
+      .insert({
+        entity_type:   linkEntityType,
+        entity_id:     linkEntityId,
+        link_type:     proposed.link_type,
+        url:           proposed.url,
+        title:         (proposed.title       as string | undefined) ?? null,
+        description:   (proposed.description as string | undefined) ?? null,
+        display_order: 0,
+        approved:      true,
+        approved_by:   user.id,
+        approved_at:   now,
+        created_by:    proposal.created_by,
+      })
+
+    if (linkInsertError) {
+      return NextResponse.json(
+        { error: `Failed to create link: ${linkInsertError.message}` },
+        { status: 500 },
+      )
+    }
+  } else if (proposal.proposal_type === 'link_edit' && proposal.entity_id) {
+    const linkId = proposal.entity_id
+
+    const updatePayload: Record<string, unknown> = { updated_at: now }
+    if (proposed.link_type  !== undefined) updatePayload.link_type    = proposed.link_type
+    if (proposed.url        !== undefined) updatePayload.url          = proposed.url
+    if (proposed.title      !== undefined) updatePayload.title        = proposed.title ?? null
+    if (proposed.description !== undefined) updatePayload.description = proposed.description ?? null
+
+    const { error: linkUpdateError } = await supabase
+      .from('links')
+      .update(updatePayload)
+      .eq('id', linkId)
+
+    if (linkUpdateError) {
+      return NextResponse.json(
+        { error: `Failed to update link: ${linkUpdateError.message}` },
+        { status: 500 },
+      )
+    }
+  } else if (proposal.proposal_type === 'link_delete' && proposal.entity_id) {
+    const linkId = proposal.entity_id
+
+    const { error: linkDeleteError } = await supabase
+      .from('links')
+      .update({
+        deleted:    true,
+        deleted_by: user.id,
+        deleted_at: now,
+      })
+      .eq('id', linkId)
+
+    if (linkDeleteError) {
+      return NextResponse.json(
+        { error: `Failed to delete link: ${linkDeleteError.message}` },
+        { status: 500 },
+      )
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.

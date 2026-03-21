@@ -97,6 +97,21 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
       : (img.url || null),
   }))
 
+  const { data: rawLinks } = await supabase
+    .from('links')
+    .select('id, link_type, url, title, description')
+    .eq('entity_type', 'rabbi')
+    .eq('entity_id', profile.id)
+    .eq('approved', true)
+    .or('deleted.is.null,deleted.eq.false')
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: false })
+
+  const links = (rawLinks ?? []) as Array<{
+    id: string; link_type: string; url: string;
+    title: string | null; description: string | null
+  }>
+
   return (
     <RabbiDetail
       profile={{
@@ -119,6 +134,7 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
       }}
       affiliations={affiliations}
       photos={photos}
+      links={links}
     />
   )
 }

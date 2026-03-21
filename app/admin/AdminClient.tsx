@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split' | 'link_new' | 'link_edit' | 'link_delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -94,6 +94,12 @@ const FIELD_LABELS: Record<string, string> = {
   end_year:                'End Year',
   notes:                   'Notes',
   title:                   'Title',
+  // Link proposal fields
+  entity_type:             'Entity Type',
+  entity_id:               'Entity',
+  link_type:               'Link Type',
+  url:                     'URL',
+  description:             'Description',
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
@@ -115,6 +121,9 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   rabbi_profile_delete: 'Delete rabbi',
   rabbi_profile_merge:  'Merge rabbis',
   rabbi_profile_split:  'Split rabbi',
+  link_new:             'Add link',
+  link_edit:            'Edit link',
+  link_delete:          'Delete link',
 }
 
 const PROPOSAL_TYPE_COLORS: Record<string, string> = {
@@ -136,6 +145,9 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   rabbi_profile_delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
   rabbi_profile_merge:  'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
   rabbi_profile_split:  'text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20',
+  link_new:             'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
+  link_edit:            'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  link_delete:          'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -628,9 +640,16 @@ function ProposalCard({
 }: ProposalCardProps) {
   // For affiliation proposals, hide UUID fields from the diff table (shown in summary instead)
   const UUID_FIELDS_FOR_AFFILIATION = new Set(['rabbi_profile_id', 'synagogue_id'])
-  const changedFields = Object.keys(proposal.proposed_data).filter(f =>
-    proposal.proposal_type !== 'rabbi_affiliation_new' || !UUID_FIELDS_FOR_AFFILIATION.has(f)
-  )
+  const LINK_ALL_FIELDS    = new Set(['entity_type', 'entity_id', 'link_type', 'url', 'title', 'description'])
+  const LINK_ENTITY_FIELDS = new Set(['entity_type', 'entity_id'])
+  const changedFields = Object.keys(proposal.proposed_data).filter(f => {
+    if (proposal.proposal_type === 'rabbi_affiliation_new' && UUID_FIELDS_FOR_AFFILIATION.has(f)) return false
+    // link_new and link_delete: all fields shown in summary block, nothing in diff table
+    if ((proposal.proposal_type === 'link_new' || proposal.proposal_type === 'link_delete') && LINK_ALL_FIELDS.has(f)) return false
+    // link_edit: hide entity identity fields (shown in summary), show changed fields in diff table
+    if (proposal.proposal_type === 'link_edit' && LINK_ENTITY_FIELDS.has(f)) return false
+    return true
+  })
   const typeColor = PROPOSAL_TYPE_COLORS[proposal.proposal_type] ?? PROPOSAL_TYPE_COLORS.update
 
   return (
@@ -772,6 +791,81 @@ function ProposalCard({
         </div>
       )}
 
+      {/* Link summary */}
+      {(proposal.proposal_type === 'link_new' || proposal.proposal_type === 'link_edit' || proposal.proposal_type === 'link_delete') && (() => {
+        const isNew    = proposal.proposal_type === 'link_new'
+        const isDelete = proposal.proposal_type === 'link_delete'
+        const colorClass = isNew
+          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+          : isDelete
+            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+        const headingClass = isNew
+          ? 'text-green-700 dark:text-green-400'
+          : isDelete
+            ? 'text-red-700 dark:text-red-400'
+            : 'text-blue-700 dark:text-blue-400'
+        const heading = isNew ? 'New Link' : isDelete ? 'Delete Link' : 'Edit Link'
+        // For link_edit the entity fields live in proposed_data; for new/delete they also live there
+        const entityName = proposal.current_data?.entity_name as string | undefined
+        const entityType = proposal.proposed_data.entity_type as string | undefined
+        const linkType   = proposal.proposed_data.link_type   as string | undefined
+        const linkUrl    = proposal.proposed_data.url         as string | undefined
+        return (
+          <div className={`border rounded-lg p-4 space-y-2 ${colorClass}`}>
+            <h4 className={`text-xs font-semibold uppercase tracking-wide ${headingClass}`}>
+              {heading}
+            </h4>
+            <div className="text-sm space-y-1.5">
+              {entityName && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">For: </span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{entityName}</span>
+                  {entityType && (
+                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-1 capitalize">
+                      ({entityType})
+                    </span>
+                  )}
+                </div>
+              )}
+              {linkType && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Type: </span>
+                  <span className="text-gray-900 dark:text-white capitalize">
+                    {linkType.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              )}
+              {linkUrl && (
+                <div className="break-all">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">URL: </span>
+                  <a
+                    href={linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline text-xs"
+                  >
+                    {linkUrl}
+                  </a>
+                </div>
+              )}
+              {proposal.proposed_data.title && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Title: </span>
+                  <span className="text-gray-900 dark:text-white">{proposal.proposed_data.title as string}</span>
+                </div>
+              )}
+              {proposal.proposed_data.description && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Description: </span>
+                  <span className="text-gray-900 dark:text-white">{proposal.proposed_data.description as string}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Merge summary (replaces diff table for merge/split proposals) */}
       {proposal.proposal_type !== 'synagogue_split' && proposal.proposal_type !== 'rabbi_profile_split' && ((proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (
         <div className="space-y-3">
@@ -870,6 +964,38 @@ function ProposalCard({
                 {changedFields.map(field => {
                   const before = proposal.current_data?.[field]
                   const after  = proposal.proposed_data[field]
+
+                  // Special rendering for link fields in link_edit proposals
+                  const isLinkProposal = proposal.proposal_type === 'link_edit'
+                  let afterDisplay: React.ReactNode = after != null && after !== ''
+                    ? String(after)
+                    : <span className="italic font-normal text-gray-400">—</span>
+
+                  if (isLinkProposal && after != null && after !== '') {
+                    if (field === 'link_type') {
+                      const LINK_TYPE_ICONS: Record<string, string> = {
+                        website: '🌐', youtube: '📺', vimeo: '🎬', facebook: '📘',
+                        instagram: '📷', twitter: '🐦', wikipedia: '📖', findagrave: '🪦',
+                        documentary: '🎥', virtual_tour: '🏛️', historical_doc: '📄',
+                        news_article: '📰', podcast: '🎙️', interview: '🎤',
+                        obituary: '📜', sermon: '📖', publication: '📚', other: '🔗',
+                      }
+                      const icon = LINK_TYPE_ICONS[String(after)] ?? '🔗'
+                      afterDisplay = `${icon} ${String(after).replace(/_/g, ' ')}`
+                    } else if (field === 'url') {
+                      afterDisplay = (
+                        <a
+                          href={String(after)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                        >
+                          {String(after)}
+                        </a>
+                      )
+                    }
+                  }
+
                   return (
                     <tr key={field}>
                       <td className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
@@ -879,7 +1005,7 @@ function ProposalCard({
                         {before != null && before !== '' ? String(before) : <span className="italic">—</span>}
                       </td>
                       <td className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                        {after != null && after !== '' ? String(after) : <span className="italic font-normal text-gray-400">—</span>}
+                        {afterDisplay}
                       </td>
                     </tr>
                   )
