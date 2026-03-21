@@ -96,7 +96,7 @@ interface Relationship {
   relationship_type: string
   relationship_year: number | null
   notes:             string | null
-  related_synagogue: { id: string; name: string; status: string } | null
+  related_synagogue: { id: string; name: string } | null
 }
 
 interface Props {

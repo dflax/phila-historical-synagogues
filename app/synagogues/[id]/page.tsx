@@ -110,38 +110,39 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       : (img.url || null),
   }))
 
-  const { data: rawLinks } = await supabase
-    .from('links')
-    .select('id, link_type, url, title, description')
-    .eq('entity_type', 'synagogue')
-    .eq('entity_id', params.id)
-    .eq('approved', true)
-    .or('deleted.is.null,deleted.eq.false')
-    .order('display_order', { ascending: true })
-    .order('created_at', { ascending: false })
+  // ── Links + relationships in parallel ────────────────────────────────────
+  const [{ data: rawLinks }, { data: rawRelationships }] = await Promise.all([
+    supabase
+      .from('links')
+      .select('id, link_type, url, title, description')
+      .eq('entity_type', 'synagogue')
+      .eq('entity_id', params.id)
+      .eq('approved', true)
+      .or('deleted.is.null,deleted.eq.false')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('synagogue_relationships')
+      .select(`
+        id,
+        relationship_type,
+        relationship_year,
+        related_synagogue:synagogues!related_synagogue_id (
+          id,
+          name
+        )
+      `)
+      .eq('synagogue_id', params.id)
+      .eq('approved', true)
+      .eq('deleted', false)
+      .limit(50),
+  ])
 
   const links = (rawLinks ?? []) as Array<{
     id: string; link_type: string; url: string;
     title: string | null; description: string | null
   }>
-
-  const { data: rawRelationships } = await supabase
-    .from('synagogue_relationships')
-    .select(`
-      id,
-      relationship_type,
-      relationship_year,
-      notes,
-      related_synagogue:synagogues!related_synagogue_id (
-        id,
-        name,
-        status
-      )
-    `)
-    .eq('synagogue_id', params.id)
-    .eq('approved', true)
-    .or('deleted.is.null,deleted.eq.false')
-    .order('relationship_year', { ascending: false })
 
   const relationships = (rawRelationships ?? []).map(rel => ({
     ...rel,
@@ -153,7 +154,7 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     relationship_type: string
     relationship_year: number | null
     notes: string | null
-    related_synagogue: { id: string; name: string; status: string } | null
+    related_synagogue: { id: string; name: string } | null
   }>
 
   return (

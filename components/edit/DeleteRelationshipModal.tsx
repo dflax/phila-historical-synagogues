@@ -12,7 +12,7 @@ interface Relationship {
   relationship_type: string
   relationship_year: number | null
   notes:             string | null
-  related_synagogue: { id: string; name: string; status: string } | null
+  related_synagogue: { id: string; name: string } | null
 }
 
 interface Props {
@@ -131,6 +131,7 @@ export default function DeleteRelationshipModal({
         proposal_type: 'synagogue_relationship_delete',
         proposed_data: {
           relationship_id:           relationship.id,
+          synagogue_id:              synagogueId,
           relationship_type:         relationship.relationship_type,
           related_synagogue_id:      relationship.related_synagogue?.id ?? null,
           relationship_year:         relationship.relationship_year,
