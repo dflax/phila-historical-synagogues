@@ -16,7 +16,7 @@ interface SynagogueResult {
   id:           string
   name:         string
   status:       string
-  neighborhood: string | null
+
   founded_year: number | null
   closed_year:  number | null
 }
@@ -106,7 +106,7 @@ export default function AddSynagogueAffiliationButton({ rabbiId, rabbiName }: Pr
     const timer = setTimeout(async () => {
       const { data, error } = await supabase
         .from('synagogues')
-        .select('id, name, status, neighborhood, founded_year, closed_year')
+        .select('id, name, status, founded_year, closed_year')
         .ilike('name', `%${searchQuery.trim()}%`)
         .eq('approved', true)
         .is('deleted', null)
@@ -338,7 +338,6 @@ export default function AddSynagogueAffiliationButton({ rabbiId, rabbiName }: Pr
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 capitalize">
                             {syn.status}
-                            {syn.neighborhood && ` · ${syn.neighborhood}`}
                             {syn.founded_year && ` · Founded ${syn.founded_year}`}
                           </div>
                         </button>
