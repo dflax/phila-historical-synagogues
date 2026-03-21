@@ -562,7 +562,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
         </div>
       `;
 
-      marker.addListener('click', () => {
+      marker.addListener('gmp-click', () => {
         infoWindowRef.current?.setContent(infoContent);
         infoWindowRef.current?.open(mapInstanceRef.current!, marker);
       });
