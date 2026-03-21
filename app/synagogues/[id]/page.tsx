@@ -143,7 +143,12 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     .or('deleted.is.null,deleted.eq.false')
     .order('relationship_year', { ascending: false })
 
-  const relationships = (rawRelationships ?? []) as Array<{
+  const relationships = (rawRelationships ?? []).map(rel => ({
+    ...rel,
+    related_synagogue: Array.isArray(rel.related_synagogue)
+      ? (rel.related_synagogue[0] ?? null)
+      : rel.related_synagogue,
+  })) as Array<{
     id: string
     relationship_type: string
     relationship_year: number | null
