@@ -1,6 +1,6 @@
 # Philadelphia Historical Synagogues
 
-An interactive web application documenting **562 synagogues** in the Philadelphia area, spanning from 1745 to the present day. Built to preserve and explore Jewish heritage through interactive mapping, temporal filtering, and detailed historical records.
+An interactive web application documenting **562 synagogues** in the Philadelphia area, spanning from 1745 to the present day. Built to preserve and explore Jewish heritage through interactive mapping, temporal filtering, detailed historical records, rabbi profiles, and community-contributed content.
 
 **Live site:** [phila-historical-synagogues.vercel.app](https://phila-historical-synagogues.vercel.app)
 
@@ -18,25 +18,63 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 - **Dual-range year filter** — drag two thumbs to set a start and end year; the map shows all synagogues active during any part of that range
 - **Street View** — drag the pegman onto any street, or use the Street View link in the detail panel
 - **Marker infowindows** — click any marker for a quick summary with a "View Details in Sidebar" button
+- **Overlapping marker offset** — synagogues sharing an address are radially offset (~33m) so each marker is individually clickable
+- **Dark mode map tiles** — night-mode Google Maps styles applied automatically based on OS preference, updating live if the user switches mid-session
 - Arriving from a detail page via "View on Map" auto-populates the sidebar with that synagogue's details
 
 ### Browse Directory (`/synagogues`)
 - Searchable, sortable table of all 562 synagogues
 - Filter by status (active / closed / merged / unknown)
-- Year range filter
+- Neighborhood dropdown and year range filter
 - Expandable rows with address preview
+- Authenticated users can create new synagogue records
 
 ### Synagogue Detail Pages (`/synagogues/[id]`)
-- Hero section with name, status badge, founding/closing years, neighborhood
+- Hero section with name, status badge, founding/closing years, and neighborhood
 - **Mini-map** — non-interactive Google Maps preview in the hero box, links to full map
 - All historical addresses with years at each location
-- Full rabbi list with tenures
+- Full rabbi list with tenures, linking to individual rabbi profiles
 - History timeline (events, mergers, building notes, ethnic origin)
-- Photo gallery (schema ready — no photos imported yet)
+- Photo gallery (schema and upload workflow ready)
+- Authenticated users can suggest edits, add addresses, add rabbis, add history entries, or upload photos
+- Admins can merge, split, or soft-delete records
+
+### Rabbi Directory (`/rabbis`)
+- Alphabetically grouped list of all rabbi profiles
+- Search by name
+- Each entry shows the rabbi's lifespan (with circa flags) and number of synagogue affiliations
+
+### Rabbi Profiles (`/rabbis/[slug]`)
+- Biography with birth/death years (circa-aware)
+- All synagogue affiliations with title, service years, and notes
+- Photo gallery for portraits
+- External links (biographical resources)
 
 ### Homepage (`/`)
 - Summary statistics: 562 synagogues, 83 active, 280+ year span
-- Navigation to map, browse, and detail views
+- Feature showcase and navigation
+
+---
+
+## Authentication & User Roles
+
+Users can register and log in via Supabase Auth (email/password). Roles control access to contribution and admin features:
+
+| Role | Capabilities |
+|------|-------------|
+| `contributor` | Submit edit proposals, upload photos |
+| `editor` | Review and approve/reject proposals and photos |
+| `admin` | Full admin dashboard access |
+| `super_admin` | User role management |
+
+### My Contributions (`/contributions`)
+Authenticated users can review all edit proposals and photo uploads they have submitted, see their approval status, and read any reviewer notes.
+
+### Admin Dashboard (`/admin`)
+Editors and admins have access to:
+- **Pending edit proposals** queue with diff view (proposed vs. current data) — approve or reject with optional notes
+- **Pending image approvals** queue with image preview and metadata
+- **User management** (super_admin only) — view all users, promote or demote roles
 
 ---
 
@@ -46,9 +84,12 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 |-------|-----------|
 | Framework | [Next.js 14](https://nextjs.org) (App Router) |
 | Language | TypeScript |
-| Database | [Supabase](https://supabase.com) (PostgreSQL) |
+| Database | [Supabase](https://supabase.com) (PostgreSQL + RLS) |
+| Auth | Supabase Auth + `@supabase/auth-helpers-nextjs` |
 | Maps | Google Maps JavaScript API |
-| Styling | [Tailwind CSS](https://tailwindcss.com) |
+| Styling | [Tailwind CSS](https://tailwindcss.com) (dark mode via OS preference) |
+| UI Components | Radix UI primitives |
+| Icons | Lucide React |
 | Hosting | [Vercel](https://vercel.com) (auto-deploys from GitHub) |
 | Font | Inter (Google Fonts) |
 
@@ -76,7 +117,7 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
    ```
 
 3. **Create a `.env.local` file** in the project root:
-   ```bash
+   ```
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
@@ -99,7 +140,7 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 1. Push this repo to GitHub
 2. Go to [vercel.com](https://vercel.com) → New Project → Import your repo
 3. Vercel auto-detects Next.js — no build config needed
-4. Add the three environment variables (Settings → Environment Variables):
+4. Add the environment variables (Settings → Environment Variables):
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
@@ -125,12 +166,14 @@ The app uses Supabase (PostgreSQL). All tables have Row Level Security (RLS) ena
 
 | Table | Records | Description |
 |-------|---------|-------------|
-| `synagogues` | 562 | Core records with name, status, founded/closed years |
+| `synagogues` | 562 | Core records — name, status, founded/closed years |
 | `addresses` | 424 | Geocoded locations (lat/lng), multiple per synagogue |
 | `history_entries` | 325 | Timeline events, mergers, building notes, ethnic origins |
-| `rabbis` | 373 | Rabbi names, titles, tenures |
-| `images` | 0 | Schema ready — no photos imported yet |
-| `edit_proposals` | 0 | Schema ready — no submission UI yet |
+| `rabbis` | 373 | Rabbi affiliations — name, title, tenures per synagogue |
+| `rabbi_profiles` | — | Canonical rabbi biographies (birth/death years, slug) |
+| `images` | — | Photos — schema and upload workflow ready |
+| `edit_proposals` | — | Community contributions — pending/approved/rejected |
+| `user_profiles` | — | Auth users with roles (contributor/editor/admin/super_admin) |
 
 ### Getting API Keys
 
@@ -149,26 +192,89 @@ The app uses Supabase (PostgreSQL). All tables have Row Level Security (RLS) ena
 
 ```
 app/
-  page.tsx                  # Homepage
-  layout.tsx                # Root layout (Inter font, metadata)
-  globals.css               # Global styles + dual-range slider CSS
+  layout.tsx                    # Root layout (Inter font, metadata)
+  page.tsx                      # Homepage
+  globals.css                   # Global styles + dual-range slider CSS
   map/
-    page.tsx                # Map page — fetches synagogues + addresses + rabbis
+    page.tsx                    # Map page (server component, force-dynamic)
   synagogues/
-    page.tsx                # Browse/list page
+    page.tsx                    # Browse/list page
     [id]/
-      page.tsx              # Detail page
+      page.tsx                  # Detail page
+  rabbis/
+    page.tsx                    # Rabbi directory
+    [slug]/
+      page.tsx                  # Rabbi profile
+  contributions/
+    page.tsx                    # My contributions (authenticated)
+    ContributionsClient.tsx
+  admin/
+    page.tsx                    # Admin dashboard (editor+ only)
+    AdminClient.tsx
+    users/
+      page.tsx                  # User management (super_admin only)
+      UsersClient.tsx
+  api/
+    synagogues/[id]/
+      full-details/route.ts
+      merge-suggestions/route.ts
+    rabbis/[id]/
+      route.ts
+      merge-suggestions/route.ts
+    rabbi-profiles/[id]/route.ts
+    images/[id]/route.ts
+    addresses/[id]/route.ts
+    history/[id]/route.ts
+    proposals/[id]/approve/route.ts
+    users/[id]/
+      promote/route.ts
+      demote/route.ts
 
 components/
   map/
-    MapClient.tsx           # Full map UI (sidebar, markers, filters, Street View)
-    MiniMap.tsx             # Non-interactive mini-map for detail page hero
+    MapClient.tsx               # Full interactive map (sidebar, markers, filters)
+    MiniMap.tsx                 # Non-interactive mini-map for detail pages
   synagogues/
-    SynagoguesClient.tsx    # Browse page search/filter UI
-    SynagogueDetail.tsx     # Detail page layout
+    SynagoguesClient.tsx        # Browse page search/filter UI
+    SynagogueDetail.tsx         # Detail page layout
+  rabbis/
+    RabbisClient.tsx            # Directory page with search
+    RabbiDetail.tsx             # Profile page layout
+  auth/
+    NavAuth.tsx                 # Top-nav auth dropdown
+    AuthModal.tsx               # Login/signup modal
+    LoginForm.tsx               # Login form with password reset
+    SignupForm.tsx              # Registration form
+  edit/                         # Suggestion/create/merge/delete buttons and forms
+    SuggestEdit{Button,Form}.tsx
+    SuggestAddress{Button,Form}.tsx
+    SuggestRabbi{Button,Form}.tsx
+    SuggestHistory{Button,Form}.tsx
+    SuggestRabbiProfile{Button,Form}.tsx
+    Create{Synagogue,Rabbi}{Button,Form}.tsx
+    Merge{Synagogue,Rabbi}Button.tsx
+    Split{Synagogue,Rabbi}Button.tsx
+    Delete{Synagogue,Rabbi}Button.tsx
+    Add{RabbiAffiliation,Relationship,Link}Button.tsx
+    DeleteRelationshipModal.tsx
+  photos/
+    PhotoUploadButton.tsx
+    PhotoUploadForm.tsx
+  common/
+    ConfirmDialog.tsx
+    LinksSection.tsx
+
+lib/
+  supabase/
+    client.ts                   # Shared client + TS types (used by legacy test pages)
+    server.ts                   # Server-side auth helpers
+  hooks/
+    useUserRole.ts              # Role-checking hook
+
+middleware.ts                   # Auth session refresh on every request
 ```
 
-All data-fetching pages are server components with `force-dynamic` to prevent stale caching. Google Maps is loaded via manual script injection (not a library) and reused across components via a shared script tag ID.
+All data-fetching pages are server components with `force-dynamic` to prevent stale caching. Google Maps is loaded via manual script injection and reused across components via a shared script tag ID.
 
 ---
 
@@ -186,11 +292,10 @@ npm run type-check   # TypeScript check (no emit)
 ## Roadmap
 
 - [ ] `/about` page
-- [ ] Image upload workflow (Supabase Storage bucket is ready)
-- [ ] Community edit proposals UI (`edit_proposals` table is ready)
-- [ ] Authentication / admin approval dashboard
-- [ ] Migrate Google Maps markers to `AdvancedMarkerElement` (current `Marker` is deprecated)
-- [ ] Full-text search using `search_vector` tsvector column
+- [ ] Full-text search using the `search_vector` tsvector column
+- [ ] Migrate Google Maps markers to `AdvancedMarkerElement` (current `Marker` API is deprecated)
+- [ ] Surface non-geocoded historical addresses as map markers
+- [ ] Enhanced bulk admin operations
 
 ---
 
