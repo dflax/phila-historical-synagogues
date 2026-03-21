@@ -71,7 +71,7 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
 
     const script = document.createElement('script')
     script.id = 'google-maps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker`
     script.async = true
     script.onload = () => setIsLoaded(true)
     document.head.appendChild(script)
@@ -80,6 +80,7 @@ export default function MiniMap({ lat, lng, status, mapUrl }: MiniMapProps) {
   // Initialize map once script is ready
   useEffect(() => {
     if (!isLoaded || !mapRef.current) return
+    if (!window.google?.maps) return
 
     const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown
     const borderColor = STATUS_BORDER_COLORS[status] ?? STATUS_BORDER_COLORS.unknown
