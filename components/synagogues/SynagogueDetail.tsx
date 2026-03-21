@@ -15,6 +15,7 @@ import DeleteSynagogueButton from '@/components/edit/DeleteSynagogueButton'
 import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
 import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
 import AddRabbiAffiliationButton from '@/components/edit/AddRabbiAffiliationButton'
+import AddRelationshipButton from '@/components/edit/AddRelationshipButton'
 import AddLinkButton from '@/components/edit/AddLinkButton'
 import LinksSection from '@/components/common/LinksSection'
 
@@ -89,13 +90,22 @@ interface LinkItem {
   description: string | null
 }
 
+interface Relationship {
+  id:                string
+  relationship_type: string
+  relationship_year: number | null
+  notes:             string | null
+  related_synagogue: { id: string; name: string; status: string } | null
+}
+
 interface Props {
-  synagogue: Synagogue
-  addresses: Address[]
-  history: HistoryEntry[]
-  rabbis: Rabbi[]
-  images: Image[]
-  links: LinkItem[]
+  synagogue:     Synagogue
+  addresses:     Address[]
+  history:       HistoryEntry[]
+  rabbis:        Rabbi[]
+  images:        Image[]
+  links:         LinkItem[]
+  relationships: Relationship[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -132,6 +142,36 @@ function formatHistoryYear(entry: HistoryEntry): string {
   return ''
 }
 
+
+function getRelationshipIcon(type: string): string {
+  const icons: Record<string, string> = {
+    merged_into:         '🔀',
+    merged_from:         '🔀',
+    split_into:          '🔱',
+    split_from:          '🔱',
+    predecessor:         '←',
+    successor:           '→',
+    parent_organization: '⬆️',
+    branch_of:           '↗️',
+  }
+  return icons[type] ?? '🔗'
+}
+
+function getRelationshipLabel(type: string, relatedName: string, year: number | null): string {
+  const truncated = relatedName.length > 30 ? relatedName.slice(0, 30) + '…' : relatedName
+  const yearStr   = year ? ` (${year})` : ''
+  const labels: Record<string, string> = {
+    merged_into:         `Merged into ${truncated}${yearStr}`,
+    merged_from:         `Merger with ${truncated}${yearStr}`,
+    split_into:          `Split, forming ${truncated}${yearStr}`,
+    split_from:          `Formed from ${truncated}${yearStr}`,
+    predecessor:         `Preceded by ${truncated}${yearStr}`,
+    successor:           `Succeeded by ${truncated}${yearStr}`,
+    parent_organization: `Branch of ${truncated}`,
+    branch_of:           `Part of ${truncated}`,
+  }
+  return labels[type] ?? `Related to ${truncated}`
+}
 
 function SectionHeader({ icon, title }: { icon: string; title: string }) {
   return (
@@ -172,7 +212,7 @@ interface PendingDelete {
   remove: (id: string) => void
 }
 
-export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages, links }: Props) {
+export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages, links, relationships }: Props) {
   const { isEditor } = useUserRole()
 
   const [addresses,     setAddresses]     = useState<Address[]>(initialAddresses)
@@ -256,6 +296,34 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   <span className="text-sm text-gray-400 dark:text-gray-500">· {primaryAddr.neighborhood}</span>
                 )}
               </div>
+
+              {/* Organizational relationships */}
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {relationships
+                  .filter(rel => rel.related_synagogue !== null)
+                  .map(rel => (
+                    <Link
+                      key={rel.id}
+                      href={`/synagogues/${rel.related_synagogue!.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                    >
+                      <span aria-hidden="true">
+                        {getRelationshipIcon(rel.relationship_type)}
+                      </span>
+                      <span className="text-xs font-medium">
+                        {getRelationshipLabel(
+                          rel.relationship_type,
+                          rel.related_synagogue!.name,
+                          rel.relationship_year,
+                        )}
+                      </span>
+                    </Link>
+                  ))}
+                <AddRelationshipButton
+                  synagogueId={synagogue.id}
+                  synagogueName={synagogue.name}
+                />
+              </div>
             </div>
             {primaryAddr?.latitude && primaryAddr?.longitude ? (
               <MiniMap
@@ -274,17 +342,23 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
             )}
           </div>
 
-          {/* Action row — both buttons are auth-aware client components */}
+          {/* Action row — auth-aware client components */}
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <PhotoUploadButton
               entityType="synagogue"
               entityId={synagogue.id}
               entityName={synagogue.name}
             />
-            <SuggestEditButton
-              synagogue={synagogue}
-              primaryNeighborhood={primaryAddr?.neighborhood ?? null}
-            />
+            <div className="flex items-center gap-4">
+              <AddRelationshipButton
+                synagogueId={synagogue.id}
+                synagogueName={synagogue.name}
+              />
+              <SuggestEditButton
+                synagogue={synagogue}
+                primaryNeighborhood={primaryAddr?.neighborhood ?? null}
+              />
+            </div>
           </div>
         </div>
 

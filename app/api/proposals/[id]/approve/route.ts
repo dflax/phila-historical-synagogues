@@ -894,6 +894,69 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'synagogue_relationship_new') {
+    const synagogueId        = proposed.synagogue_id         as string | undefined
+    const relatedSynagogueId = proposed.related_synagogue_id as string | undefined
+    const relationshipType   = proposed.relationship_type    as string | undefined
+    const reverseType        = proposed.reverse_relationship_type as string | undefined
+
+    if (!synagogueId || !relatedSynagogueId || !relationshipType || !reverseType) {
+      return NextResponse.json(
+        { error: 'Missing required relationship data' },
+        { status: 400 },
+      )
+    }
+
+    const sharedFields = {
+      relationship_year: (proposed.relationship_year as number | undefined) ?? null,
+      notes:             (proposed.notes             as string | undefined) ?? null,
+      approved:          true,
+      approved_by:       user.id,
+      approved_at:       now,
+      created_by:        proposal.created_by,
+    }
+
+    // Insert primary relationship
+    const { error: insertError } = await supabase
+      .from('synagogue_relationships')
+      .insert({
+        synagogue_id:         synagogueId,
+        related_synagogue_id: relatedSynagogueId,
+        relationship_type:    relationshipType,
+        ...sharedFields,
+      })
+
+    if (insertError) {
+      return NextResponse.json(
+        { error: `Failed to create relationship: ${insertError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // Insert reverse relationship; if it fails, roll back the primary
+    const { error: reverseError } = await supabase
+      .from('synagogue_relationships')
+      .insert({
+        synagogue_id:         relatedSynagogueId,
+        related_synagogue_id: synagogueId,
+        relationship_type:    reverseType,
+        ...sharedFields,
+      })
+
+    if (reverseError) {
+      // Roll back the primary to keep the table consistent
+      await supabase
+        .from('synagogue_relationships')
+        .delete()
+        .eq('synagogue_id',         synagogueId)
+        .eq('related_synagogue_id', relatedSynagogueId)
+        .eq('relationship_type',    relationshipType)
+
+      return NextResponse.json(
+        { error: `Failed to create reverse relationship: ${reverseError.message}` },
+        { status: 500 },
+      )
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.

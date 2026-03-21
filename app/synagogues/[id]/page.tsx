@@ -125,6 +125,32 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     title: string | null; description: string | null
   }>
 
+  const { data: rawRelationships } = await supabase
+    .from('synagogue_relationships')
+    .select(`
+      id,
+      relationship_type,
+      relationship_year,
+      notes,
+      related_synagogue:synagogues!related_synagogue_id (
+        id,
+        name,
+        status
+      )
+    `)
+    .eq('synagogue_id', params.id)
+    .eq('approved', true)
+    .or('deleted.is.null,deleted.eq.false')
+    .order('relationship_year', { ascending: false })
+
+  const relationships = (rawRelationships ?? []) as Array<{
+    id: string
+    relationship_type: string
+    relationship_year: number | null
+    notes: string | null
+    related_synagogue: { id: string; name: string; status: string } | null
+  }>
+
   return (
     <SynagogueDetail
       synagogue={{
@@ -141,6 +167,7 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       rabbis={rabbis}
       images={images}
       links={links}
+      relationships={relationships}
     />
   )
 }
