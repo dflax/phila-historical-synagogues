@@ -626,7 +626,11 @@ function ProposalCard({
   proposal, processing, isRejecting, rejectNotes,
   onRejectNoteChange, onApprove, onStartReject, onConfirmReject, onCancelReject,
 }: ProposalCardProps) {
-  const changedFields = Object.keys(proposal.proposed_data)
+  // For affiliation proposals, hide UUID fields from the diff table (shown in summary instead)
+  const UUID_FIELDS_FOR_AFFILIATION = new Set(['rabbi_profile_id', 'synagogue_id'])
+  const changedFields = Object.keys(proposal.proposed_data).filter(f =>
+    proposal.proposal_type !== 'rabbi_affiliation_new' || !UUID_FIELDS_FOR_AFFILIATION.has(f)
+  )
   const typeColor = PROPOSAL_TYPE_COLORS[proposal.proposal_type] ?? PROPOSAL_TYPE_COLORS.update
 
   return (
@@ -744,6 +748,29 @@ function ProposalCard({
           </div>
         )
       })()}
+
+      {/* Affiliation summary */}
+      {proposal.proposal_type === 'rabbi_affiliation_new' && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-2">
+          <h4 className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
+            New Affiliation
+          </h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Rabbi:</div>
+              <div className="font-semibold text-gray-900 dark:text-white">
+                {proposal.current_data?.rabbi_name ?? '—'}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Synagogue:</div>
+              <div className="font-semibold text-gray-900 dark:text-white">
+                {proposal.current_data?.synagogue_name ?? '—'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Merge summary (replaces diff table for merge/split proposals) */}
       {proposal.proposal_type !== 'synagogue_split' && proposal.proposal_type !== 'rabbi_profile_split' && ((proposal.proposal_type === 'rabbi_profile_merge' || proposal.proposal_type === 'synagogue_merge') ? (

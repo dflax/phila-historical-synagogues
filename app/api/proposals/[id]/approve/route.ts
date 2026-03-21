@@ -469,12 +469,12 @@ export async function POST(
       )
     }
 
-    // 2. Delete linked rabbi affiliation records (rabbis.rabbi_profile_id FK)
+    // 2. Delete linked rabbi affiliation records (rabbis.profile_id FK)
     await supabase
       .from('rabbis')
       .delete()
-      .eq('rabbi_profile_id', proposal.entity_id)
-    // Non-fatal: if the column doesn't exist the delete is a no-op
+      .eq('profile_id', proposal.entity_id)
+    // Non-fatal: if no affiliations exist this is a no-op
 
     // 3. Delete linked images and attempt storage cleanup
     const { data: linkedImages } = await supabase
@@ -617,8 +617,8 @@ export async function POST(
     // 2. Move synagogue affiliations from target to source
     await supabase
       .from('rabbis')
-      .update({ rabbi_profile_id: mergeSourceId })
-      .eq('rabbi_profile_id', mergeTargetId)
+      .update({ profile_id: mergeSourceId })
+      .eq('profile_id', mergeTargetId)
 
     // 3. Move photos from target to source
     await supabase
@@ -745,13 +745,13 @@ export async function POST(
     // 4. Process affiliation (rabbis table) assignments
     for (const [affId, action] of Object.entries(assignments.rabbis ?? {})) {
       if (action === 'new') {
-        await supabase.from('rabbis').update({ rabbi_profile_id: newRabbiId }).eq('id', affId)
+        await supabase.from('rabbis').update({ profile_id: newRabbiId }).eq('id', affId)
       } else if (action === 'both') {
         const { data: row } = await supabase.from('rabbis').select('*').eq('id', affId).single()
         if (row) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id: _id, ...rest } = row as Record<string, unknown>
-          await supabase.from('rabbis').insert({ ...rest, rabbi_profile_id: newRabbiId })
+          await supabase.from('rabbis').insert({ ...rest, profile_id: newRabbiId })
         }
       } else if (action === 'neither') {
         await supabase.from('rabbis').delete().eq('id', affId)
@@ -789,17 +789,25 @@ export async function POST(
       )
     }
 
+    // Fetch rabbi name — required column on the rabbis table
+    const { data: rabbiProfile } = await supabase
+      .from('rabbi_profiles')
+      .select('canonical_name')
+      .eq('id', rabbiProfileId)
+      .single()
+
     const { error: insertError } = await supabase
       .from('rabbis')
       .insert({
-        rabbi_profile_id: rabbiProfileId,
-        synagogue_id:     affSynagogueId,
-        title:            proposed.title      ?? null,
-        start_year:       proposed.start_year ?? null,
-        end_year:         proposed.end_year   ?? null,
-        notes:            proposed.notes      ?? null,
-        approved:         true,
-        created_by:       proposal.created_by,
+        profile_id:   rabbiProfileId,
+        synagogue_id: affSynagogueId,
+        name:         rabbiProfile?.canonical_name ?? (proposal.current_data?.rabbi_name as string | undefined) ?? 'Unknown',
+        title:        proposed.title      ?? null,
+        start_year:   proposed.start_year ?? null,
+        end_year:     proposed.end_year   ?? null,
+        notes:        proposed.notes      ?? null,
+        approved:     true,
+        created_by:   proposal.created_by,
       })
 
     if (insertError) {

@@ -130,7 +130,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
       const { data: existing } = await supabase
         .from('rabbis')
         .select('id, start_year, end_year, title')
-        .eq('rabbi_profile_id', selectedRabbi.id)
+        .eq('profile_id', selectedRabbi.id)
         .eq('synagogue_id', synagogueId)
         .or('deleted.is.null,deleted.eq.false')
 
