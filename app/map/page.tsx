@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import Link from 'next/link'
 import MapClient from '@/components/map/MapClient'
-import NavAuth from '@/components/auth/NavAuth'
+import AppHeader from '@/components/layout/AppHeader'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -88,30 +87,7 @@ export default async function MapPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <nav className="bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-700 flex-shrink-0">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-              Philadelphia Historical Synagogues
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                Home
-              </Link>
-              <Link href="/map" className="text-blue-600 dark:text-blue-400 font-medium border-b-2 border-blue-600 dark:border-blue-400 pb-0.5">
-                Map
-              </Link>
-              <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                Synagogues
-              </Link>
-              <Link href="/rabbis" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                Rabbis
-              </Link>
-              <NavAuth />
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
       <div className="flex-1 min-h-0">
         <MapClient synagogues={mappableSynagogues} />
       </div>

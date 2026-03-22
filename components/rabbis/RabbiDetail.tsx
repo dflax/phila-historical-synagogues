@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import NavAuth from '@/components/auth/NavAuth'
+import AppHeader from '@/components/layout/AppHeader'
 import { useUserRole } from '@/hooks/useUserRole'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import SuggestRabbiProfileButton from '@/components/edit/SuggestRabbiProfileButton'
@@ -288,23 +288,7 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-900">
 
-      {/* Nav */}
-      <nav className="bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-700">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-              Philadelphia Historical Synagogues
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Home</Link>
-              <Link href="/map" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Map</Link>
-              <Link href="/synagogues" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Synagogues</Link>
-              <Link href="/rabbis" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">Rabbis</Link>
-              <NavAuth />
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
 
