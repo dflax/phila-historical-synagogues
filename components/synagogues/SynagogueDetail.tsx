@@ -337,10 +337,12 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                       )}
                     </div>
                   ))}
-                <AddRelationshipButton
-                  synagogueId={synagogue.id}
-                  synagogueName={synagogue.name}
-                />
+                {isContributor && (
+                  <AddRelationshipButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                )}
               </div>
             </div>
             {primaryAddr?.latitude && primaryAddr?.longitude ? (
@@ -360,24 +362,26 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
             )}
           </div>
 
-          {/* Action row — auth-aware client components */}
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-            <PhotoUploadButton
-              entityType="synagogue"
-              entityId={synagogue.id}
-              entityName={synagogue.name}
-            />
-            <div className="flex items-center gap-4">
-              <AddRelationshipButton
-                synagogueId={synagogue.id}
-                synagogueName={synagogue.name}
+          {/* Action row — visible to logged-in contributors only */}
+          {isContributor && (
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <PhotoUploadButton
+                entityType="synagogue"
+                entityId={synagogue.id}
+                entityName={synagogue.name}
               />
-              <SuggestEditButton
-                synagogue={synagogue}
-                primaryNeighborhood={primaryAddr?.neighborhood ?? null}
-              />
+              <div className="flex items-center gap-4">
+                <AddRelationshipButton
+                  synagogueId={synagogue.id}
+                  synagogueName={synagogue.name}
+                />
+                <SuggestEditButton
+                  synagogue={synagogue}
+                  primaryNeighborhood={primaryAddr?.neighborhood ?? null}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -437,12 +441,14 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   ))}
                 </div>
               )}
-              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <SuggestAddressButton
-                  synagogueId={synagogue.id}
-                  synagogueName={synagogue.name}
-                />
-              </div>
+              {isContributor && (
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <SuggestAddressButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Rabbis */}
@@ -452,10 +458,12 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   <span className="text-xl">✡️</span>
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">Rabbis</h2>
                 </div>
-                <AddRabbiAffiliationButton
-                  synagogueId={synagogue.id}
-                  synagogueName={synagogue.name}
-                />
+                {isContributor && (
+                  <AddRabbiAffiliationButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                )}
               </div>
               {rabbis.length === 0 ? (
                 <EmptyState message="No rabbis on record" />
@@ -488,12 +496,14 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   ))}
                 </div>
               )}
-              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <SuggestRabbiButton
-                  synagogueId={synagogue.id}
-                  synagogueName={synagogue.name}
-                />
-              </div>
+              {isContributor && (
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <SuggestRabbiButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                </div>
+              )}
             </div>
 
           </div>
@@ -561,12 +571,14 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   </div>
                 </div>
               )}
-              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <SuggestHistoryButton
-                  synagogueId={synagogue.id}
-                  synagogueName={synagogue.name}
-                />
-              </div>
+              {isContributor && (
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <SuggestHistoryButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Images */}
@@ -629,11 +641,13 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <SectionHeader icon="🔗" title="Links & Resources" />
-              <AddLinkButton
-                entityType="synagogue"
-                entityId={synagogue.id}
-                entityName={synagogue.name}
-              />
+              {isContributor && (
+                <AddLinkButton
+                  entityType="synagogue"
+                  entityId={synagogue.id}
+                  entityName={synagogue.name}
+                />
+              )}
             </div>
             {links.length > 0 ? (
               <LinksSection links={links} />
@@ -647,37 +661,39 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
         </div>
       </div>
 
-      {/* Merge & delete actions — proposal-based, any logged-in contributor */}
-      <div className="container mx-auto px-4 pb-8 max-w-4xl">
-        <div className="flex items-center justify-end gap-4">
-          <SplitSynagogueButton
-            synagogueId={synagogue.id}
-            synagogueName={synagogue.name}
-            synagogueData={{
-              name:         synagogue.name,
-              status:       synagogue.status,
-              founded_year: synagogue.founded_year,
-              closed_year:  synagogue.closed_year,
-            }}
-            addresses={addresses}
-            rabbis={rabbis}
-            history={history}
-            images={images}
-          />
-          <MergeSynagogueButton
-            synagogueId={synagogue.id}
-            synagogueName={synagogue.name}
-          />
-          <DeleteSynagogueButton
-            synagogueId={synagogue.id}
-            synagogueName={synagogue.name}
-            addressCount={addresses.length}
-            historyCount={history.length}
-            photoCount={images.length}
-            rabbiCount={rabbis.length}
-          />
+      {/* Merge & delete actions — visible to logged-in contributors only */}
+      {isContributor && (
+        <div className="container mx-auto px-4 pb-8 max-w-4xl">
+          <div className="flex items-center justify-end gap-4">
+            <SplitSynagogueButton
+              synagogueId={synagogue.id}
+              synagogueName={synagogue.name}
+              synagogueData={{
+                name:         synagogue.name,
+                status:       synagogue.status,
+                founded_year: synagogue.founded_year,
+                closed_year:  synagogue.closed_year,
+              }}
+              addresses={addresses}
+              rabbis={rabbis}
+              history={history}
+              images={images}
+            />
+            <MergeSynagogueButton
+              synagogueId={synagogue.id}
+              synagogueName={synagogue.name}
+            />
+            <DeleteSynagogueButton
+              synagogueId={synagogue.id}
+              synagogueName={synagogue.name}
+              addressCount={addresses.length}
+              historyCount={history.length}
+              photoCount={images.length}
+              rabbiCount={rabbis.length}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Relationship deletion proposal modal */}
       {relationshipToDelete && (

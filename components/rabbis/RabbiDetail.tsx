@@ -256,7 +256,7 @@ interface PendingDelete {
 }
 
 export default function RabbiDetail({ profile, affiliations: initialAffiliations, photos: initialPhotos, links }: Props) {
-  const { isEditor, isAdmin } = useUserRole()
+  const { isEditor, isAdmin, isContributor } = useUserRole()
 
   const [affiliations,  setAffiliations]  = useState<Affiliation[]>(initialAffiliations)
   const [photos,        setPhotos]        = useState<RabbiImage[]>(initialPhotos)
@@ -344,46 +344,50 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
               })()}
             </div>
 
-            {/* Suggest edit */}
-            <div className="flex-shrink-0">
-              <SuggestRabbiProfileButton profile={profile} />
-            </div>
+            {/* Suggest edit — visible to logged-in contributors only */}
+            {isContributor && (
+              <div className="flex-shrink-0">
+                <SuggestRabbiProfileButton profile={profile} />
+              </div>
+            )}
           </div>
 
-          {/* Merge & delete actions */}
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
-            <SplitRabbiButton
-              rabbiId={profile.id}
-              rabbiName={profile.canonical_name}
-              rabbiData={{
-                canonical_name:  profile.canonical_name,
-                birth_year:      profile.birth_year,
-                circa_birth:     profile.circa_birth,
-                death_year:      profile.death_year,
-                circa_death:     profile.circa_death,
-                biography:       profile.biography,
-                birthplace:      profile.birthplace,
-                death_place:     profile.death_place,
-                seminary:        profile.seminary,
-                ordination_year: profile.ordination_year,
-                denomination:    profile.denomination,
-                languages:       profile.languages,
-                publications:    profile.publications,
-                achievements:    profile.achievements,
-              }}
-              affiliations={affiliations}
-              images={photos}
-            />
-            <MergeRabbiButton
-              rabbiId={profile.id}
-              rabbiName={profile.canonical_name}
-            />
-            <DeleteRabbiButton
-              profile={profile}
-              affiliationCount={affiliations.length}
-              photoCount={photos.length}
-            />
-          </div>
+          {/* Merge & delete actions — visible to logged-in contributors only */}
+          {isContributor && (
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-4">
+              <SplitRabbiButton
+                rabbiId={profile.id}
+                rabbiName={profile.canonical_name}
+                rabbiData={{
+                  canonical_name:  profile.canonical_name,
+                  birth_year:      profile.birth_year,
+                  circa_birth:     profile.circa_birth,
+                  death_year:      profile.death_year,
+                  circa_death:     profile.circa_death,
+                  biography:       profile.biography,
+                  birthplace:      profile.birthplace,
+                  death_place:     profile.death_place,
+                  seminary:        profile.seminary,
+                  ordination_year: profile.ordination_year,
+                  denomination:    profile.denomination,
+                  languages:       profile.languages,
+                  publications:    profile.publications,
+                  achievements:    profile.achievements,
+                }}
+                affiliations={affiliations}
+                images={photos}
+              />
+              <MergeRabbiButton
+                rabbiId={profile.id}
+                rabbiName={profile.canonical_name}
+              />
+              <DeleteRabbiButton
+                profile={profile}
+                affiliationCount={affiliations.length}
+                photoCount={photos.length}
+              />
+            </div>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -456,13 +460,15 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
                   ))}
                 </div>
               )}
-              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <PhotoUploadButton
-                  entityType="rabbi"
-                  entityId={profile.id}
-                  entityName={profile.canonical_name}
-                />
-              </div>
+              {isContributor && (
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <PhotoUploadButton
+                    entityType="rabbi"
+                    entityId={profile.id}
+                    entityName={profile.canonical_name}
+                  />
+                </div>
+              )}
             </div>
 
           </div>
@@ -476,10 +482,12 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
                   <span className="text-xl">✡️</span>
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">Synagogue Affiliations</h2>
                 </div>
-                <AddSynagogueAffiliationButton
-                  rabbiId={profile.id}
-                  rabbiName={profile.canonical_name}
-                />
+                {isContributor && (
+                  <AddSynagogueAffiliationButton
+                    rabbiId={profile.id}
+                    rabbiName={profile.canonical_name}
+                  />
+                )}
               </div>
 
               {affiliations.length === 0 ? (
@@ -546,11 +554,13 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
                 <SectionHeader icon="🔗" title="Links & Resources" />
-                <AddLinkButton
-                  entityType="rabbi"
-                  entityId={profile.id}
-                  entityName={profile.canonical_name}
-                />
+                {isContributor && (
+                  <AddLinkButton
+                    entityType="rabbi"
+                    entityId={profile.id}
+                    entityName={profile.canonical_name}
+                  />
+                )}
               </div>
               {links.length > 0 ? (
                 <LinksSection links={links} />
