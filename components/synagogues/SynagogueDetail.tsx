@@ -19,6 +19,7 @@ import AddRelationshipButton from '@/components/edit/AddRelationshipButton'
 import DeleteRelationshipModal from '@/components/edit/DeleteRelationshipModal'
 import AddLinkButton from '@/components/edit/AddLinkButton'
 import LinksSection from '@/components/common/LinksSection'
+import HistoryList from '@/components/synagogues/HistoryList'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ interface HistoryEntry {
   circa: boolean | null
   source: string | null
   source_url: string | null
+  display_order: number | null
 }
 
 interface Rabbi {
@@ -245,7 +247,8 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
     setPendingDelete(null)
   }
 
-  const primaryAddr = addresses[0] ?? null
+  // Prefer is_current for map/hero; addresses list is sorted by start_year (oldest first)
+  const primaryAddr = addresses.find(a => a.is_current) ?? addresses[addresses.length - 1] ?? null
   const mapUrl = primaryAddr?.latitude && primaryAddr?.longitude
     ? `/map?lat=${primaryAddr.latitude}&lng=${primaryAddr.longitude}&id=${synagogue.id}`
     : '/map'
@@ -504,56 +507,16 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                   <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">History will appear here once imported.</p>
                 </div>
               ) : (
-                <div className="relative">
-                  {/* Timeline line */}
-                  <div className="absolute left-[52px] top-0 bottom-0 w-px bg-gray-100 dark:bg-gray-700" />
-                  <div className="space-y-5">
-                    {history.map(entry => (
-                      <div key={entry.id} className="flex gap-4 group">
-                        {/* Year label */}
-                        <div className="w-12 flex-shrink-0 text-right">
-                          <span className="text-xs font-mono text-gray-400 dark:text-gray-500 leading-5">
-                            {formatHistoryYear(entry)}
-                          </span>
-                        </div>
-                        {/* Dot */}
-                        <div className="flex-shrink-0 w-4 flex items-start justify-center pt-1.5">
-                          <span className="w-2 h-2 rounded-full bg-blue-300 ring-2 ring-white dark:ring-gray-800" />
-                        </div>
-                        {/* Content */}
-                        <div className="flex-1 pb-1 min-w-0">
-                          {entry.entry_type && entry.entry_type !== 'general' && (
-                            <span className="text-xs font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide">
-                              {entry.entry_type}
-                            </span>
-                          )}
-                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mt-0.5">
-                            {entry.content}
-                          </p>
-                          {(entry.source || entry.source_url) && (
-                            <div className="mt-1">
-                              {entry.source_url ? (
-                                <a
-                                  href={entry.source_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
-                                >
-                                  {entry.source ?? 'Source'} ↗
-                                </a>
-                              ) : (
-                                <span className="text-xs text-gray-300 dark:text-gray-600">{entry.source}</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        {isEditor && (
-                          <TrashButton onClick={() => requestDelete('history', entry.id, 'history entry', id => setHistory(prev => prev.filter(h => h.id !== id)))} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <HistoryList
+                  key={history.map(h => h.id).join(',')}
+                  items={history}
+                  synagogueId={synagogue.id}
+                  canReorder={isEditor}
+                  onDeleteClick={isEditor
+                    ? (id) => requestDelete('history', id, 'history entry', delId => setHistory(prev => prev.filter(h => h.id !== delId)))
+                    : undefined
+                  }
+                />
               )}
               {isContributor && (
                 <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">

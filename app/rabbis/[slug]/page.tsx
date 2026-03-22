@@ -104,8 +104,7 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
     .eq('entity_id', profile.id)
     .eq('approved', true)
     .or('deleted.is.null,deleted.eq.false')
-    .order('display_order', { ascending: true })
-    .order('created_at', { ascending: false })
+    .order('title', { ascending: true, nullsFirst: false })
 
   const links = (rawLinks ?? []) as Array<{
     id: string; link_type: string; url: string;

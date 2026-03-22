@@ -36,7 +36,7 @@ export default async function SynagoguePage({ params }: { params: { id: string }
         latitude, longitude, is_current, start_year, end_year, address_order
       ),
       history_entries (
-        id, entry_type, content, year, year_range_start, year_range_end, circa, source, source_url
+        id, entry_type, content, year, year_range_start, year_range_end, circa, source, source_url, display_order
       ),
       rabbis (
         id, name, title, start_year, end_year, notes,
@@ -63,13 +63,20 @@ export default async function SynagoguePage({ params }: { params: { id: string }
   const normalize = (val: any) =>
     Array.isArray(val) ? val : val ? [val] : []
 
+  // Sort locations by start_year ascending (earliest address first); nulls go last.
   const addresses = normalize(synagogue.addresses).sort((a: any, b: any) => {
-    if (a.is_current && !b.is_current) return -1
-    if (!a.is_current && b.is_current) return 1
-    return (a.address_order ?? 99) - (b.address_order ?? 99)
+    const aYear = a.start_year ?? 9999
+    const bYear = b.start_year ?? 9999
+    return aYear - bYear
   })
 
+  // Sort history by display_order (manual ordering) when set; fall back to year sort.
   const history = normalize(synagogue.history_entries).sort((a: any, b: any) => {
+    const aHasOrder = a.display_order !== null && a.display_order !== undefined
+    const bHasOrder = b.display_order !== null && b.display_order !== undefined
+    if (aHasOrder && bHasOrder) return a.display_order - b.display_order
+    if (aHasOrder) return -1
+    if (bHasOrder) return 1
     const ay = a.year ?? a.year_range_start ?? 9999
     const by = b.year ?? b.year_range_start ?? 9999
     return ay - by
@@ -119,8 +126,7 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       .eq('entity_id', params.id)
       .eq('approved', true)
       .or('deleted.is.null,deleted.eq.false')
-      .order('display_order', { ascending: true })
-      .order('created_at', { ascending: false }),
+      .order('title', { ascending: true, nullsFirst: false }),
 
     supabase
       .from('synagogue_relationships')
