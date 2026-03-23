@@ -34,7 +34,9 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 - **Mini-map** — non-interactive Google Maps preview in the hero box, links to full map
 - All historical addresses with years at each location
 - Full rabbi list with tenures, linking to individual rabbi profiles
-- History timeline (events, mergers, building notes, ethnic origin)
+- Sortable history timeline (events, mergers, building notes, ethnic origin)
+- **Organizational relationships** — typed links to related synagogues (predecessor/successor, merged into, split from, parent/branch); proposed by editors, displayed on both sides
+- **External links** — curated links to Wikipedia, FindAGrave, JewishGen, and other resources; proposed by editors
 - Photo gallery (schema and upload workflow ready)
 - Authenticated users can suggest edits, add addresses, add rabbis, add history entries, or upload photos
 - Admins can merge, split, or soft-delete records
@@ -48,7 +50,7 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 - Biography with birth/death years (circa-aware)
 - All synagogue affiliations with title, service years, and notes
 - Photo gallery for portraits
-- External links (biographical resources)
+- **External links** — Wikipedia, FindAGrave, and other biographical resources; proposed by editors
 
 ### Homepage (`/`)
 - Summary statistics: 562 synagogues, 83 active, 280+ year span
@@ -171,9 +173,13 @@ The app uses Supabase (PostgreSQL). All tables have Row Level Security (RLS) ena
 | `history_entries` | 325 | Timeline events, mergers, building notes, ethnic origins |
 | `rabbis` | 373 | Rabbi affiliations — name, title, tenures per synagogue |
 | `rabbi_profiles` | — | Canonical rabbi biographies (birth/death years, slug) |
+| `synagogue_relationships` | — | Typed directional links between synagogues (merger, split, predecessor, parent/branch) |
+| `links` | — | External URLs attached to synagogues or rabbi profiles |
 | `images` | — | Photos — schema and upload workflow ready |
-| `edit_proposals` | — | Community contributions — pending/approved/rejected |
+| `edit_proposals` | — | All contributions and admin operations — pending/approved/rejected |
 | `user_profiles` | — | Auth users with roles (contributor/editor/admin/super_admin) |
+| `person_profiles` | — | *(in migration)* Generalized leader profiles extending rabbi model to all leadership types |
+| `affiliations` | — | *(in migration)* Links person profiles to synagogues with role detail |
 
 ### Getting API Keys
 
@@ -231,12 +237,15 @@ app/
       demote/route.ts
 
 components/
+  layout/
+    AppHeader.tsx               # Mobile-responsive site header with hamburger nav
   map/
     MapClient.tsx               # Full interactive map (sidebar, markers, filters)
     MiniMap.tsx                 # Non-interactive mini-map for detail pages
   synagogues/
     SynagoguesClient.tsx        # Browse page search/filter UI
     SynagogueDetail.tsx         # Detail page layout
+    HistoryList.tsx             # Sortable history timeline
   rabbis/
     RabbisClient.tsx            # Directory page with search
     RabbiDetail.tsx             # Profile page layout
@@ -245,7 +254,7 @@ components/
     AuthModal.tsx               # Login/signup modal
     LoginForm.tsx               # Login form with password reset
     SignupForm.tsx              # Registration form
-  edit/                         # Suggestion/create/merge/delete buttons and forms
+  edit/                         # Suggestion/create/merge/split/delete buttons and forms
     SuggestEdit{Button,Form}.tsx
     SuggestAddress{Button,Form}.tsx
     SuggestRabbi{Button,Form}.tsx
@@ -255,23 +264,32 @@ components/
     Merge{Synagogue,Rabbi}Button.tsx
     Split{Synagogue,Rabbi}Button.tsx
     Delete{Synagogue,Rabbi}Button.tsx
-    Add{RabbiAffiliation,Relationship,Link}Button.tsx
+    AddRabbiAffiliationButton.tsx
+    AddSynagogueAffiliationButton.tsx
+    AddRelationshipButton.tsx   # Typed org relationships between synagogues
+    AddLinkButton.tsx           # External links for synagogues and rabbis
     DeleteRelationshipModal.tsx
   photos/
     PhotoUploadButton.tsx
     PhotoUploadForm.tsx
   common/
     ConfirmDialog.tsx
-    LinksSection.tsx
+    LinksSection.tsx            # Renders approved links for any entity
 
 lib/
   supabase/
     client.ts                   # Shared client + TS types (used by legacy test pages)
     server.ts                   # Server-side auth helpers
+  types/
+    database.types.ts           # Auto-generated Supabase TypeScript types
+    leadership.ts               # New person/affiliation data model types
   hooks/
     useUserRole.ts              # Role-checking hook
 
 middleware.ts                   # Auth session refresh on every request
+
+supabase/
+  migrations/                   # SQL migration files for schema changes
 ```
 
 All data-fetching pages are server components with `force-dynamic` to prevent stale caching. Google Maps is loaded via manual script injection and reused across components via a shared script tag ID.
@@ -293,7 +311,7 @@ npm run type-check   # TypeScript check (no emit)
 
 - [ ] `/about` page
 - [ ] Full-text search using the `search_vector` tsvector column
-- [ ] Migrate Google Maps markers to `AdvancedMarkerElement` (current `Marker` API is deprecated)
+- [ ] Complete `person_profiles` / `affiliations` data model migration (DB migration + UI cutover from `rabbis` table)
 - [ ] Surface non-geocoded historical addresses as map markers
 - [ ] Enhanced bulk admin operations
 
