@@ -36,7 +36,7 @@ export default async function SynagoguePage({ params }: { params: { id: string }
         latitude, longitude, is_current, start_year, end_year, address_order
       ),
       history_entries (
-        id, entry_type, content, year, year_range_start, year_range_end, circa, source, source_url, display_order
+        id, entry_type, content, year, year_range_start, year_range_end, circa, source, source_url
       ),
       rabbis (
         id, name, title, start_year, end_year, notes,
@@ -70,17 +70,30 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     return aYear - bYear
   })
 
-  // Sort history by display_order (manual ordering) when set; fall back to year sort.
-  const history = normalize(synagogue.history_entries).sort((a: any, b: any) => {
-    const aHasOrder = a.display_order !== null && a.display_order !== undefined
-    const bHasOrder = b.display_order !== null && b.display_order !== undefined
-    if (aHasOrder && bHasOrder) return a.display_order - b.display_order
-    if (aHasOrder) return -1
-    if (bHasOrder) return 1
-    const ay = a.year ?? a.year_range_start ?? 9999
-    const by = b.year ?? b.year_range_start ?? 9999
-    return ay - by
-  })
+  // Fetch display_order separately so a missing column (pre-migration) doesn't break the page.
+  const { data: historyOrderData } = await supabase
+    .from('history_entries')
+    .select('id, display_order')
+    .eq('synagogue_id', params.id)
+    .or('deleted.is.null,deleted.eq.false')
+
+  // Build a lookup map: id → display_order (null if column not yet added)
+  const orderMap = new Map<string, number | null>(
+    (historyOrderData ?? []).map((r: any) => [r.id, r.display_order ?? null])
+  )
+
+  const history = normalize(synagogue.history_entries)
+    .map((e: any) => ({ ...e, display_order: orderMap.get(e.id) ?? null }))
+    .sort((a: any, b: any) => {
+      const aHasOrder = a.display_order !== null
+      const bHasOrder = b.display_order !== null
+      if (aHasOrder && bHasOrder) return a.display_order - b.display_order
+      if (aHasOrder) return -1
+      if (bHasOrder) return 1
+      const ay = a.year ?? a.year_range_start ?? 9999
+      const by = b.year ?? b.year_range_start ?? 9999
+      return ay - by
+    })
 
   const rabbis = normalize(synagogue.rabbis)
     .sort((a: any, b: any) => (a.start_year ?? 9999) - (b.start_year ?? 9999))

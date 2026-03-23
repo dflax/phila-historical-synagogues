@@ -29,7 +29,8 @@
       "Bash(cd:*)",
       "Bash(mkdir:*)",
       "WebFetch(domain:developers.google.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(curl:*)"
     ]
   }
 }
