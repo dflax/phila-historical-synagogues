@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import SynagogueDetail from '@/components/synagogues/SynagogueDetail'
+import { getAffiliationsBySynagogue } from '@/lib/queries/leadership'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -38,10 +39,6 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       history_entries (
         id, entry_type, content, year, year_range_start, year_range_end, circa, source, source_url
       ),
-      rabbis (
-        id, name, title, start_year, end_year, notes,
-        rabbi_profiles!profile_id (slug)
-      ),
       images (
         id, url, storage_path, storage_provider,
         caption, description, year, circa_year, is_primary, display_order,
@@ -54,7 +51,6 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     // .or() with foreignTable filters nested resources without affecting the parent query.
     .or('deleted.is.null,deleted.eq.false', { foreignTable: 'addresses' })
     .or('deleted.is.null,deleted.eq.false', { foreignTable: 'history_entries' })
-    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'rabbis' })
     .or('deleted.is.null,deleted.eq.false', { foreignTable: 'images' })
     .single()
 
@@ -95,12 +91,19 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       return ay - by
     })
 
-  const rabbis = normalize(synagogue.rabbis)
-    .sort((a: any, b: any) => (a.start_year ?? 9999) - (b.start_year ?? 9999))
-    .map((r: any) => ({
-      ...r,
-      slug: normalize(r.rabbi_profiles)[0]?.slug ?? null,
-    }))
+  // Fetch affiliations from both old+new tables (sorted by helper)
+  const affiliationsData = await getAffiliationsBySynagogue(params.id)
+
+  // Map to the shape SynagogueDetail expects for its rabbis prop
+  const rabbis = affiliationsData.map(a => ({
+    id:         a.id,
+    name:       a.person_profile?.canonical_name ?? null,
+    title:      a.role_title,
+    start_year: a.start_year,
+    end_year:   a.end_year,
+    notes:      a.notes,
+    slug:       a.person_profile?.slug ?? null,
+  }))
 
   const rawImages: any[] = normalize(synagogue.images).sort((a: any, b: any) => {
     if (a.is_primary && !b.is_primary) return -1

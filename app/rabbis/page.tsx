@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Suspense } from 'react'
 import RabbisClient from '@/components/rabbis/RabbisClient'
+import { getAllPersonProfiles } from '@/lib/queries/leadership'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -16,17 +17,15 @@ const supabase = createClient(
 )
 
 export default async function RabbisPage() {
-  const { data, error } = await supabase
-    .from('rabbi_profiles')
-    .select(`
-      id, slug, canonical_name,
-      birth_year, death_year, circa_birth, circa_death,
-      rabbis (id)
-    `)
-    .eq('approved', true)
-    .or('deleted.is.null,deleted.eq.false')
-    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'rabbis' })
-    .order('canonical_name')
+  // Query profiles from both old+new tables in parallel with affiliation counts
+  const [profiles, { data: affiliationRows, error }] = await Promise.all([
+    getAllPersonProfiles(),
+    supabase
+      .from('affiliations')
+      .select('person_profile_id')
+      .eq('deleted', false)
+      .eq('approved', true),
+  ])
 
   if (error) {
     return (
@@ -39,18 +38,23 @@ export default async function RabbisPage() {
     )
   }
 
-  const normalize = (val: unknown) =>
-    Array.isArray(val) ? val : val ? [val] : []
+  // Build a per-person affiliation count from the new affiliations table
+  const countMap = new Map<string, number>()
+  for (const a of affiliationRows ?? []) {
+    if (a.person_profile_id) {
+      countMap.set(a.person_profile_id, (countMap.get(a.person_profile_id) ?? 0) + 1)
+    }
+  }
 
-  const rabbis = (data ?? []).map(p => ({
-    id:             p.id             as string,
-    slug:           p.slug           as string,
-    canonical_name: p.canonical_name as string,
-    birth_year:     p.birth_year     as number | null,
-    death_year:     p.death_year     as number | null,
-    circa_birth:    p.circa_birth    as boolean | null,
-    circa_death:    p.circa_death    as boolean | null,
-    affiliation_count: normalize(p.rabbis).length,
+  const rabbis = profiles.map(p => ({
+    id:             p.id,
+    slug:           p.slug           ?? '',
+    canonical_name: p.canonical_name,
+    birth_year:     p.birth_year     ?? null,
+    death_year:     p.death_year     ?? null,
+    circa_birth:    p.circa_birth    ?? null,
+    circa_death:    p.circa_death    ?? null,
+    affiliation_count: countMap.get(p.id) ?? 0,
   }))
 
   return (
