@@ -62,8 +62,8 @@ export default function RabbisClient({ rabbis }: Props) {
         {/* Page header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rabbis</h1>
-            <p className="text-gray-500 dark:text-gray-400">{rabbis.length} rabbis documented in Philadelphia-area synagogue records</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Leadership</h1>
+            <p className="text-gray-500 dark:text-gray-400">{rabbis.length} clergy and leaders documented in Philadelphia-area synagogue records</p>
           </div>
           <div className="flex-shrink-0 mt-1">
             <CreateRabbiButton />
@@ -101,8 +101,8 @@ export default function RabbisClient({ rabbis }: Props) {
         <div className="mb-3 px-1">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {totalVisible === rabbis.length
-              ? `${rabbis.length} rabbi${rabbis.length !== 1 ? 's' : ''}`
-              : `${totalVisible} of ${rabbis.length} rabbis`}
+              ? `${rabbis.length} person${rabbis.length !== 1 ? 's' : ''}`
+              : `${totalVisible} of ${rabbis.length} people`}
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export default function RabbisClient({ rabbis }: Props) {
         {groups.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
             <p className="text-4xl mb-3">✡️</p>
-            <p className="font-semibold text-gray-700 dark:text-gray-200">No rabbis match your search</p>
+            <p className="font-semibold text-gray-700 dark:text-gray-200">No results match your search</p>
             {hasSearch && (
               <button onClick={() => setSearch('')} className="mt-2 text-blue-600 dark:text-blue-400 text-sm hover:underline">
                 Clear search
@@ -134,7 +134,7 @@ export default function RabbisClient({ rabbis }: Props) {
                     return (
                       <Link
                         key={r.id}
-                        href={`/rabbis/${r.slug}`}
+                        href={`/leadership/${r.slug}`}
                         className="flex items-center gap-4 px-5 py-3.5 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition group"
                       >
                         {/* Name */}
@@ -173,7 +173,7 @@ export default function RabbisClient({ rabbis }: Props) {
 
         {/* Footer */}
         <div className="mt-12 text-center text-gray-400 dark:text-gray-500 text-sm pb-8">
-          Showing {totalVisible} of {rabbis.length} rabbis
+          Showing {totalVisible} of {rabbis.length} people
         </div>
       </div>
     </main>

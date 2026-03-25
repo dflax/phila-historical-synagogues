@@ -30,6 +30,21 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'Philadelphia Historical Synagogues',
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/rabbis',
+        destination: '/leadership',
+        permanent: false,
+      },
+      {
+        source: '/rabbis/:slug',
+        destination: '/leadership/:slug',
+        permanent: false,
+      },
+    ]
+  },
 };
 
 module.exports = nextConfig;

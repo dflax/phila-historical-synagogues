@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata = {
-  title: 'Rabbis - Philadelphia Historical Synagogues',
-  description: 'Browse the complete directory of rabbis documented in the Philadelphia-area synagogue records.',
+  title: 'Leadership - Philadelphia Historical Synagogues',
+  description: 'Browse clergy and leadership documented in the Philadelphia-area synagogue records.',
 }
 
 const supabase = createClient(

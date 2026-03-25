@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: '/',           label: 'Home' },
   { href: '/map',        label: 'Map' },
   { href: '/synagogues', label: 'Synagogues' },
-  { href: '/rabbis',     label: 'Rabbis' },
+  { href: '/leadership', label: 'Leadership' },
 ] as const
 
 interface Props {
