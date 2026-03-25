@@ -950,9 +950,15 @@ export async function POST(
     const rabbiName = rabbiProfile?.canonical_name ?? (proposal.current_data?.rabbi_name as string | undefined) ?? 'Unknown'
     const roleTitle = (proposed.title as string | null | undefined) ?? null
 
+    // Generate a single shared UUID so both tables get the same row ID.
+    // Without this, each insert gets a different auto-generated UUID and
+    // the dual-query helper can't deduplicate them by ID.
+    const sharedAffiliationId = crypto.randomUUID()
+
     // Write to BOTH old table (rabbis) and new table (affiliations)
     const [oldAffResult, newAffResult] = await Promise.all([
       supabase.from('rabbis').insert({
+        id:           sharedAffiliationId,
         profile_id:   rabbiProfileId,
         synagogue_id: affSynagogueId,
         name:         rabbiName,
@@ -964,6 +970,7 @@ export async function POST(
         created_by:   proposal.created_by,
       }),
       supabaseAdmin.from('affiliations').insert({
+        id:                   sharedAffiliationId,
         person_profile_id:    rabbiProfileId,
         synagogue_id:         affSynagogueId,
         affiliation_category: 'clergy',
