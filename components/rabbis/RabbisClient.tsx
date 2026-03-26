@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import AppHeader from '@/components/layout/AppHeader'
 import CreateRabbiButton from '@/components/edit/CreateRabbiButton'
@@ -31,13 +32,35 @@ function formatLifespan(
 }
 
 export default function RabbisClient({ rabbis }: Props) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
   const [search, setSearch] = useState('')
+  const [personTypeFilter, setPersonTypeFilter] = useState<'all' | 'rabbi' | 'chazzan'>(
+    (searchParams.get('type') as 'all' | 'rabbi' | 'chazzan') || 'all'
+  )
+
+  const updateFilter = (type: 'all' | 'rabbi' | 'chazzan') => {
+    setPersonTypeFilter(type)
+    const params = new URLSearchParams(searchParams.toString())
+    if (type === 'all') {
+      params.delete('type')
+    } else {
+      params.set('type', type)
+    }
+    router.replace(`${pathname}?${params.toString()}`)
+  }
 
   const groups = useMemo(() => {
     const q = search.toLowerCase().trim()
-    const filtered = q
-      ? rabbis.filter(r => r.canonical_name.toLowerCase().includes(q))
-      : rabbis
+    const filtered = rabbis.filter(r => {
+      if (personTypeFilter !== 'all') {
+        const personType = r.slug.startsWith('chazzan-') ? 'chazzan' : 'rabbi'
+        if (personType !== personTypeFilter) return false
+      }
+      return q ? r.canonical_name.toLowerCase().includes(q) : true
+    })
 
     const byLetter: Record<string, RabbiRow[]> = {}
     filtered.forEach(r => {
@@ -47,7 +70,7 @@ export default function RabbisClient({ rabbis }: Props) {
     })
 
     return Object.entries(byLetter).sort(([a], [b]) => a.localeCompare(b))
-  }, [rabbis, search])
+  }, [rabbis, search, personTypeFilter])
 
   const totalVisible = groups.reduce((sum, [, rows]) => sum + rows.length, 0)
   const hasSearch = search.trim().length > 0
@@ -68,6 +91,23 @@ export default function RabbisClient({ rabbis }: Props) {
           <div className="flex-shrink-0 mt-1">
             <CreateRabbiButton />
           </div>
+        </div>
+
+        {/* Person Type Filters */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {([['all', 'All'], ['rabbi', 'Rabbis'], ['chazzan', 'Cantors/Chazzans']] as const).map(([type, label]) => (
+            <button
+              key={type}
+              onClick={() => updateFilter(type)}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                personTypeFilter === type
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Search */}
@@ -100,9 +140,13 @@ export default function RabbisClient({ rabbis }: Props) {
         {/* Results count */}
         <div className="mb-3 px-1">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {totalVisible === rabbis.length
-              ? `${rabbis.length} person${rabbis.length !== 1 ? 's' : ''}`
-              : `${totalVisible} of ${rabbis.length} people`}
+            {personTypeFilter === 'all' ? (
+              totalVisible === rabbis.length
+                ? `${rabbis.length} person${rabbis.length !== 1 ? 's' : ''}`
+                : `${totalVisible} of ${rabbis.length} people`
+            ) : (
+              `${totalVisible} ${personTypeFilter === 'rabbi' ? 'rabbi' : 'cantor'}${totalVisible !== 1 ? 's' : ''}`
+            )}
           </p>
         </div>
 
@@ -142,6 +186,11 @@ export default function RabbisClient({ rabbis }: Props) {
                           <span className="font-medium text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">
                             {r.canonical_name}
                           </span>
+                          {r.slug.startsWith('chazzan-') && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                              Cantor
+                            </span>
+                          )}
                           {lifespan && (
                             <span className="ml-2 text-sm text-gray-400 dark:text-gray-500">{lifespan}</span>
                           )}
