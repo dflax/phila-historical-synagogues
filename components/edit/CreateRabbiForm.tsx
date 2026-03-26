@@ -12,6 +12,7 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
   const supabase = createClientComponentClient()
 
   const [fullName,    setFullName]    = useState('')
+  const [personType,  setPersonType]  = useState<'rabbi' | 'chazzan'>('rabbi')
   const [birthYear,   setBirthYear]   = useState('')
   const [circaBirth,  setCircaBirth]  = useState(false)
   const [deathYear,   setDeathYear]   = useState('')
@@ -61,6 +62,7 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
         proposal_type:  'rabbi_profile_new',
         proposed_data: {
           canonical_name: fullName.trim(),
+          person_type:    personType,
           birth_year:     bYear,
           circa_birth:    circaBirth,
           death_year:     dYear,
@@ -115,8 +117,26 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
           value={fullName}
           onChange={e => setFullName(e.target.value)}
           className={inputClass}
-          placeholder="e.g. Rabbi Abraham Katz"
+          placeholder="e.g. Abraham Katz"
         />
+      </div>
+
+      {/* Person Type */}
+      <div>
+        <label htmlFor="new-rabbi-type" className={labelClass}>
+          Person Type{' '}
+          <span className="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="new-rabbi-type"
+          value={personType}
+          onChange={e => setPersonType(e.target.value as 'rabbi' | 'chazzan')}
+          className={inputClass}
+          required
+        >
+          <option value="rabbi">Rabbi</option>
+          <option value="chazzan">Cantor / Chazzan</option>
+        </select>
       </div>
 
       {/* Birth year + circa */}
@@ -191,7 +211,7 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
       {/* Note */}
       <div>
         <label htmlFor="new-rabbi-note" className={labelClass}>
-          Why are you adding this rabbi?
+          Why are you adding this person?
         </label>
         <textarea
           id="new-rabbi-note"
@@ -212,7 +232,7 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
       </button>
 
       <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
-        Proposals are reviewed by editors before the rabbi profile is added to the directory.
+        Proposals are reviewed by editors before the profile is added to the directory.
       </p>
     </form>
   )

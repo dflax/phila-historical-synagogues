@@ -563,13 +563,17 @@ export async function POST(
       ? proposed.canonical_name.trim()
       : 'unknown'
 
-    // Build base slug from name
-    const baseSlug = candidateName
+    const proposedPersonType = proposed.person_type as 'rabbi' | 'chazzan' | undefined
+
+    // Build base slug from name, adding chazzan- prefix for cantors
+    const baseName = candidateName
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-')
       .substring(0, 100)
+
+    const baseSlug = proposedPersonType === 'chazzan' ? `chazzan-${baseName}` : baseName
 
     // ── CUTOVER: Check uniqueness against new table only ──────────────────
     // Ensure uniqueness by appending a counter if needed
@@ -599,7 +603,8 @@ export async function POST(
     //   counter++
     // }
 
-    const personType = finalSlug.startsWith('chazzan-') ? 'chazzan' : 'rabbi'
+    // Use person_type from proposal data; fall back to slug-prefix inference
+    const personType = proposedPersonType ?? (finalSlug.startsWith('chazzan-') ? 'chazzan' : 'rabbi')
 
     // ── CUTOVER: Writing to new table only ─────────────────────────────────
     const { error: newInsertError } = await supabaseAdmin.from('person_profiles').insert({
