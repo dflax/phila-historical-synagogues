@@ -989,6 +989,80 @@ export async function POST(
       )
     }
     // affiliations failure is non-fatal during transition
+  } else if (
+    proposal.proposal_type === 'lay_leader_affiliation_new' ||
+    proposal.proposal_type === 'staff_affiliation_new'
+  ) {
+    const personName  = proposed.person_name  as string
+    const roleTitle   = proposed.role_title   as string
+    const personType  = proposed.person_type  as string   // 'lay_leader' | 'staff'
+    const category    = proposed.affiliation_category as string
+
+    if (!personName || !roleTitle || !proposal.synagogue_id) {
+      return NextResponse.json(
+        { error: 'Missing required fields for lay leader / staff proposal' },
+        { status: 400 },
+      )
+    }
+
+    const personProfileId = crypto.randomUUID()
+    const affiliationId   = crypto.randomUUID()
+
+    // Create person profile in person_profiles only (no slug for non-clergy)
+    const { error: profileError } = await supabaseAdmin
+      .from('person_profiles')
+      .insert({
+        id:             personProfileId,
+        canonical_name: personName,
+        person_type:    personType,
+        slug:           null,
+        approved:       true,
+        deleted:        false,
+      })
+
+    if (profileError) {
+      return NextResponse.json(
+        { error: `Failed to create person profile: ${profileError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // Create affiliation in affiliations only
+    const { error: affError } = await supabaseAdmin
+      .from('affiliations')
+      .insert({
+        id:                   affiliationId,
+        person_profile_id:    personProfileId,
+        synagogue_id:         proposal.synagogue_id,
+        affiliation_category: category,
+        role_title:           roleTitle,
+        start_year:           (proposed.start_year as number | null | undefined) ?? null,
+        end_year:             (proposed.end_year   as number | null | undefined) ?? null,
+        notes:                (proposed.notes      as string | null | undefined) ?? null,
+        approved:             true,
+      })
+
+    if (affError) {
+      return NextResponse.json(
+        { error: `Failed to create affiliation: ${affError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // Also mirror into the old rabbis table so getAffiliationsBySynagogue picks it up
+    // This is best-effort; failure is non-fatal during the dual-table transition
+    await supabase.from('rabbis').insert({
+      id:           affiliationId,
+      synagogue_id: proposal.synagogue_id,
+      name:         personName,
+      title:        roleTitle,
+      start_year:   (proposed.start_year as number | null | undefined) ?? null,
+      end_year:     (proposed.end_year   as number | null | undefined) ?? null,
+      notes:        (proposed.notes      as string | null | undefined) ?? null,
+      approved:     true,
+      created_by:   proposal.created_by,
+    })
+
   } else if (proposal.proposal_type === 'link_new') {
     const linkEntityType = proposed.entity_type as string | undefined
     const linkEntityId   = proposed.entity_id   as string | undefined

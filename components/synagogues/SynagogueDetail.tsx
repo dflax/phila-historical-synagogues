@@ -16,6 +16,8 @@ import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
 import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
 import AddRabbiAffiliationButton from '@/components/edit/AddRabbiAffiliationButton'
 import EditAffiliationButton from '@/components/edit/EditAffiliationButton'
+import AddLayLeaderButton from '@/components/edit/AddLayLeaderButton'
+import AddStaffButton from '@/components/edit/AddStaffButton'
 import AddRelationshipButton from '@/components/edit/AddRelationshipButton'
 import DeleteRelationshipModal from '@/components/edit/DeleteRelationshipModal'
 import AddLinkButton from '@/components/edit/AddLinkButton'
@@ -74,6 +76,15 @@ interface Rabbi {
   person_type: 'rabbi' | 'chazzan' | 'lay_leader' | 'staff' | 'other'
 }
 
+interface NonClergyPerson {
+  id: string
+  name: string | null
+  title: string | null
+  start_year: number | null
+  end_year: number | null
+  notes: string | null
+}
+
 interface Image {
   id: string
   url: string | null
@@ -109,6 +120,8 @@ interface Props {
   addresses:     Address[]
   history:       HistoryEntry[]
   rabbis:        Rabbi[]
+  layLeaders:    NonClergyPerson[]
+  staff:         NonClergyPerson[]
   images:        Image[]
   links:         LinkItem[]
   relationships: Relationship[]
@@ -218,13 +231,15 @@ interface PendingDelete {
   remove: (id: string) => void
 }
 
-export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, images: initialImages, links, relationships }: Props) {
+export default function SynagogueDetail({ synagogue, addresses: initialAddresses, history: initialHistory, rabbis: initialRabbis, layLeaders: initialLayLeaders, staff: initialStaff, images: initialImages, links, relationships }: Props) {
   const { isEditor, isContributor } = useUserRole()
 
-  const [addresses,     setAddresses]     = useState<Address[]>(initialAddresses)
-  const [history,       setHistory]       = useState<HistoryEntry[]>(initialHistory)
-  const [rabbis,        setRabbis]        = useState<Rabbi[]>(initialRabbis)
-  const [images,        setImages]        = useState<Image[]>(initialImages)
+  const [addresses,   setAddresses]   = useState<Address[]>(initialAddresses)
+  const [history,     setHistory]     = useState<HistoryEntry[]>(initialHistory)
+  const [rabbis,      setRabbis]      = useState<Rabbi[]>(initialRabbis)
+  const [layLeaders,  setLayLeaders]  = useState<NonClergyPerson[]>(initialLayLeaders)
+  const [staff,       setStaff]       = useState<NonClergyPerson[]>(initialStaff)
+  const [images,      setImages]      = useState<Image[]>(initialImages)
   const [lightboxImg,           setLightboxImg]           = useState<Image | null>(null)
   const [pendingDelete,         setPendingDelete]         = useState<PendingDelete | null>(null)
   const [relationshipToDelete,  setRelationshipToDelete]  = useState<Relationship | null>(null)
@@ -512,6 +527,90 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                     synagogueId={synagogue.id}
                     synagogueName={synagogue.name}
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Lay Leaders */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏛️</span>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Lay Leaders</h2>
+                </div>
+                {isContributor && (
+                  <AddLayLeaderButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                )}
+              </div>
+              {layLeaders.length === 0 ? (
+                <EmptyState message="No lay leaders on record" />
+              ) : (
+                <div className="space-y-3">
+                  {layLeaders.map(p => (
+                    <div key={p.id} className="flex items-start justify-between gap-2 group">
+                      <div className="text-sm border-l-2 border-amber-100 dark:border-amber-800 pl-3 flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 dark:text-gray-200">
+                          {p.title ? `${p.title}: ` : ''}{p.name}
+                        </div>
+                        {(p.start_year || p.end_year) && (
+                          <div className="text-gray-400 dark:text-gray-500 text-xs">
+                            {p.start_year ?? '?'} – {p.end_year ?? 'present'}
+                          </div>
+                        )}
+                        {p.notes && (
+                          <div className="text-gray-500 dark:text-gray-400 text-xs mt-1 italic">{p.notes}</div>
+                        )}
+                      </div>
+                      {isEditor && (
+                        <TrashButton onClick={() => requestDelete('rabbis', p.id, 'lay leader', id => setLayLeaders(prev => prev.filter(x => x.id !== id)))} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Staff */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">👤</span>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Staff</h2>
+                </div>
+                {isContributor && (
+                  <AddStaffButton
+                    synagogueId={synagogue.id}
+                    synagogueName={synagogue.name}
+                  />
+                )}
+              </div>
+              {staff.length === 0 ? (
+                <EmptyState message="No staff on record" />
+              ) : (
+                <div className="space-y-3">
+                  {staff.map(p => (
+                    <div key={p.id} className="flex items-start justify-between gap-2 group">
+                      <div className="text-sm border-l-2 border-green-100 dark:border-green-800 pl-3 flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 dark:text-gray-200">
+                          {p.title ? `${p.title}: ` : ''}{p.name}
+                        </div>
+                        {(p.start_year || p.end_year) && (
+                          <div className="text-gray-400 dark:text-gray-500 text-xs">
+                            {p.start_year ?? '?'} – {p.end_year ?? 'present'}
+                          </div>
+                        )}
+                        {p.notes && (
+                          <div className="text-gray-500 dark:text-gray-400 text-xs mt-1 italic">{p.notes}</div>
+                        )}
+                      </div>
+                      {isEditor && (
+                        <TrashButton onClick={() => requestDelete('rabbis', p.id, 'staff member', id => setStaff(prev => prev.filter(x => x.id !== id)))} />
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

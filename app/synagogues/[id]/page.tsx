@@ -94,8 +94,12 @@ export default async function SynagoguePage({ params }: { params: { id: string }
   // Fetch affiliations from both old+new tables (sorted by helper)
   const affiliationsData = await getAffiliationsBySynagogue(params.id)
 
-  // Map to the shape SynagogueDetail expects for its rabbis prop
-  const rabbis = affiliationsData.map(a => ({
+  // Split affiliations by category
+  const clergy = affiliationsData.filter(a => a.affiliation_category === 'clergy')
+  const layLeaderData = affiliationsData.filter(a => a.affiliation_category === 'lay_leader')
+  const staffData = affiliationsData.filter(a => a.affiliation_category === 'staff')
+
+  const rabbis = clergy.map(a => ({
     id:          a.id,
     name:        a.person_profile?.canonical_name ?? null,
     title:       a.role_title,
@@ -105,6 +109,24 @@ export default async function SynagoguePage({ params }: { params: { id: string }
     slug:        a.person_profile?.slug ?? null,
     profile_id:  a.person_profile_id,
     person_type: (a.person_profile?.person_type ?? 'rabbi') as 'rabbi' | 'chazzan' | 'lay_leader' | 'staff' | 'other',
+  }))
+
+  const layLeaders = layLeaderData.map(a => ({
+    id:         a.id,
+    name:       a.person_profile?.canonical_name ?? null,
+    title:      a.role_title,
+    start_year: a.start_year,
+    end_year:   a.end_year,
+    notes:      a.notes,
+  }))
+
+  const staff = staffData.map(a => ({
+    id:         a.id,
+    name:       a.person_profile?.canonical_name ?? null,
+    title:      a.role_title,
+    start_year: a.start_year,
+    end_year:   a.end_year,
+    notes:      a.notes,
   }))
 
   const rawImages: any[] = normalize(synagogue.images).sort((a: any, b: any) => {
@@ -195,6 +217,8 @@ export default async function SynagoguePage({ params }: { params: { id: string }
       addresses={addresses}
       history={history}
       rabbis={rabbis}
+      layLeaders={layLeaders}
+      staff={staff}
       images={images}
       links={links}
       relationships={relationships}
