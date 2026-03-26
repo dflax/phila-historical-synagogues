@@ -12,14 +12,26 @@ interface Props {
   synagogueName: string
 }
 
-interface RabbiResult {
+// ── CUTOVER: Uses person_profiles table ───────────────────────────────────────
+interface PersonResult {
   id:             string
   canonical_name: string
   birth_year:     number | null
   death_year:     number | null
   seminary:       string | null
   slug:           string
+  person_type:    'rabbi' | 'chazzan' | 'lay_leader' | 'staff' | 'other'
 }
+
+// ── OLD interface - Keep for rollback ─────────────────────────────────────────
+// interface RabbiResult {
+//   id:             string
+//   canonical_name: string
+//   birth_year:     number | null
+//   death_year:     number | null
+//   seminary:       string | null
+//   slug:           string
+// }
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -42,10 +54,10 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
   const [step, setStep] = useState(1)
 
   // Step 1 state
-  const [searchQuery,   setSearchQuery]   = useState('')
-  const [searchResults, setSearchResults] = useState<RabbiResult[]>([])
-  const [searching,     setSearching]     = useState(false)
-  const [selectedRabbi, setSelectedRabbi] = useState<RabbiResult | null>(null)
+  const [searchQuery,    setSearchQuery]    = useState('')
+  const [searchResults,  setSearchResults]  = useState<PersonResult[]>([])
+  const [searching,      setSearching]      = useState(false)
+  const [selectedPerson, setSelectedPerson] = useState<PersonResult | null>(null)
 
   // Step 2 state
   const [title,            setTitle]            = useState('')
@@ -94,7 +106,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
     }
   }, [modalOpen])
 
-  // ── Debounced rabbi search ─────────────────────────────────────────────────
+  // ── Debounced clergy search ────────────────────────────────────────────────
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -104,45 +116,66 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
 
     setSearching(true)
     const timer = setTimeout(async () => {
+      // ── CUTOVER: Search new table only, clergy only ───────────────────────
       const { data } = await supabase
-        .from('rabbi_profiles')
-        .select('id, canonical_name, birth_year, death_year, seminary, slug')
+        .from('person_profiles')
+        .select('id, canonical_name, birth_year, death_year, seminary, slug, person_type')
+        .in('person_type', ['rabbi', 'chazzan'])
         .ilike('canonical_name', `%${searchQuery.trim()}%`)
         .eq('approved', true)
         .or('deleted.is.null,deleted.eq.false')
         .order('canonical_name')
         .limit(20)
 
-      setSearchResults(data ?? [])
+      // ── OLD CODE (searched old table) - Keep for rollback ─────────────────
+      // const { data } = await supabase
+      //   .from('rabbi_profiles')
+      //   .select('id, canonical_name, birth_year, death_year, seminary, slug')
+      //   .ilike('canonical_name', `%${searchQuery.trim()}%`)
+      //   .eq('approved', true)
+      //   .or('deleted.is.null,deleted.eq.false')
+      //   .order('canonical_name')
+      //   .limit(20)
+
+      setSearchResults((data ?? []) as PersonResult[])
       setSearching(false)
     }, 300)
 
     return () => clearTimeout(timer)
   }, [searchQuery, supabase])
 
-  // ── Duplicate check when rabbi selected ───────────────────────────────────
+  // ── Duplicate check when person selected ──────────────────────────────────
 
   useEffect(() => {
-    if (!selectedRabbi) return
+    if (!selectedPerson) return
     setDuplicateWarning(null)
 
     const check = async () => {
+      // ── CUTOVER: Check new affiliations table ─────────────────────────────
       const { data: existing } = await supabase
-        .from('rabbis')
-        .select('id, start_year, end_year, title')
-        .eq('profile_id', selectedRabbi.id)
+        .from('affiliations')
+        .select('id, start_year, end_year, role_title')
+        .eq('person_profile_id', selectedPerson.id)
         .eq('synagogue_id', synagogueId)
         .or('deleted.is.null,deleted.eq.false')
 
+      // ── OLD CODE (checked old table) - Keep for rollback ──────────────────
+      // const { data: existing } = await supabase
+      //   .from('rabbis')
+      //   .select('id, start_year, end_year, title')
+      //   .eq('profile_id', selectedPerson.id)
+      //   .eq('synagogue_id', synagogueId)
+      //   .or('deleted.is.null,deleted.eq.false')
+
       if (existing && existing.length > 0) {
         setDuplicateWarning(
-          `${selectedRabbi.canonical_name} already has ${existing.length} affiliation${existing.length !== 1 ? 's' : ''} with this synagogue. You can still add another if this covers a different time period.`
+          `${selectedPerson.canonical_name} already has ${existing.length} affiliation${existing.length !== 1 ? 's' : ''} with this synagogue. You can still add another if this covers a different time period.`
         )
       }
     }
 
     check()
-  }, [selectedRabbi, synagogueId, supabase])
+  }, [selectedPerson, synagogueId, supabase])
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -150,7 +183,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
     setStep(1)
     setSearchQuery('')
     setSearchResults([])
-    setSelectedRabbi(null)
+    setSelectedPerson(null)
     setTitle('')
     setStartYear('')
     setEndYear('')
@@ -166,8 +199,8 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
     setModalOpen(false)
   }
 
-  function selectRabbi(rabbi: RabbiResult) {
-    setSelectedRabbi(rabbi)
+  function selectPerson(person: PersonResult) {
+    setSelectedPerson(person)
     setStep(2)
   }
 
@@ -202,10 +235,10 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
       .from('edit_proposals')
       .insert({
         synagogue_id:   synagogueId,
-        entity_id:      selectedRabbi!.id,
+        entity_id:      selectedPerson!.id,
         proposal_type:  'rabbi_affiliation_new',
         proposed_data: {
-          rabbi_profile_id: selectedRabbi!.id,
+          rabbi_profile_id: selectedPerson!.id,
           synagogue_id:     synagogueId,
           title:            title.trim() || null,
           start_year:       startYear ? parseInt(startYear) : null,
@@ -213,7 +246,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
           notes:            notes.trim() || null,
         },
         current_data: {
-          rabbi_name:     selectedRabbi!.canonical_name,
+          rabbi_name:     selectedPerson!.canonical_name,
           synagogue_name: synagogueName,
         },
         submitter_note: reason.trim(),
@@ -271,7 +304,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
-          aria-label="Add existing rabbi affiliation"
+          aria-label="Add existing clergy affiliation"
         >
           <div
             className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
@@ -303,18 +336,18 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
               {step === 1 && (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Search for an existing rabbi profile to affiliate with this synagogue.
+                    Search for an existing clergy member to affiliate with this synagogue.
                   </p>
 
                   <div>
-                    <label htmlFor="rabbi-search" className={labelClass}>Search for Rabbi</label>
+                    <label htmlFor="clergy-search" className={labelClass}>Search for Clergy</label>
                     <input
-                      id="rabbi-search"
+                      id="clergy-search"
                       type="text"
                       autoFocus
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="Type rabbi name…"
+                      placeholder="Type name…"
                       className={inputClass}
                     />
                   </div>
@@ -325,21 +358,28 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
 
                   {!searching && searchResults.length > 0 && (
                     <div className="border border-gray-200 dark:border-gray-600 rounded-lg divide-y divide-gray-100 dark:divide-gray-700 max-h-80 overflow-y-auto">
-                      {searchResults.map(rabbi => (
+                      {searchResults.map(person => (
                         <button
-                          key={rabbi.id}
+                          key={person.id}
                           type="button"
-                          onClick={() => selectRabbi(rabbi)}
+                          onClick={() => selectPerson(person)}
                           className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
                         >
-                          <div className="font-medium text-gray-900 dark:text-white text-sm">
-                            {rabbi.canonical_name}
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900 dark:text-white text-sm">
+                              {person.canonical_name}
+                            </span>
+                            {person.person_type === 'chazzan' && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                Cantor
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            {rabbi.birth_year
-                              ? `${rabbi.birth_year} – ${rabbi.death_year ?? 'present'}`
-                              : rabbi.death_year ? `? – ${rabbi.death_year}` : null}
-                            {rabbi.seminary && ` · ${rabbi.seminary}`}
+                            {person.birth_year
+                              ? `${person.birth_year} – ${person.death_year ?? 'present'}`
+                              : person.death_year ? `? – ${person.death_year}` : null}
+                            {person.seminary && ` · ${person.seminary}`}
                           </div>
                         </button>
                       ))}
@@ -348,14 +388,14 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
 
                   {!searching && searchQuery.trim() && searchResults.length === 0 && (
                     <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                      No rabbis found. Try a different search term.
+                      No clergy found. Try a different search term.
                     </p>
                   )}
                 </div>
               )}
 
               {/* ── Step 2: Details form ───────────────────────────────── */}
-              {step === 2 && selectedRabbi && (
+              {step === 2 && selectedPerson && (
                 <form onSubmit={handleSubmit} className="space-y-4">
 
                   {error && (
@@ -366,8 +406,15 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
 
                   {/* Summary card */}
                   <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 text-sm">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Adding rabbi:</div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{selectedRabbi.canonical_name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Adding clergy member:</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{selectedPerson.canonical_name}</span>
+                      {selectedPerson.person_type === 'chazzan' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                          Cantor
+                        </span>
+                      )}
+                    </div>
                     <div className="text-gray-500 dark:text-gray-400">to {synagogueName}</div>
                   </div>
 
@@ -458,7 +505,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
                   <div className="flex gap-3 pt-1">
                     <button
                       type="button"
-                      onClick={() => { setStep(1); setSelectedRabbi(null); setError(null) }}
+                      onClick={() => { setStep(1); setSelectedPerson(null); setError(null) }}
                       className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                     >
                       ← Back
@@ -479,7 +526,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
               )}
 
               {/* ── Step 3: Success ────────────────────────────────────── */}
-              {step === 3 && selectedRabbi && (
+              {step === 3 && selectedPerson && (
                 <div className="text-center py-6 space-y-3">
                   <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
                     <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -488,7 +535,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
                   </div>
                   <p className="text-gray-900 dark:text-white font-semibold">Proposal Submitted</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your proposal to affiliate <span className="font-medium">{selectedRabbi.canonical_name}</span> with <span className="font-medium">{synagogueName}</span> has been submitted for review.
+                    Your proposal to affiliate <span className="font-medium">{selectedPerson.canonical_name}</span> with <span className="font-medium">{synagogueName}</span> has been submitted for review.
                   </p>
                   <button
                     onClick={closeModal}
