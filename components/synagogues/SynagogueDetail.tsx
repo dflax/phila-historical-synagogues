@@ -15,6 +15,7 @@ import DeleteSynagogueButton from '@/components/edit/DeleteSynagogueButton'
 import MergeSynagogueButton from '@/components/edit/MergeSynagogueButton'
 import SplitSynagogueButton from '@/components/edit/SplitSynagogueButton'
 import AddRabbiAffiliationButton from '@/components/edit/AddRabbiAffiliationButton'
+import EditAffiliationButton from '@/components/edit/EditAffiliationButton'
 import AddRelationshipButton from '@/components/edit/AddRelationshipButton'
 import DeleteRelationshipModal from '@/components/edit/DeleteRelationshipModal'
 import AddLinkButton from '@/components/edit/AddLinkButton'
@@ -69,6 +70,8 @@ interface Rabbi {
   end_year: number | null
   notes: string | null
   slug: string | null
+  profile_id: string
+  person_type: 'rabbi' | 'chazzan' | 'lay_leader' | 'staff' | 'other'
 }
 
 interface Image {
@@ -462,7 +465,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                         <div className="font-medium text-gray-800 dark:text-gray-200">
                           {r.title ? `${r.title} ` : ''}
                           {r.slug ? (
-                            <Link href={`/rabbis/${r.slug}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                            <Link href={`/leadership/${r.slug}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                               {r.name}
                             </Link>
                           ) : r.name}
@@ -476,9 +479,29 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
                           <div className="text-gray-500 dark:text-gray-400 text-xs mt-1 italic">{r.notes}</div>
                         )}
                       </div>
-                      {isEditor && (
-                        <TrashButton onClick={() => requestDelete('rabbis', r.id, 'rabbi', id => setRabbis(prev => prev.filter(x => x.id !== id)))} />
-                      )}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {isEditor && r.profile_id && (
+                          <EditAffiliationButton
+                            affiliation={{
+                              id:         r.id,
+                              role_title: r.title,
+                              start_year: r.start_year,
+                              end_year:   r.end_year,
+                              notes:      r.notes,
+                            }}
+                            personProfile={{
+                              id:             r.profile_id,
+                              canonical_name: r.name ?? '',
+                              person_type:    r.person_type,
+                              slug:           r.slug,
+                            }}
+                            synagogueId={synagogue.id}
+                          />
+                        )}
+                        {isEditor && (
+                          <TrashButton onClick={() => requestDelete('rabbis', r.id, 'rabbi', id => setRabbis(prev => prev.filter(x => x.id !== id)))} />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -1130,6 +1130,84 @@ export async function POST(
         { status: 500 },
       )
     }
+  } else if (proposal.proposal_type === 'affiliation_edit' && proposal.entity_id) {
+    const affiliationId    = proposal.entity_id
+    const convertToCantor  = proposed.convert_to_cantor  as boolean | undefined
+    const personProfileId  = proposed.person_profile_id  as string | undefined
+
+    // Update old rabbis table (title column)
+    const { error: oldAffError } = await supabase
+      .from('rabbis')
+      .update({
+        title:      proposed.role_title as string,
+        start_year: proposed.start_year as number | null,
+        end_year:   proposed.end_year   as number | null,
+        notes:      proposed.notes      as string | null,
+      })
+      .eq('id', affiliationId)
+
+    if (oldAffError) {
+      return NextResponse.json(
+        { error: `Failed to update affiliation: ${oldAffError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // Update new affiliations table (role_title column) — non-fatal during transition
+    await supabaseAdmin
+      .from('affiliations')
+      .update({
+        role_title: proposed.role_title as string,
+        start_year: proposed.start_year as number | null,
+        end_year:   proposed.end_year   as number | null,
+        notes:      proposed.notes      as string | null,
+      })
+      .eq('id', affiliationId)
+
+    // If converting to cantor, update the person profile in both tables
+    if (convertToCantor && personProfileId) {
+      // Look up canonical name from rabbi_profiles
+      const { data: currentProfile } = await supabase
+        .from('rabbi_profiles')
+        .select('canonical_name, slug')
+        .eq('id', personProfileId)
+        .maybeSingle()
+
+      const baseName = (currentProfile?.canonical_name ?? '')
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim()
+
+      let newSlug = `chazzan-${baseName}`
+      let counter = 1
+
+      // Ensure slug is unique in person_profiles
+      while (true) {
+        const { data: existing } = await supabase
+          .from('rabbi_profiles')
+          .select('id')
+          .eq('slug', newSlug)
+          .neq('id', personProfileId)
+          .maybeSingle()
+        if (!existing) break
+        newSlug = `chazzan-${baseName}-${counter}`
+        counter++
+      }
+
+      // Update old rabbi_profiles slug
+      await supabase
+        .from('rabbi_profiles')
+        .update({ slug: newSlug })
+        .eq('id', personProfileId)
+
+      // Update new person_profiles type + slug (non-fatal during transition)
+      await supabaseAdmin
+        .from('person_profiles')
+        .update({ person_type: 'chazzan', slug: newSlug })
+        .eq('id', personProfileId)
+    }
   } else if (proposal.proposal_type === 'synagogue_relationship_delete' && proposal.entity_id) {
     const relationshipId     = proposal.entity_id
     // Fallback: some older proposals stored synagogue_id only in the top-level column
