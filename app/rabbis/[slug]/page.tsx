@@ -33,12 +33,13 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
 
   // Map to the shape RabbiDetail (and SplitRabbiButton) expect
   const affiliations = affiliationsData.map(a => ({
-    id:         a.id,
-    title:      a.role_title,
-    start_year: a.start_year,
-    end_year:   a.end_year,
-    notes:      a.notes,
-    synagogue:  a.synagogue ? { id: a.synagogue.id, name: a.synagogue.name } : null,
+    id:           a.id,
+    title:        a.role_title,
+    start_year:   a.start_year,
+    end_year:     a.end_year,
+    notes:        a.notes,
+    synagogue_id: a.synagogue_id,
+    synagogue:    a.synagogue ? { id: a.synagogue.id, name: a.synagogue.name } : null,
   }))
 
   // ── Images (still queried directly — no helper yet) ───────────────────────
@@ -116,6 +117,7 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
           : null,
         publications:    profile.publications    ?? null,
         achievements:    profile.achievements    ?? null,
+        person_type:     profile.person_type     ?? 'rabbi',
       }}
       affiliations={affiliations}
       photos={photos}

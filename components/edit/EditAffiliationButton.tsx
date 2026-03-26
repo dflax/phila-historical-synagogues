@@ -27,6 +27,8 @@ export default function EditAffiliationButton({
 }: EditAffiliationButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const [roleTitle, setRoleTitle] = useState(affiliation.role_title ?? '')
   const [startYear, setStartYear] = useState(affiliation.start_year?.toString() ?? '')
@@ -43,7 +45,7 @@ export default function EditAffiliationButton({
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        alert('You must be logged in to edit affiliations')
+        setSubmitError('You must be logged in to edit affiliations.')
         return
       }
 
@@ -80,13 +82,11 @@ export default function EditAffiliationButton({
 
       if (error) throw error
 
-      alert('Edit proposal submitted for review.')
-      setIsOpen(false)
-      window.location.reload()
+      setShowSuccess(true)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error('Error submitting proposal:', err)
-      alert(`Failed to submit proposal: ${msg}`)
+      setSubmitError(msg || 'An unexpected error occurred.')
     } finally {
       setIsSubmitting(false)
     }
@@ -213,6 +213,62 @@ export default function EditAffiliationButton({
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 mb-4">
+                <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Proposal Submitted Successfully
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                Your edit proposal has been submitted for review by an editor.
+              </p>
+              <button
+                onClick={() => {
+                  setShowSuccess(false)
+                  setIsOpen(false)
+                  window.location.reload()
+                }}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Submission Failed
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                {submitError}
+              </p>
+              <button
+                onClick={() => setSubmitError(null)}
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

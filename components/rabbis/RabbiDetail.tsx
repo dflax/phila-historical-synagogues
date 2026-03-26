@@ -10,6 +10,7 @@ import DeleteRabbiButton from '@/components/edit/DeleteRabbiButton'
 import MergeRabbiButton from '@/components/edit/MergeRabbiButton'
 import SplitRabbiButton from '@/components/edit/SplitRabbiButton'
 import AddSynagogueAffiliationButton from '@/components/edit/AddSynagogueAffiliationButton'
+import EditAffiliationButton from '@/components/edit/EditAffiliationButton'
 import AddLinkButton from '@/components/edit/AddLinkButton'
 import LinksSection from '@/components/common/LinksSection'
 import PhotoUploadButton from '@/components/photos/PhotoUploadButton'
@@ -20,6 +21,7 @@ interface RabbiProfile {
   id: string
   slug: string
   canonical_name: string
+  person_type: string
   birth_year: number | null
   death_year: number | null
   circa_birth: boolean | null
@@ -41,6 +43,7 @@ interface Affiliation {
   start_year: number | null
   end_year: number | null
   notes: string | null
+  synagogue_id: string
   synagogue: { id: string; name: string } | null
 }
 
@@ -518,16 +521,36 @@ export default function RabbiDetail({ profile, affiliations: initialAffiliations
                         )}
                       </div>
 
-                      {isEditor && (
-                        <TrashButton
-                          onClick={() => requestDelete(
-                            'rabbis',
-                            aff.id,
-                            'affiliation',
-                            id => setAffiliations(prev => prev.filter(a => a.id !== id))
-                          )}
-                        />
-                      )}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {isEditor && (
+                          <EditAffiliationButton
+                            affiliation={{
+                              id:         aff.id,
+                              role_title: aff.title,
+                              start_year: aff.start_year,
+                              end_year:   aff.end_year,
+                              notes:      aff.notes,
+                            }}
+                            personProfile={{
+                              id:             profile.id,
+                              canonical_name: profile.canonical_name,
+                              person_type:    (profile.person_type as 'rabbi' | 'chazzan' | 'lay_leader' | 'staff' | 'other') ?? 'rabbi',
+                              slug:           profile.slug,
+                            }}
+                            synagogueId={aff.synagogue_id}
+                          />
+                        )}
+                        {isEditor && (
+                          <TrashButton
+                            onClick={() => requestDelete(
+                              'rabbis',
+                              aff.id,
+                              'affiliation',
+                              id => setAffiliations(prev => prev.filter(a => a.id !== id))
+                            )}
+                          />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
