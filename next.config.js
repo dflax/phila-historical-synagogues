@@ -31,17 +31,21 @@ const nextConfig = {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'Philadelphia Historical Synagogues',
   },
 
+  // ═══════════════════════════════════════════════════════════════════
+  // CUTOVER COMPLETE - Permanent redirects from old URLs to new
+  // Old /rabbis URLs now permanently redirect to /leadership
+  // ═══════════════════════════════════════════════════════════════════
   async redirects() {
     return [
       {
         source: '/rabbis',
         destination: '/leadership',
-        permanent: false,
+        permanent: true,  // Migration complete - permanent redirect
       },
       {
         source: '/rabbis/:slug',
         destination: '/leadership/:slug',
-        permanent: false,
+        permanent: true,  // Migration complete - permanent redirect
       },
     ]
   },

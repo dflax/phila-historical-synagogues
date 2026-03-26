@@ -75,6 +75,11 @@ export async function POST(
   const proposed = (proposal.proposed_data ?? {}) as Record<string, unknown>
   const now = new Date().toISOString()
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUTOVER COMPLETE - Writing to new tables only (person_profiles, affiliations)
+  // Old dual-write code is commented out below each handler for rollback
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // ── 4. Apply changes based on proposal_type ──────────────────────────────
 
   if (proposal.proposal_type === 'synagogue_merge' && proposal.synagogue_id) {
@@ -488,31 +493,49 @@ export async function POST(
       )
     }
   } else if (proposal.proposal_type === 'rabbi_profile_delete' && proposal.entity_id) {
-    // 1. Soft-delete in BOTH old (rabbi_profiles) and new (person_profiles) tables
-    const [profileResult, personResult] = await Promise.all([
-      supabase
-        .from('rabbi_profiles')
-        .update({ deleted: true })
-        .eq('id', proposal.entity_id),
-      supabaseAdmin
-        .from('person_profiles')
-        .update({ deleted: true, deleted_by: user.id, deleted_at: now })
-        .eq('id', proposal.entity_id),
-    ])
-    if (profileResult.error) {
+    // ── CUTOVER: Writing to new tables only ────────────────────────────────
+    // 1. Soft-delete in new (person_profiles) table only
+    const { error: personResult } = await supabaseAdmin
+      .from('person_profiles')
+      .update({ deleted: true, deleted_by: user.id, deleted_at: now })
+      .eq('id', proposal.entity_id)
+
+    if (personResult) {
       return NextResponse.json(
-        { error: `Failed to delete rabbi profile: ${profileResult.error.message}` },
+        { error: `Failed to delete person profile: ${personResult.message}` },
         { status: 500 },
       )
     }
-    // person_profiles failure is non-fatal during transition
 
-    // 2. Delete linked affiliation records from BOTH tables
-    await Promise.all([
-      supabase.from('rabbis').delete().eq('profile_id', proposal.entity_id),
-      supabaseAdmin.from('affiliations').delete().eq('person_profile_id', proposal.entity_id),
-    ])
-    // Non-fatal: if no affiliations exist these are no-ops
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // const [profileResult, personResult] = await Promise.all([
+    //   supabase
+    //     .from('rabbi_profiles')
+    //     .update({ deleted: true })
+    //     .eq('id', proposal.entity_id),
+    //   supabaseAdmin
+    //     .from('person_profiles')
+    //     .update({ deleted: true, deleted_by: user.id, deleted_at: now })
+    //     .eq('id', proposal.entity_id),
+    // ])
+    // if (profileResult.error) {
+    //   return NextResponse.json(
+    //     { error: `Failed to delete rabbi profile: ${profileResult.error.message}` },
+    //     { status: 500 },
+    //   )
+    // }
+    // // person_profiles failure is non-fatal during transition
+
+    // ── CUTOVER: Delete linked affiliations from new table only ───────────
+    // 2. Delete linked affiliation records
+    await supabaseAdmin.from('affiliations').delete().eq('person_profile_id', proposal.entity_id)
+    // Non-fatal: if no affiliations exist this is a no-op
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // await Promise.all([
+    //   supabase.from('rabbis').delete().eq('profile_id', proposal.entity_id),
+    //   supabaseAdmin.from('affiliations').delete().eq('person_profile_id', proposal.entity_id),
+    // ])
 
     // 3. Delete linked images and attempt storage cleanup
     const { data: linkedImages } = await supabase
@@ -548,13 +571,14 @@ export async function POST(
       .replace(/\s+/g, '-')
       .substring(0, 100)
 
+    // ── CUTOVER: Check uniqueness against new table only ──────────────────
     // Ensure uniqueness by appending a counter if needed
     let finalSlug = baseSlug
     let counter   = 1
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const { data: existing } = await supabase
-        .from('rabbi_profiles')
+      const { data: existing } = await supabaseAdmin
+        .from('person_profiles')
         .select('id')
         .eq('slug', finalSlug)
         .maybeSingle()
@@ -563,94 +587,131 @@ export async function POST(
       counter++
     }
 
+    // ── OLD CODE (slug check) - Keep for rollback ──────────────────────────
+    // while (true) {
+    //   const { data: existing } = await supabase
+    //     .from('rabbi_profiles')
+    //     .select('id')
+    //     .eq('slug', finalSlug)
+    //     .maybeSingle()
+    //   if (!existing) break
+    //   finalSlug = `${baseSlug}-${counter}`
+    //   counter++
+    // }
+
     const personType = finalSlug.startsWith('chazzan-') ? 'chazzan' : 'rabbi'
 
-    const [oldInsert, newInsert] = await Promise.all([
-      // OLD TABLE: rabbi_profiles
-      supabase.from('rabbi_profiles').insert({
-        canonical_name: candidateName,
-        slug:           finalSlug,
-        birth_year:     proposed.birth_year  ?? null,
-        circa_birth:    proposed.circa_birth ?? false,
-        death_year:     proposed.death_year  ?? null,
-        circa_death:    proposed.circa_death ?? false,
-        biography:      proposed.biography   ?? null,
-        approved:       true,
-        approved_by:    user.id,
-        approved_at:    now,
-        created_by:     proposal.created_by,
-      }),
-      // NEW TABLE: person_profiles
-      supabaseAdmin.from('person_profiles').insert({
-        canonical_name: candidateName,
-        person_type:    personType,
-        slug:           finalSlug,
-        birth_year:     proposed.birth_year  ?? null,
-        circa_birth:    (proposed.circa_birth ?? false) as boolean,
-        death_year:     proposed.death_year  ?? null,
-        circa_death:    (proposed.circa_death ?? false) as boolean,
-        biography:      proposed.biography   ?? null,
-        approved:       true,
-      }),
-    ])
-    if (oldInsert.error) {
+    // ── CUTOVER: Writing to new table only ─────────────────────────────────
+    const { error: newInsertError } = await supabaseAdmin.from('person_profiles').insert({
+      canonical_name: candidateName,
+      person_type:    personType,
+      slug:           finalSlug,
+      birth_year:     proposed.birth_year  ?? null,
+      circa_birth:    (proposed.circa_birth ?? false) as boolean,
+      death_year:     proposed.death_year  ?? null,
+      circa_death:    (proposed.circa_death ?? false) as boolean,
+      biography:      proposed.biography   ?? null,
+      approved:       true,
+    })
+    if (newInsertError) {
       return NextResponse.json(
-        { error: `Failed to create rabbi profile: ${oldInsert.error.message}` },
+        { error: `Failed to create person profile: ${newInsertError.message}` },
         { status: 500 },
       )
     }
-    // person_profiles failure is non-fatal during transition
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // const [oldInsert, newInsert] = await Promise.all([
+    //   // OLD TABLE: rabbi_profiles
+    //   supabase.from('rabbi_profiles').insert({
+    //     canonical_name: candidateName,
+    //     slug:           finalSlug,
+    //     birth_year:     proposed.birth_year  ?? null,
+    //     circa_birth:    proposed.circa_birth ?? false,
+    //     death_year:     proposed.death_year  ?? null,
+    //     circa_death:    proposed.circa_death ?? false,
+    //     biography:      proposed.biography   ?? null,
+    //     approved:       true,
+    //     approved_by:    user.id,
+    //     approved_at:    now,
+    //     created_by:     proposal.created_by,
+    //   }),
+    //   // NEW TABLE: person_profiles
+    //   supabaseAdmin.from('person_profiles').insert({
+    //     canonical_name: candidateName,
+    //     person_type:    personType,
+    //     slug:           finalSlug,
+    //     birth_year:     proposed.birth_year  ?? null,
+    //     circa_birth:    (proposed.circa_birth ?? false) as boolean,
+    //     death_year:     proposed.death_year  ?? null,
+    //     circa_death:    (proposed.circa_death ?? false) as boolean,
+    //     biography:      proposed.biography   ?? null,
+    //     approved:       true,
+    //   }),
+    // ])
+    // if (oldInsert.error) {
+    //   return NextResponse.json(
+    //     { error: `Failed to create rabbi profile: ${oldInsert.error.message}` },
+    //     { status: 500 },
+    //   )
+    // }
+    // // person_profiles failure is non-fatal during transition
 
   } else if (proposal.proposal_type === 'rabbi_profile_edit' && proposal.entity_id) {
     const toLanguagesStr = (v: unknown): string | null =>
       Array.isArray(v) ? v.join(', ') : (typeof v === 'string' ? v : null)
 
-    const [oldUpdate, newUpdate] = await Promise.all([
-      // OLD TABLE: rabbi_profiles (languages stays as string[] | null)
-      supabase.from('rabbi_profiles').update({
-        canonical_name:  proposed.canonical_name  ?? undefined,
-        birth_year:      proposed.birth_year      !== undefined ? (proposed.birth_year      ?? null)  : undefined,
-        circa_birth:     proposed.circa_birth     !== undefined ? (proposed.circa_birth     ?? false) : undefined,
-        death_year:      proposed.death_year      !== undefined ? (proposed.death_year      ?? null)  : undefined,
-        circa_death:     proposed.circa_death     !== undefined ? (proposed.circa_death     ?? false) : undefined,
-        biography:       proposed.biography       !== undefined ? (proposed.biography       ?? null)  : undefined,
-        birthplace:      proposed.birthplace      !== undefined ? (proposed.birthplace      ?? null)  : undefined,
-        death_place:     proposed.death_place     !== undefined ? (proposed.death_place     ?? null)  : undefined,
-        seminary:        proposed.seminary        !== undefined ? (proposed.seminary        ?? null)  : undefined,
-        ordination_year: proposed.ordination_year !== undefined ? (proposed.ordination_year ?? null)  : undefined,
-        denomination:    proposed.denomination    !== undefined ? (proposed.denomination    ?? null)  : undefined,
-        languages:       proposed.languages       !== undefined ? (proposed.languages       ?? null)  : undefined,
-        publications:    proposed.publications    !== undefined ? (proposed.publications    ?? null)  : undefined,
-        achievements:    proposed.achievements    !== undefined ? (proposed.achievements    ?? null)  : undefined,
-        updated_at:      now,
-      }).eq('id', proposal.entity_id),
+    // ── CUTOVER: Writing to new table only ─────────────────────────────────
+    const { error: newUpdateError } = await supabaseAdmin.from('person_profiles').update({
+      canonical_name:  proposed.canonical_name  ?? undefined,
+      birth_year:      proposed.birth_year      !== undefined ? (proposed.birth_year      ?? null)  : undefined,
+      circa_birth:     proposed.circa_birth     !== undefined ? (proposed.circa_birth     ?? false) : undefined,
+      death_year:      proposed.death_year      !== undefined ? (proposed.death_year      ?? null)  : undefined,
+      circa_death:     proposed.circa_death     !== undefined ? (proposed.circa_death     ?? false) : undefined,
+      biography:       proposed.biography       !== undefined ? (proposed.biography       ?? null)  : undefined,
+      birthplace:      proposed.birthplace      !== undefined ? (proposed.birthplace      ?? null)  : undefined,
+      death_place:     proposed.death_place     !== undefined ? (proposed.death_place     ?? null)  : undefined,
+      seminary:        proposed.seminary        !== undefined ? (proposed.seminary        ?? null)  : undefined,
+      ordination_year: proposed.ordination_year !== undefined ? (proposed.ordination_year ?? null)  : undefined,
+      denomination:    proposed.denomination    !== undefined ? (proposed.denomination    ?? null)  : undefined,
+      languages:       proposed.languages       !== undefined ? toLanguagesStr(proposed.languages)  : undefined,
+      publications:    proposed.publications    !== undefined ? (proposed.publications    ?? null)  : undefined,
+      achievements:    proposed.achievements    !== undefined ? (proposed.achievements    ?? null)  : undefined,
+      updated_at:      now,
+    }).eq('id', proposal.entity_id)
 
-      // NEW TABLE: person_profiles (languages as string | null)
-      supabaseAdmin.from('person_profiles').update({
-        canonical_name:  proposed.canonical_name  ?? undefined,
-        birth_year:      proposed.birth_year      !== undefined ? (proposed.birth_year      ?? null)  : undefined,
-        circa_birth:     proposed.circa_birth     !== undefined ? (proposed.circa_birth     ?? false) : undefined,
-        death_year:      proposed.death_year      !== undefined ? (proposed.death_year      ?? null)  : undefined,
-        circa_death:     proposed.circa_death     !== undefined ? (proposed.circa_death     ?? false) : undefined,
-        biography:       proposed.biography       !== undefined ? (proposed.biography       ?? null)  : undefined,
-        birthplace:      proposed.birthplace      !== undefined ? (proposed.birthplace      ?? null)  : undefined,
-        death_place:     proposed.death_place     !== undefined ? (proposed.death_place     ?? null)  : undefined,
-        seminary:        proposed.seminary        !== undefined ? (proposed.seminary        ?? null)  : undefined,
-        ordination_year: proposed.ordination_year !== undefined ? (proposed.ordination_year ?? null)  : undefined,
-        denomination:    proposed.denomination    !== undefined ? (proposed.denomination    ?? null)  : undefined,
-        languages:       proposed.languages       !== undefined ? toLanguagesStr(proposed.languages)  : undefined,
-        publications:    proposed.publications    !== undefined ? (proposed.publications    ?? null)  : undefined,
-        achievements:    proposed.achievements    !== undefined ? (proposed.achievements    ?? null)  : undefined,
-        updated_at:      now,
-      }).eq('id', proposal.entity_id),
-    ])
-    if (oldUpdate.error) {
+    if (newUpdateError) {
       return NextResponse.json(
-        { error: `Failed to update rabbi profile: ${oldUpdate.error.message}` },
+        { error: `Failed to update person profile: ${newUpdateError.message}` },
         { status: 500 },
       )
     }
-    // person_profiles failure is non-fatal during transition
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // const [oldUpdate, newUpdate] = await Promise.all([
+    //   // OLD TABLE: rabbi_profiles (languages stays as string[] | null)
+    //   supabase.from('rabbi_profiles').update({
+    //     canonical_name:  proposed.canonical_name  ?? undefined,
+    //     birth_year:      proposed.birth_year      !== undefined ? (proposed.birth_year      ?? null)  : undefined,
+    //     circa_birth:     proposed.circa_birth     !== undefined ? (proposed.circa_birth     ?? false) : undefined,
+    //     death_year:      proposed.death_year      !== undefined ? (proposed.death_year      ?? null)  : undefined,
+    //     circa_death:     proposed.circa_death     !== undefined ? (proposed.circa_death     ?? false) : undefined,
+    //     biography:       proposed.biography       !== undefined ? (proposed.biography       ?? null)  : undefined,
+    //     birthplace:      proposed.birthplace      !== undefined ? (proposed.birthplace      ?? null)  : undefined,
+    //     death_place:     proposed.death_place     !== undefined ? (proposed.death_place     ?? null)  : undefined,
+    //     seminary:        proposed.seminary        !== undefined ? (proposed.seminary        ?? null)  : undefined,
+    //     ordination_year: proposed.ordination_year !== undefined ? (proposed.ordination_year ?? null)  : undefined,
+    //     denomination:    proposed.denomination    !== undefined ? (proposed.denomination    ?? null)  : undefined,
+    //     languages:       proposed.languages       !== undefined ? (proposed.languages       ?? null)  : undefined,
+    //     publications:    proposed.publications    !== undefined ? (proposed.publications    ?? null)  : undefined,
+    //     achievements:    proposed.achievements    !== undefined ? (proposed.achievements    ?? null)  : undefined,
+    //     updated_at:      now,
+    //   }).eq('id', proposal.entity_id),
+    //   // NEW TABLE: person_profiles (languages as string | null)
+    //   supabaseAdmin.from('person_profiles').update({ ... }).eq('id', proposal.entity_id),
+    // ])
+    // if (oldUpdate.error) { ... }
+    // // person_profiles failure is non-fatal during transition
 
   } else if (proposal.proposal_type === 'rabbi_profile_merge' && proposal.entity_id) {
     const mergeSourceId = proposal.entity_id
@@ -665,60 +726,52 @@ export async function POST(
     const toLanguagesStr = (v: unknown): string | null =>
       Array.isArray(v) ? v.join(', ') : (typeof v === 'string' ? v : null)
 
-    // 1. Update source profile in BOTH tables
-    const [mergeOldUpdate, mergeNewUpdate] = await Promise.all([
-      // OLD TABLE: rabbi_profiles
-      supabase.from('rabbi_profiles').update({
-        canonical_name:  merged.canonical_name  ?? undefined,
-        birth_year:      merged.birth_year      !== undefined ? (merged.birth_year      ?? null)  : undefined,
-        circa_birth:     merged.circa_birth     !== undefined ? (merged.circa_birth     ?? false) : undefined,
-        death_year:      merged.death_year      !== undefined ? (merged.death_year      ?? null)  : undefined,
-        circa_death:     merged.circa_death     !== undefined ? (merged.circa_death     ?? false) : undefined,
-        biography:       merged.biography       !== undefined ? (merged.biography       ?? null)  : undefined,
-        birthplace:      merged.birthplace      !== undefined ? (merged.birthplace      ?? null)  : undefined,
-        death_place:     merged.death_place     !== undefined ? (merged.death_place     ?? null)  : undefined,
-        seminary:        merged.seminary        !== undefined ? (merged.seminary        ?? null)  : undefined,
-        ordination_year: merged.ordination_year !== undefined ? (merged.ordination_year ?? null)  : undefined,
-        denomination:    merged.denomination    !== undefined ? (merged.denomination    ?? null)  : undefined,
-        languages:       merged.languages       !== undefined ? (merged.languages       ?? null)  : undefined,
-        publications:    merged.publications    !== undefined ? (merged.publications    ?? null)  : undefined,
-        achievements:    merged.achievements    !== undefined ? (merged.achievements    ?? null)  : undefined,
-        updated_at:      now,
-      }).eq('id', mergeSourceId),
+    // ── CUTOVER: Writing to new table only ─────────────────────────────────
+    // 1. Update source profile in new table only
+    const { error: mergeNewUpdateError } = await supabaseAdmin.from('person_profiles').update({
+      canonical_name:  merged.canonical_name  ?? undefined,
+      birth_year:      merged.birth_year      !== undefined ? (merged.birth_year      ?? null)  : undefined,
+      circa_birth:     merged.circa_birth     !== undefined ? (merged.circa_birth     ?? false) : undefined,
+      death_year:      merged.death_year      !== undefined ? (merged.death_year      ?? null)  : undefined,
+      circa_death:     merged.circa_death     !== undefined ? (merged.circa_death     ?? false) : undefined,
+      biography:       merged.biography       !== undefined ? (merged.biography       ?? null)  : undefined,
+      birthplace:      merged.birthplace      !== undefined ? (merged.birthplace      ?? null)  : undefined,
+      death_place:     merged.death_place     !== undefined ? (merged.death_place     ?? null)  : undefined,
+      seminary:        merged.seminary        !== undefined ? (merged.seminary        ?? null)  : undefined,
+      ordination_year: merged.ordination_year !== undefined ? (merged.ordination_year ?? null)  : undefined,
+      denomination:    merged.denomination    !== undefined ? (merged.denomination    ?? null)  : undefined,
+      languages:       merged.languages       !== undefined ? toLanguagesStr(merged.languages)  : undefined,
+      publications:    merged.publications    !== undefined ? (merged.publications    ?? null)  : undefined,
+      achievements:    merged.achievements    !== undefined ? (merged.achievements    ?? null)  : undefined,
+      updated_at:      now,
+    }).eq('id', mergeSourceId)
 
-      // NEW TABLE: person_profiles
-      supabaseAdmin.from('person_profiles').update({
-        canonical_name:  merged.canonical_name  ?? undefined,
-        birth_year:      merged.birth_year      !== undefined ? (merged.birth_year      ?? null)  : undefined,
-        circa_birth:     merged.circa_birth     !== undefined ? (merged.circa_birth     ?? false) : undefined,
-        death_year:      merged.death_year      !== undefined ? (merged.death_year      ?? null)  : undefined,
-        circa_death:     merged.circa_death     !== undefined ? (merged.circa_death     ?? false) : undefined,
-        biography:       merged.biography       !== undefined ? (merged.biography       ?? null)  : undefined,
-        birthplace:      merged.birthplace      !== undefined ? (merged.birthplace      ?? null)  : undefined,
-        death_place:     merged.death_place     !== undefined ? (merged.death_place     ?? null)  : undefined,
-        seminary:        merged.seminary        !== undefined ? (merged.seminary        ?? null)  : undefined,
-        ordination_year: merged.ordination_year !== undefined ? (merged.ordination_year ?? null)  : undefined,
-        denomination:    merged.denomination    !== undefined ? (merged.denomination    ?? null)  : undefined,
-        languages:       merged.languages       !== undefined ? toLanguagesStr(merged.languages)  : undefined,
-        publications:    merged.publications    !== undefined ? (merged.publications    ?? null)  : undefined,
-        achievements:    merged.achievements    !== undefined ? (merged.achievements    ?? null)  : undefined,
-        updated_at:      now,
-      }).eq('id', mergeSourceId),
-    ])
-
-    if (mergeOldUpdate.error) {
+    if (mergeNewUpdateError) {
       return NextResponse.json(
-        { error: `Failed to update rabbi profile: ${mergeOldUpdate.error.message}` },
+        { error: `Failed to update person profile: ${mergeNewUpdateError.message}` },
         { status: 500 },
       )
     }
-    // person_profiles failure is non-fatal during transition
 
-    // 2. Move synagogue affiliations from target to source in BOTH tables
-    await Promise.all([
-      supabase.from('rabbis').update({ profile_id: mergeSourceId }).eq('profile_id', mergeTargetId),
-      supabaseAdmin.from('affiliations').update({ person_profile_id: mergeSourceId }).eq('person_profile_id', mergeTargetId),
-    ])
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // const [mergeOldUpdate, mergeNewUpdate] = await Promise.all([
+    //   // OLD TABLE: rabbi_profiles
+    //   supabase.from('rabbi_profiles').update({ ... }).eq('id', mergeSourceId),
+    //   // NEW TABLE: person_profiles
+    //   supabaseAdmin.from('person_profiles').update({ ... }).eq('id', mergeSourceId),
+    // ])
+    // if (mergeOldUpdate.error) { ... }
+    // // person_profiles failure is non-fatal during transition
+
+    // ── CUTOVER: Move affiliations in new table only ───────────────────────
+    // 2. Move synagogue affiliations from target to source
+    await supabaseAdmin.from('affiliations').update({ person_profile_id: mergeSourceId }).eq('person_profile_id', mergeTargetId)
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // await Promise.all([
+    //   supabase.from('rabbis').update({ profile_id: mergeSourceId }).eq('profile_id', mergeTargetId),
+    //   supabaseAdmin.from('affiliations').update({ person_profile_id: mergeSourceId }).eq('person_profile_id', mergeTargetId),
+    // ])
 
     // 3. Move photos from target to source
     await supabase
@@ -739,11 +792,15 @@ export async function POST(
       .update({ related_rabbi_id: mergeSourceId })
       .eq('related_rabbi_id', mergeTargetId)
 
-    // 5. Soft-delete the target in BOTH tables
-    await Promise.all([
-      supabase.from('rabbi_profiles').update({ deleted: true, deleted_by: user.id, deleted_at: now }).eq('id', mergeTargetId),
-      supabaseAdmin.from('person_profiles').update({ deleted: true, deleted_by: user.id, deleted_at: now }).eq('id', mergeTargetId),
-    ])
+    // ── CUTOVER: Soft-delete target in new table only ─────────────────────
+    // 5. Soft-delete the target
+    await supabaseAdmin.from('person_profiles').update({ deleted: true, deleted_by: user.id, deleted_at: now }).eq('id', mergeTargetId)
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // await Promise.all([
+    //   supabase.from('rabbi_profiles').update({ deleted: true, deleted_by: user.id, deleted_at: now }).eq('id', mergeTargetId),
+    //   supabaseAdmin.from('person_profiles').update({ deleted: true, deleted_by: user.id, deleted_at: now }).eq('id', mergeTargetId),
+    // ])
 
   } else if (proposal.proposal_type === 'rabbi_profile_split' && proposal.entity_id) {
     const origId      = proposal.entity_id
@@ -757,46 +814,33 @@ export async function POST(
     const toLanguagesStr = (v: unknown): string | null =>
       Array.isArray(v) ? v.join(', ') : (typeof v === 'string' ? v : null)
 
-    // 1. Update the original profile in BOTH tables
-    await Promise.all([
-      // OLD TABLE: rabbi_profiles
-      supabase.from('rabbi_profiles').update({
-        canonical_name:  origFields.canonical_name  ?? undefined,
-        birth_year:      origFields.birth_year      !== undefined ? (origFields.birth_year      ?? null)  : undefined,
-        circa_birth:     origFields.circa_birth     !== undefined ? (origFields.circa_birth     ?? false) : undefined,
-        death_year:      origFields.death_year      !== undefined ? (origFields.death_year      ?? null)  : undefined,
-        circa_death:     origFields.circa_death     !== undefined ? (origFields.circa_death     ?? false) : undefined,
-        biography:       origFields.biography       !== undefined ? (origFields.biography       ?? null)  : undefined,
-        birthplace:      origFields.birthplace      !== undefined ? (origFields.birthplace      ?? null)  : undefined,
-        death_place:     origFields.death_place     !== undefined ? (origFields.death_place     ?? null)  : undefined,
-        seminary:        origFields.seminary        !== undefined ? (origFields.seminary        ?? null)  : undefined,
-        ordination_year: origFields.ordination_year !== undefined ? (origFields.ordination_year ?? null)  : undefined,
-        denomination:    origFields.denomination    !== undefined ? (origFields.denomination    ?? null)  : undefined,
-        languages:       origFields.languages       !== undefined ? (origFields.languages       ?? null)  : undefined,
-        publications:    origFields.publications    !== undefined ? (origFields.publications    ?? null)  : undefined,
-        achievements:    origFields.achievements    !== undefined ? (origFields.achievements    ?? null)  : undefined,
-        updated_at:      now,
-      }).eq('id', origId),
+    // ── CUTOVER: Writing to new table only ─────────────────────────────────
+    // 1. Update the original profile in new table only
+    await supabaseAdmin.from('person_profiles').update({
+      canonical_name:  origFields.canonical_name  ?? undefined,
+      birth_year:      origFields.birth_year      !== undefined ? (origFields.birth_year      ?? null)  : undefined,
+      circa_birth:     origFields.circa_birth     !== undefined ? (origFields.circa_birth     ?? false) : undefined,
+      death_year:      origFields.death_year      !== undefined ? (origFields.death_year      ?? null)  : undefined,
+      circa_death:     origFields.circa_death     !== undefined ? (origFields.circa_death     ?? false) : undefined,
+      biography:       origFields.biography       !== undefined ? (origFields.biography       ?? null)  : undefined,
+      birthplace:      origFields.birthplace      !== undefined ? (origFields.birthplace      ?? null)  : undefined,
+      death_place:     origFields.death_place     !== undefined ? (origFields.death_place     ?? null)  : undefined,
+      seminary:        origFields.seminary        !== undefined ? (origFields.seminary        ?? null)  : undefined,
+      ordination_year: origFields.ordination_year !== undefined ? (origFields.ordination_year ?? null)  : undefined,
+      denomination:    origFields.denomination    !== undefined ? (origFields.denomination    ?? null)  : undefined,
+      languages:       origFields.languages       !== undefined ? toLanguagesStr(origFields.languages) : undefined,
+      publications:    origFields.publications    !== undefined ? (origFields.publications    ?? null)  : undefined,
+      achievements:    origFields.achievements    !== undefined ? (origFields.achievements    ?? null)  : undefined,
+      updated_at:      now,
+    }).eq('id', origId)
 
-      // NEW TABLE: person_profiles
-      supabaseAdmin.from('person_profiles').update({
-        canonical_name:  origFields.canonical_name  ?? undefined,
-        birth_year:      origFields.birth_year      !== undefined ? (origFields.birth_year      ?? null)  : undefined,
-        circa_birth:     origFields.circa_birth     !== undefined ? (origFields.circa_birth     ?? false) : undefined,
-        death_year:      origFields.death_year      !== undefined ? (origFields.death_year      ?? null)  : undefined,
-        circa_death:     origFields.circa_death     !== undefined ? (origFields.circa_death     ?? false) : undefined,
-        biography:       origFields.biography       !== undefined ? (origFields.biography       ?? null)  : undefined,
-        birthplace:      origFields.birthplace      !== undefined ? (origFields.birthplace      ?? null)  : undefined,
-        death_place:     origFields.death_place     !== undefined ? (origFields.death_place     ?? null)  : undefined,
-        seminary:        origFields.seminary        !== undefined ? (origFields.seminary        ?? null)  : undefined,
-        ordination_year: origFields.ordination_year !== undefined ? (origFields.ordination_year ?? null)  : undefined,
-        denomination:    origFields.denomination    !== undefined ? (origFields.denomination    ?? null)  : undefined,
-        languages:       origFields.languages       !== undefined ? toLanguagesStr(origFields.languages) : undefined,
-        publications:    origFields.publications    !== undefined ? (origFields.publications    ?? null)  : undefined,
-        achievements:    origFields.achievements    !== undefined ? (origFields.achievements    ?? null)  : undefined,
-        updated_at:      now,
-      }).eq('id', origId),
-    ])
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // await Promise.all([
+    //   // OLD TABLE: rabbi_profiles
+    //   supabase.from('rabbi_profiles').update({ ... }).eq('id', origId),
+    //   // NEW TABLE: person_profiles
+    //   supabaseAdmin.from('person_profiles').update({ ... }).eq('id', origId),
+    // ])
 
     // 2. Build a unique slug for the new rabbi profile
     const candidateName = typeof newFields.canonical_name === 'string'
@@ -810,12 +854,13 @@ export async function POST(
       .replace(/\s+/g, '-')
       .substring(0, 100)
 
+    // ── CUTOVER: Check uniqueness against new table only ──────────────────
     let finalSlug = baseSlug
     let counter   = 1
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const { data: existing } = await supabase
-        .from('rabbi_profiles')
+      const { data: existing } = await supabaseAdmin
+        .from('person_profiles')
         .select('id')
         .eq('slug', finalSlug)
         .maybeSingle()
@@ -824,46 +869,24 @@ export async function POST(
       counter++
     }
 
-    // 3. Insert the new rabbi profile in BOTH tables
+    // ── OLD CODE (slug check) - Keep for rollback ──────────────────────────
+    // while (true) {
+    //   const { data: existing } = await supabase
+    //     .from('rabbi_profiles')
+    //     .select('id')
+    //     .eq('slug', finalSlug)
+    //     .maybeSingle()
+    //   if (!existing) break
+    //   finalSlug = `${baseSlug}-${counter}`
+    //   counter++
+    // }
+
+    // ── CUTOVER: Insert new profile into new table only ────────────────────
+    // 3. Insert the new profile
     const splitPersonType = finalSlug.startsWith('chazzan-') ? 'chazzan' : 'rabbi'
+    const newRabbiId = crypto.randomUUID()
 
-    const { data: newRabbi, error: newRabbiError } = await supabase
-      .from('rabbi_profiles')
-      .insert({
-        canonical_name:  candidateName,
-        slug:            finalSlug,
-        birth_year:      newFields.birth_year      ?? null,
-        circa_birth:     newFields.circa_birth     ?? false,
-        death_year:      newFields.death_year      ?? null,
-        circa_death:     newFields.circa_death     ?? false,
-        biography:       newFields.biography       ?? null,
-        birthplace:      newFields.birthplace      ?? null,
-        death_place:     newFields.death_place     ?? null,
-        seminary:        newFields.seminary        ?? null,
-        ordination_year: newFields.ordination_year ?? null,
-        denomination:    newFields.denomination    ?? null,
-        languages:       newFields.languages       ?? null,
-        publications:    newFields.publications    ?? null,
-        achievements:    newFields.achievements    ?? null,
-        approved:        true,
-        approved_by:     user.id,
-        approved_at:     now,
-        created_by:      proposal.created_by,
-      })
-      .select('id')
-      .single()
-
-    if (newRabbiError || !newRabbi) {
-      return NextResponse.json(
-        { error: `Failed to create new rabbi profile: ${newRabbiError?.message ?? 'unknown error'}` },
-        { status: 500 },
-      )
-    }
-
-    const newRabbiId = newRabbi.id
-
-    // Mirror: insert into person_profiles with same ID (non-fatal)
-    await supabaseAdmin.from('person_profiles').insert({
+    const { error: newRabbiError } = await supabaseAdmin.from('person_profiles').insert({
       id:              newRabbiId,
       canonical_name:  candidateName,
       person_type:     splitPersonType,
@@ -884,19 +907,31 @@ export async function POST(
       approved:        true,
     })
 
-    // 4. Process affiliation (rabbis table) assignments — mirror to affiliations table
+    if (newRabbiError) {
+      return NextResponse.json(
+        { error: `Failed to create new person profile: ${newRabbiError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // const { data: newRabbi, error: newRabbiError } = await supabase
+    //   .from('rabbi_profiles')
+    //   .insert({ canonical_name: candidateName, slug: finalSlug, ... approved_by: user.id, ... })
+    //   .select('id')
+    //   .single()
+    // if (newRabbiError || !newRabbi) { return NextResponse.json({ error: ... }, { status: 500 }) }
+    // const newRabbiId = newRabbi.id
+    // // Mirror: insert into person_profiles with same ID (non-fatal)
+    // await supabaseAdmin.from('person_profiles').insert({ id: newRabbiId, ... })
+
+    // ── CUTOVER: Process affiliation assignments in new table only ─────────
+    // 4. Process affiliation assignments
     for (const [affId, action] of Object.entries(assignments.rabbis ?? {})) {
       if (action === 'new') {
-        await supabase.from('rabbis').update({ profile_id: newRabbiId }).eq('id', affId)
         await supabaseAdmin.from('affiliations').update({ person_profile_id: newRabbiId }).eq('id', affId)
       } else if (action === 'both') {
-        const { data: row } = await supabase.from('rabbis').select('*').eq('id', affId).single()
-        if (row) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id: _id, ...rest } = row as Record<string, unknown>
-          await supabase.from('rabbis').insert({ ...rest, profile_id: newRabbiId })
-        }
-        // Mirror: copy affiliation row
+        // Copy affiliation row to new profile
         const { data: affRow } = await supabaseAdmin.from('affiliations').select('*').eq('id', affId).single()
         if (affRow) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -904,11 +939,32 @@ export async function POST(
           await supabaseAdmin.from('affiliations').insert({ ...affRest, person_profile_id: newRabbiId })
         }
       } else if (action === 'neither') {
-        await supabase.from('rabbis').delete().eq('id', affId)
         await supabaseAdmin.from('affiliations').delete().eq('id', affId)
       }
       // 'original': no-op
     }
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // for (const [affId, action] of Object.entries(assignments.rabbis ?? {})) {
+    //   if (action === 'new') {
+    //     await supabase.from('rabbis').update({ profile_id: newRabbiId }).eq('id', affId)
+    //     await supabaseAdmin.from('affiliations').update({ person_profile_id: newRabbiId }).eq('id', affId)
+    //   } else if (action === 'both') {
+    //     const { data: row } = await supabase.from('rabbis').select('*').eq('id', affId).single()
+    //     if (row) {
+    //       const { id: _id, ...rest } = row as Record<string, unknown>
+    //       await supabase.from('rabbis').insert({ ...rest, profile_id: newRabbiId })
+    //     }
+    //     const { data: affRow } = await supabaseAdmin.from('affiliations').select('*').eq('id', affId).single()
+    //     if (affRow) {
+    //       const { id: _affId, ...affRest } = affRow as Record<string, unknown>
+    //       await supabaseAdmin.from('affiliations').insert({ ...affRest, person_profile_id: newRabbiId })
+    //     }
+    //   } else if (action === 'neither') {
+    //     await supabase.from('rabbis').delete().eq('id', affId)
+    //     await supabaseAdmin.from('affiliations').delete().eq('id', affId)
+    //   }
+    // }
 
     // 5. Process image assignments
     for (const [imgId, action] of Object.entries(assignments.images ?? {})) {
@@ -940,55 +996,59 @@ export async function POST(
       )
     }
 
-    // Fetch rabbi name — required column on the rabbis table
-    const { data: rabbiProfile } = await supabase
-      .from('rabbi_profiles')
+    // ── CUTOVER: Fetch name from new table only ────────────────────────────
+    const { data: rabbiProfile } = await supabaseAdmin
+      .from('person_profiles')
       .select('canonical_name')
       .eq('id', rabbiProfileId)
-      .single()
+      .maybeSingle()
+
+    // ── OLD CODE (name fetch) - Keep for rollback ──────────────────────────
+    // const { data: rabbiProfile } = await supabase
+    //   .from('rabbi_profiles')
+    //   .select('canonical_name')
+    //   .eq('id', rabbiProfileId)
+    //   .single()
 
     const rabbiName = rabbiProfile?.canonical_name ?? (proposal.current_data?.rabbi_name as string | undefined) ?? 'Unknown'
     const roleTitle = (proposed.title as string | null | undefined) ?? null
 
-    // Generate a single shared UUID so both tables get the same row ID.
-    // Without this, each insert gets a different auto-generated UUID and
-    // the dual-query helper can't deduplicate them by ID.
-    const sharedAffiliationId = crypto.randomUUID()
+    // ── CUTOVER: Writing to new table only ─────────────────────────────────
+    const affiliationId = crypto.randomUUID()
 
-    // Write to BOTH old table (rabbis) and new table (affiliations)
-    const [oldAffResult, newAffResult] = await Promise.all([
-      supabase.from('rabbis').insert({
-        id:           sharedAffiliationId,
-        profile_id:   rabbiProfileId,
-        synagogue_id: affSynagogueId,
-        name:         rabbiName,
-        title:        roleTitle,
-        start_year:   proposed.start_year ?? null,
-        end_year:     proposed.end_year   ?? null,
-        notes:        proposed.notes      ?? null,
-        approved:     true,
-        created_by:   proposal.created_by,
-      }),
-      supabaseAdmin.from('affiliations').insert({
-        id:                   sharedAffiliationId,
-        person_profile_id:    rabbiProfileId,
-        synagogue_id:         affSynagogueId,
-        affiliation_category: 'clergy',
-        role_title:           roleTitle || 'Rabbi',
-        start_year:           (proposed.start_year as number | null | undefined) ?? null,
-        end_year:             (proposed.end_year   as number | null | undefined) ?? null,
-        notes:                (proposed.notes      as string | null | undefined) ?? null,
-        approved:             true,
-      }),
-    ])
+    const { error: newAffError } = await supabaseAdmin.from('affiliations').insert({
+      id:                   affiliationId,
+      person_profile_id:    rabbiProfileId,
+      synagogue_id:         affSynagogueId,
+      affiliation_category: 'clergy',
+      role_title:           roleTitle || 'Rabbi',
+      start_year:           (proposed.start_year as number | null | undefined) ?? null,
+      end_year:             (proposed.end_year   as number | null | undefined) ?? null,
+      notes:                (proposed.notes      as string | null | undefined) ?? null,
+      approved:             true,
+    })
 
-    if (oldAffResult.error) {
+    if (newAffError) {
       return NextResponse.json(
-        { error: `Failed to create affiliation: ${oldAffResult.error.message}` },
+        { error: `Failed to create affiliation: ${newAffError.message}` },
         { status: 500 },
       )
     }
-    // affiliations failure is non-fatal during transition
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // const sharedAffiliationId = crypto.randomUUID()
+    // const [oldAffResult, newAffResult] = await Promise.all([
+    //   supabase.from('rabbis').insert({
+    //     id: sharedAffiliationId, profile_id: rabbiProfileId, synagogue_id: affSynagogueId,
+    //     name: rabbiName, title: roleTitle, start_year: ..., end_year: ..., notes: ...,
+    //     approved: true, created_by: proposal.created_by,
+    //   }),
+    //   supabaseAdmin.from('affiliations').insert({
+    //     id: sharedAffiliationId, person_profile_id: rabbiProfileId, ...
+    //   }),
+    // ])
+    // if (oldAffResult.error) { return NextResponse.json({ error: ... }, { status: 500 }) }
+    // // affiliations failure is non-fatal during transition
   } else if (
     proposal.proposal_type === 'lay_leader_affiliation_new' ||
     proposal.proposal_type === 'staff_affiliation_new'
@@ -1049,19 +1109,19 @@ export async function POST(
       )
     }
 
-    // Also mirror into the old rabbis table so getAffiliationsBySynagogue picks it up
-    // This is best-effort; failure is non-fatal during the dual-table transition
-    await supabase.from('rabbis').insert({
-      id:           affiliationId,
-      synagogue_id: proposal.synagogue_id,
-      name:         personName,
-      title:        roleTitle,
-      start_year:   (proposed.start_year as number | null | undefined) ?? null,
-      end_year:     (proposed.end_year   as number | null | undefined) ?? null,
-      notes:        (proposed.notes      as string | null | undefined) ?? null,
-      approved:     true,
-      created_by:   proposal.created_by,
-    })
+    // ── CUTOVER: No longer mirroring to old tables ─────────────────────────
+    // ── OLD CODE (mirror write) - Keep for rollback ────────────────────────
+    // await supabase.from('rabbis').insert({
+    //   id:           affiliationId,
+    //   synagogue_id: proposal.synagogue_id,
+    //   name:         personName,
+    //   title:        roleTitle,
+    //   start_year:   (proposed.start_year as number | null | undefined) ?? null,
+    //   end_year:     (proposed.end_year   as number | null | undefined) ?? null,
+    //   notes:        (proposed.notes      as string | null | undefined) ?? null,
+    //   approved:     true,
+    //   created_by:   proposal.created_by,
+    // })
 
   } else if (proposal.proposal_type === 'link_new') {
     const linkEntityType = proposed.entity_type as string | undefined
@@ -1209,26 +1269,8 @@ export async function POST(
     const convertToCantor  = proposed.convert_to_cantor  as boolean | undefined
     const personProfileId  = proposed.person_profile_id  as string | undefined
 
-    // Update old rabbis table (title column)
-    const { error: oldAffError } = await supabase
-      .from('rabbis')
-      .update({
-        title:      proposed.role_title as string,
-        start_year: proposed.start_year as number | null,
-        end_year:   proposed.end_year   as number | null,
-        notes:      proposed.notes      as string | null,
-      })
-      .eq('id', affiliationId)
-
-    if (oldAffError) {
-      return NextResponse.json(
-        { error: `Failed to update affiliation: ${oldAffError.message}` },
-        { status: 500 },
-      )
-    }
-
-    // Update new affiliations table (role_title column) — non-fatal during transition
-    await supabaseAdmin
+    // ── CUTOVER: Writing to new table only ─────────────────────────────────
+    const { error: newAffUpdateError } = await supabaseAdmin
       .from('affiliations')
       .update({
         role_title: proposed.role_title as string,
@@ -1238,14 +1280,38 @@ export async function POST(
       })
       .eq('id', affiliationId)
 
-    // If converting to cantor, update the person profile in both tables
+    if (newAffUpdateError) {
+      return NextResponse.json(
+        { error: `Failed to update affiliation: ${newAffUpdateError.message}` },
+        { status: 500 },
+      )
+    }
+
+    // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────
+    // // Update old rabbis table (title column)
+    // const { error: oldAffError } = await supabase
+    //   .from('rabbis')
+    //   .update({ title: proposed.role_title, start_year: ..., end_year: ..., notes: ... })
+    //   .eq('id', affiliationId)
+    // if (oldAffError) { return NextResponse.json({ error: ... }, { status: 500 }) }
+    // // Update new affiliations table — non-fatal during transition
+    // await supabaseAdmin.from('affiliations').update({ role_title: ..., ... }).eq('id', affiliationId)
+
+    // If converting to cantor, update the person profile
     if (convertToCantor && personProfileId) {
-      // Look up canonical name from rabbi_profiles
-      const { data: currentProfile } = await supabase
-        .from('rabbi_profiles')
+      // ── CUTOVER: Look up name from new table only ───────────────────────
+      const { data: currentProfile } = await supabaseAdmin
+        .from('person_profiles')
         .select('canonical_name, slug')
         .eq('id', personProfileId)
         .maybeSingle()
+
+      // ── OLD CODE (name fetch) - Keep for rollback ────────────────────────
+      // const { data: currentProfile } = await supabase
+      //   .from('rabbi_profiles')
+      //   .select('canonical_name, slug')
+      //   .eq('id', personProfileId)
+      //   .maybeSingle()
 
       const baseName = (currentProfile?.canonical_name ?? '')
         .toLowerCase()
@@ -1257,10 +1323,10 @@ export async function POST(
       let newSlug = `chazzan-${baseName}`
       let counter = 1
 
-      // Ensure slug is unique in person_profiles
+      // ── CUTOVER: Check uniqueness against new table only ────────────────
       while (true) {
-        const { data: existing } = await supabase
-          .from('rabbi_profiles')
+        const { data: existing } = await supabaseAdmin
+          .from('person_profiles')
           .select('id')
           .eq('slug', newSlug)
           .neq('id', personProfileId)
@@ -1270,17 +1336,30 @@ export async function POST(
         counter++
       }
 
-      // Update old rabbi_profiles slug
-      await supabase
-        .from('rabbi_profiles')
-        .update({ slug: newSlug })
-        .eq('id', personProfileId)
+      // ── OLD CODE (slug check) - Keep for rollback ────────────────────────
+      // while (true) {
+      //   const { data: existing } = await supabase
+      //     .from('rabbi_profiles')
+      //     .select('id')
+      //     .eq('slug', newSlug)
+      //     .neq('id', personProfileId)
+      //     .maybeSingle()
+      //   if (!existing) break
+      //   newSlug = `chazzan-${baseName}-${counter}`
+      //   counter++
+      // }
 
-      // Update new person_profiles type + slug (non-fatal during transition)
+      // ── CUTOVER: Update new table only ─────────────────────────────────
       await supabaseAdmin
         .from('person_profiles')
         .update({ person_type: 'chazzan', slug: newSlug })
         .eq('id', personProfileId)
+
+      // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────
+      // // Update old rabbi_profiles slug
+      // await supabase.from('rabbi_profiles').update({ slug: newSlug }).eq('id', personProfileId)
+      // // Update new person_profiles type + slug (non-fatal during transition)
+      // await supabaseAdmin.from('person_profiles').update({ person_type: 'chazzan', slug: newSlug }).eq('id', personProfileId)
     }
   } else if (proposal.proposal_type === 'synagogue_relationship_delete' && proposal.entity_id) {
     const relationshipId     = proposal.entity_id
