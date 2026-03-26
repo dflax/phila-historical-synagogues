@@ -250,7 +250,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
           </svg>
-          Add Existing Rabbi
+          Add Existing Leader
         </button>
       ) : (
         <button
@@ -260,7 +260,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
           </svg>
-          Sign in to add rabbis
+          Sign in to add leaders
         </button>
       )}
 
@@ -281,7 +281,7 @@ export default function AddRabbiAffiliationButton({ synagogueId, synagogueName }
             <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-700">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {step === 1 ? 'Add Existing Rabbi' : step === 2 ? 'Affiliation Details' : 'Proposal Submitted'}
+                  {step === 1 ? 'Add Existing Leader' : step === 2 ? 'Affiliation Details' : 'Proposal Submitted'}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{synagogueName}</p>
               </div>

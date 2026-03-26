@@ -446,7 +446,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">✡️</span>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Rabbis</h2>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Leadership</h2>
                 </div>
                 {isContributor && (
                   <AddRabbiAffiliationButton
