@@ -31,9 +31,84 @@ interface Props {
 
 export default function MigrationDashboard({ data }: Props) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
+  const [isGeneratingSlugs, setIsGeneratingSlugs] = useState(false)
+  const [isDeletingTest, setIsDeletingTest] = useState(false)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section)
+  }
+
+  const handleGenerateSlugs = async () => {
+    if (!confirm('Generate slugs for all clergy without slugs?')) return
+
+    setIsGeneratingSlugs(true)
+    setActionMessage(null)
+
+    try {
+      const response = await fetch('/api/admin/generate-slugs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate slugs')
+      }
+
+      setActionMessage(`✅ ${result.message}`)
+
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    } catch (error: any) {
+      setActionMessage(`❌ Error: ${error.message}`)
+    } finally {
+      setIsGeneratingSlugs(false)
+    }
+  }
+
+  const handleDeleteTestData = async () => {
+    const testIds = [
+      // Old-only test profiles
+      'ba3b7e58-a405-41a7-a2fa-eeeb08828148', // Testy Rabbi Stein
+      'b442668b-79ef-449e-9bbc-16a0c2595821', // Aaron Aabromson
+      'aed79921-e90b-42c1-b1f9-12a43c7f4c40', // Aaron Aaronson
+      // Test rabbis without slugs
+      'a0000002-0000-0000-0000-000000000002', // (aTest) Jacob Aaronson
+      'a0000003-0000-0000-0000-000000000003', // (aTest) Mendy Jacobson
+    ]
+
+    if (!confirm(`Delete ${testIds.length} test records? This cannot be undone.`)) return
+
+    setIsDeletingTest(true)
+    setActionMessage(null)
+
+    try {
+      const response = await fetch('/api/admin/delete-test-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: testIds }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete test data')
+      }
+
+      setActionMessage(`✅ ${result.message}`)
+
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    } catch (error: any) {
+      setActionMessage(`❌ Error: ${error.message}`)
+    } finally {
+      setIsDeletingTest(false)
+    }
   }
 
   const profilesMatch = data.counts.oldProfiles === data.counts.newProfiles
@@ -338,21 +413,64 @@ export default function MigrationDashboard({ data }: Props) {
           </section>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-          >
-            🔄 Refresh Data
-          </button>
+        {/* Action Message */}
+        {actionMessage && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-blue-900 dark:text-blue-100">{actionMessage}</p>
+          </div>
+        )}
 
-          <Link
-            href="/admin"
-            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
-          >
-            ← Back to Admin
-          </Link>
+        {/* Action Buttons */}
+        <div className="space-y-4">
+          {/* Fix Actions */}
+          {(hasSlugIssues || hasSyncIssues) && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                🔧 Fix Actions
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {data.slugIssues.clergyWithoutSlugs.length > 0 && (
+                  <button
+                    onClick={handleGenerateSlugs}
+                    disabled={isGeneratingSlugs}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  >
+                    {isGeneratingSlugs ? '⏳ Generating...' : '✨ Generate Missing Slugs'}
+                  </button>
+                )}
+
+                {hasSyncIssues && (
+                  <button
+                    onClick={handleDeleteTestData}
+                    disabled={isDeletingTest}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  >
+                    {isDeletingTest ? '⏳ Deleting...' : '🗑️ Delete Test Data'}
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+                These actions will modify the database. Page will refresh after completion.
+              </p>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex gap-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              🔄 Refresh Data
+            </button>
+
+            <Link
+              href="/admin"
+              className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
+            >
+              ← Back to Admin
+            </Link>
+          </div>
         </div>
       </div>
     </main>
