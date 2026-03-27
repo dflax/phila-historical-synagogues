@@ -122,7 +122,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   history_new:         'New history entry',
   photo_upload:        'Photo upload',
   rabbi_profile_edit:   'Edit rabbi profile',
-  rabbi_profile_new:    'New rabbi profile',
+  rabbi_profile_new:    'New leader profile',
   rabbi_profile_delete: 'Delete rabbi',
   rabbi_profile_merge:  'Merge rabbis',
   rabbi_profile_split:  'Split rabbi',
@@ -189,11 +189,12 @@ function groupProposals(proposals: PendingProposal[]): ProposalGroup[] {
         typeof p.proposed_data?.canonical_name === 'string'
           ? p.proposed_data.canonical_name
           : null
+      const newPersonLabel = p.proposed_data?.person_type === 'chazzan' ? '(New Cantor)' : '(New Rabbi)'
       map.set(key, {
         key,
         entity_type:  'rabbi',
         entity_id:    null,
-        display_name: proposedName ? `(New) ${proposedName}` : '(New Rabbi)',
+        display_name: proposedName ? `(New) ${proposedName}` : newPersonLabel,
         items: [p],
       })
       continue  // items already populated above
@@ -661,14 +662,26 @@ function ProposalCard({
     if (proposal.proposal_type === 'synagogue_relationship_delete' && RELATIONSHIP_DELETE_HIDE_FIELDS.has(f)) return false
     return true
   })
-  const typeColor = PROPOSAL_TYPE_COLORS[proposal.proposal_type] ?? PROPOSAL_TYPE_COLORS.update
+  const isNewLeaderProfile = proposal.proposal_type === 'rabbi_profile_new'
+  const personType = isNewLeaderProfile ? (proposal.proposed_data?.person_type as string | undefined) : undefined
+  const isCantor = personType === 'chazzan'
+
+  const typeColor = isNewLeaderProfile
+    ? (isCantor
+        ? 'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20'
+        : 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20')
+    : (PROPOSAL_TYPE_COLORS[proposal.proposal_type] ?? PROPOSAL_TYPE_COLORS.update)
+
+  const typeLabel = isNewLeaderProfile
+    ? (isCantor ? 'New cantor profile' : 'New rabbi profile')
+    : (PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type)
 
   return (
     <div className="px-4 py-4 space-y-3">
       {/* Proposal meta */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${typeColor}`}>
-          {PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type}
+          {typeLabel}
         </span>
         <span className="text-xs text-gray-400 dark:text-gray-500">
           {formatDate(proposal.created_at)}
