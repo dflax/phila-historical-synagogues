@@ -489,9 +489,12 @@ export default function AdminClient({ proposals: initialProposals, images: initi
                 const groupBusy = group.items.every(p => processing.has(p.id))
 
                 // Entity-type prefix badge
+                const rabbiGroupPersonType = group.entity_type === 'rabbi'
+                  ? (group.items[0]?.proposed_data?.person_type as string | undefined)
+                  : undefined
                 const entityBadge = group.entity_type === 'rabbi' ? (
                   <span className="flex-shrink-0 text-xs font-medium text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 px-1.5 py-0.5 rounded">
-                    Rabbi
+                    {rabbiGroupPersonType === 'chazzan' ? 'Cantor' : 'Rabbi'}
                   </span>
                 ) : group.entity_type === 'synagogue' ? (
                   <span className="flex-shrink-0 text-xs font-medium text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded">
