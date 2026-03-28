@@ -33,9 +33,13 @@ app/
     [id]/
       page.tsx                    # Detail page (server component, force-dynamic)
   rabbis/
-    page.tsx                      # Rabbi directory (server component, force-dynamic)
+    page.tsx                      # Leadership directory (server component, force-dynamic)
     [slug]/
-      page.tsx                    # Rabbi profile page (server component, force-dynamic)
+      page.tsx                    # Leader profile page (server component, force-dynamic)
+  leadership/
+    page.tsx                      # Alias → /rabbis page
+    [slug]/
+      page.tsx                    # Alias → /rabbis/[slug] page
   contributions/
     page.tsx                      # My contributions (authenticated users)
     ContributionsClient.tsx
@@ -45,6 +49,8 @@ app/
     users/
       page.tsx                    # User management (super_admin only)
       UsersClient.tsx
+    migration/
+      page.tsx                    # Migration verification dashboard (admin+ only)
   api/
     synagogues/[id]/full-details/route.ts
     synagogues/[id]/merge-suggestions/route.ts
@@ -58,6 +64,8 @@ app/
     proposals/[id]/approve/route.ts
     users/[id]/promote/route.ts
     users/[id]/demote/route.ts
+    admin/generate-slugs/route.ts
+    admin/delete-test-data/route.ts
   test/
     page.tsx                      # Legacy DB connection test (can be deleted)
   test-data/
@@ -71,11 +79,11 @@ components/
     MiniMap.tsx                   # Non-interactive mini-map for detail page hero
   synagogues/
     SynagoguesClient.tsx          # Browse page with search/filter UI
-    SynagogueDetail.tsx           # Detail page UI with history, rabbis, images
+    SynagogueDetail.tsx           # Detail page UI with leadership sections, history, images
     HistoryList.tsx               # Sortable history timeline component
   rabbis/
-    RabbisClient.tsx              # Rabbi directory with search
-    RabbiDetail.tsx               # Rabbi profile layout
+    RabbisClient.tsx              # Leadership directory with search
+    RabbiDetail.tsx               # Leader profile layout
   auth/
     NavAuth.tsx                   # Top-nav auth dropdown
     AuthModal.tsx                 # Login/signup modal
@@ -91,10 +99,13 @@ components/
     Merge{Synagogue,Rabbi}Button.tsx
     Split{Synagogue,Rabbi}Button.tsx
     Delete{Synagogue,Rabbi}Button.tsx
-    AddRabbiAffiliationButton.tsx
+    AddRabbiAffiliationButton.tsx   # Multi-step: search clergy → add affiliation details
     AddSynagogueAffiliationButton.tsx
-    AddRelationshipButton.tsx     # Typed organizational relationships between synagogues
-    AddLinkButton.tsx             # External links for synagogues and rabbis
+    AddLayLeaderButton.tsx          # Add lay leader to synagogue
+    AddStaffButton.tsx              # Add staff member to synagogue
+    EditAffiliationButton.tsx       # Edit existing affiliation; can convert rabbi → chazzan
+    AddRelationshipButton.tsx       # Typed organizational relationships between synagogues
+    AddLinkButton.tsx               # External links for synagogues and rabbi profiles
     DeleteRelationshipModal.tsx
   photos/
     PhotoUploadButton.tsx
@@ -109,7 +120,9 @@ lib/
     server.ts                     # Server-side auth helpers
   types/
     database.types.ts             # Auto-generated Supabase TypeScript types (full schema)
-    leadership.ts                 # New person/affiliation data model types (see below)
+    leadership.ts                 # PersonProfile and Affiliation types + predefined role lists
+  queries/
+    leadership.ts                 # Database queries for person_profiles and affiliations
   hooks/
     useUserRole.ts                # Role-checking hook
 
@@ -147,10 +160,31 @@ Core table. 562 records imported.
 - `source`, `source_url`
 - `approved` (boolean)
 
-### rabbis
-373 records imported and parsed from source Excel data.
+### rabbis *(legacy — read-only)*
+Original 373 records imported from source Excel data. Superseded by `person_profiles` + `affiliations`.
 - `synagogue_id` → synagogues.id
 - `name`, `title`, `start_year`, `end_year`, `notes`
+- `approved` (boolean)
+
+### rabbi_profiles *(legacy — read-only)*
+Original canonical rabbi biographies. Superseded by `person_profiles`.
+- `id`, `slug`, `canonical_name`
+- `birth_year`, `circa_birth`, `death_year`, `circa_death`, `biography`
+- `approved` (boolean), `deleted` (boolean)
+
+### person_profiles *(active — primary leadership table)*
+Unified leader profiles replacing `rabbi_profiles`. All queries now use this table.
+- `id`, `slug` (only set for clergy: rabbi/chazzan), `canonical_name`
+- `person_type`: `rabbi` | `chazzan` | `lay_leader` | `staff` | `other`
+- `birth_year`, `circa_birth`, `death_year`, `circa_death`, `biography`, `birthplace`, `death_place`
+- `seminary`, `ordination_year`, `denomination`, `languages`, `publications`, `achievements`
+- `approved` (boolean), `deleted` (boolean), `deleted_by`, `deleted_at`, `created_at`, `updated_at`
+
+### affiliations *(active — primary affiliation table)*
+Links person_profiles to synagogues. Replaces `rabbis` table.
+- `synagogue_id` → synagogues.id, `person_profile_id` → person_profiles.id
+- `affiliation_category`: `clergy` | `lay_leader` | `staff` | `other`
+- `role_title`, `start_year`, `end_year`, `notes`
 - `approved` (boolean)
 
 ### images
@@ -162,14 +196,8 @@ Schema ready for photo uploads; upload workflow is live for rabbis and synagogue
 - `people_names` (array), `people_metadata` (jsonb)
 - `approved` (boolean)
 
-### rabbi_profiles
-Canonical rabbi biographies, linked from `rabbis` rows and from `/rabbis/[slug]` pages.
-- `id`, `slug`, `canonical_name`
-- `birth_year`, `circa_birth`, `death_year`, `circa_death`, `biography`
-- `approved` (boolean), `deleted` (boolean)
-
 ### links
-External links attached to any entity (synagogue or rabbi profile). Added via proposal workflow.
+External links attached to any entity (synagogue or person profile). Added via proposal workflow.
 - `entity_type` (`synagogue` | `rabbi_profile`), `entity_id`
 - `link_type` (e.g. `website`, `wikipedia`, `findagrave`, etc.)
 - `url`, `title`, `description`, `display_order`
@@ -182,22 +210,76 @@ Typed directional relationships between synagogues (e.g. predecessor/successor, 
 - `relationship_year`, `notes`
 - `approved` (boolean), `deleted` (boolean)
 
-### person_profiles *(new data model — in migration)*
-Generalized leader profiles extending the rabbi model to all leadership types.
-- `canonical_name`, `person_type` (`rabbi` | `chazzan` | `lay_leader` | `staff` | `other`)
-- `birth_year`, `circa_birth`, `death_year`, `circa_death`, `biography`, `birthplace`
-- `seminary`, `ordination_year`, `denomination`, `languages`, `publications`, `achievements`
-- `approved` (boolean), `deleted` (boolean)
-
-### affiliations *(new data model — in migration)*
-Links person_profiles to synagogues with role detail.
-- `synagogue_id` → synagogues.id, `person_profile_id` → person_profiles.id
-- `affiliation_category` (`clergy` | `lay_leader` | `staff` | `other`)
-- `role_title`, `start_year`, `end_year`, `notes`
-- `approved` (boolean)
-
 ### edit_proposals
 Community contribution queue; also used for admin operations (merge, split, delete, links, relationships).
+- `proposal_type`: covers all operations (see Proposal Workflow section)
+- `proposed_data`, `current_data` — new vs old values
+- `submitter_note` — contributor's reason/source
+- `created_by` — user ID (contributor tracking)
+- `status`: `pending` | `approved` | `rejected`
+
+## Leadership Data Model
+
+The app uses a generalized leadership model (`person_profiles` + `affiliations`) that replaced the original rabbi-only model. **Phase 6 cutover is complete — all queries now use the new tables.**
+
+### Person Types
+- `rabbi` — has slug, has profile page at `/rabbis/[slug]`
+- `chazzan` — has slug, has profile page at `/rabbis/[slug]`
+- `lay_leader` — no slug, display-only in synagogue detail
+- `staff` — no slug, display-only in synagogue detail
+- `other` — no slug, display-only in synagogue detail
+
+### Predefined Role Lists (lib/types/leadership.ts)
+- **CLERGY_ROLES**: Rabbi, Senior Rabbi, Lead Rabbi, Associate Rabbi, Assistant Rabbi, Rabbi Emeritus, Cantor, Chazzan, Senior Cantor, Cantor Emeritus, Other
+- **LAY_LEADER_ROLES**: President, Vice President, Treasurer, Secretary, Facilities Chair, Security Chair, Membership Chair, Education Chair, Social Action Chair, Ritual Chair, Community Engagement Chair, Philanthropy Chair, Other
+- **STAFF_ROLES**: Executive Director, Education Director, Youth Director, Administrator, Office Manager, Other
+
+### Slug Generation
+- Only clergy (rabbi/chazzan) get slugs
+- Format: `rabbi-<canonical-name>` or `chazzan-<canonical-name>` (slugified)
+- Generated via `generateSlug()` helper in `lib/types/leadership.ts`
+- Batch slug generation available via `POST /api/admin/generate-slugs`
+
+### Database Queries (lib/queries/leadership.ts)
+- `getAllPersonProfiles()` — all approved, non-deleted profiles
+- `getPersonProfileBySlug(slug)` — get profile by slug
+- `getPersonProfileById(id)` — get profile by ID
+- `getAffiliationsBySynagogue(synagogueId)` — all affiliations for a synagogue
+- `getAffiliationsByPerson(personProfileId)` — all affiliations for a person
+
+## Proposal Workflow
+
+All leadership changes go through `edit_proposals` before applying. Proposal types:
+
+| Type | Description |
+|------|-------------|
+| `rabbi_affiliation_new` | Add clergy affiliation to synagogue |
+| `lay_leader_affiliation_new` | Add lay leader to synagogue |
+| `staff_affiliation_new` | Add staff member to synagogue |
+| `affiliation_edit` | Modify existing affiliation (also handles rabbi→chazzan conversion) |
+| `rabbi_profile_new` | Create new person profile |
+| `rabbi_profile_edit` | Modify person profile |
+| `rabbi_profile_delete` | Soft-delete person profile |
+| `rabbi_profile_merge` | Merge two profiles into one |
+| `rabbi_profile_split` | Split one profile into two |
+| `synagogue_edit` | Modify synagogue fields |
+| `address_edit` | Modify address |
+| `history_edit` | Modify history entry |
+| `image_upload` | Photo upload |
+| `link_add` | Add external link |
+| `relationship_add` | Add synagogue relationship |
+
+Editors approve/reject from the admin dashboard. Approved proposals write to the live tables.
+
+## SynagogueDetail — Leadership Sections
+
+The synagogue detail page (`components/synagogues/SynagogueDetail.tsx`) now renders three separate leadership sections:
+
+1. **Leadership (Clergy)** — rabbis and chazzanim with edit buttons, "Add Existing Leader" search
+2. **Lay Leaders** — lay leadership with "Add Lay Leader" button
+3. **Staff** — staff members with "Add Staff" button
+
+Each affiliation row shows role title, years, notes, and an edit button (editor+ only).
 
 ## Key Implementation Notes
 
@@ -238,10 +320,10 @@ The map page accepts query params for focused view:
 ### MapClient.tsx — Full Feature Set
 The map page (`/map`) is a full-screen layout with:
 - **Left sidebar (320px)** with collapsible toggle
-  - Search by synagogue name or rabbi name
+  - Search by synagogue name or leader name
   - Neighborhood dropdown filter
   - Results list (click → pan + zoom to marker)
-  - `SynagoguePanel` detail view: status badge, founded/closed years, address, rabbis (up to 5 + overflow), Street View link, "View full history →" link
+  - `SynagoguePanel` detail view: status badge, founded/closed years, address, leaders (up to 5 + overflow), Street View link, "View full history →" link
   - `window.__selectSynagogue(id)` global callback bridges infowindow HTML buttons → React state
 - **Sidebar collapse behavior**
   - Desktop (≥640px): open by default, collapses inline (map expands to fill)
@@ -270,7 +352,8 @@ Key policies for anonymous (public) read access:
 - `synagogues`: `approved = true`
 - `addresses`: synagogue must be approved
 - `history_entries`: `approved = true`
-- `rabbis`: `approved = true`
+- `person_profiles`: `approved = true AND deleted = false`
+- `affiliations`: `approved = true`
 - `images`: `approved = true`
 
 All imported records have `approved = true`.
@@ -318,7 +401,9 @@ Multiple synagogues at the same primary address are offset into a small circle s
 - Historical addresses (non-geocoded) display in detail pages but don't appear as map markers
 - `/about` page not yet created; nav does not include an About link yet
 - Legacy pages `app/test/`, `app/test-data/`, and `app/page.20260221-1.tsx` can be deleted
-- `person_profiles` / `affiliations` data model refactoring is in progress (Steps 3A+3B types are done; DB migration and UI migration pending)
+- `GET /api/rabbi-profiles/[id]` still queries old `rabbi_profiles` table — needs migration to `person_profiles`
+- `person_relationships` table exists in DB but has no UI
+- Full-text search via `search_vector` column not yet implemented
 
 ## Pages
 
@@ -327,25 +412,37 @@ Multiple synagogues at the same primary address are offset into a small circle s
 | `/` | Homepage with stats (562 synagogues, 83 active, 280+ years) |
 | `/map` | Full-screen map with collapsible sidebar (search, filters, detail panel), dual-range year filter, status legend, Street View |
 | `/synagogues` | Browseable list with text search, status filter pills, neighborhood dropdown, year range filter, sortable columns, expandable rows |
-| `/synagogues/[id]` | Detail page: hero with mini-map, all addresses, rabbi list, sorted history timeline, organizational relationships, external links, photo gallery |
-| `/rabbis` | Directory of all rabbi profiles, alphabetically grouped, searchable |
-| `/rabbis/[slug]` | Rabbi profile: biography, synagogue affiliations, photo gallery, external links |
+| `/synagogues/[id]` | Detail page: hero with mini-map, all addresses, leadership sections (clergy/lay/staff), sorted history timeline, organizational relationships, external links, photo gallery |
+| `/rabbis` | Directory of all clergy profiles (rabbis + chazzanim), alphabetically grouped, searchable |
+| `/leadership` | Alias to `/rabbis` |
+| `/rabbis/[slug]` | Clergy profile: biography, synagogue affiliations, photo gallery, external links; also accessible via `/leadership/[slug]` |
 | `/contributions` | Authenticated users can review their submitted proposals and approval status |
-| `/admin` | Editor/admin proposal review queue (edits, images); super_admin user management |
+| `/admin` | Editor/admin proposal review queue (all proposal types); super_admin user management |
+| `/admin/users` | User role management (super_admin only) |
+| `/admin/migration` | Data migration verification dashboard — counts, breakdowns, duplicate/integrity checks |
 | `/about` | Not yet built — no nav link yet |
 
 ## Recent Work
 
+### Session ending 2026-03-27
+
+- **Phase 6 cutover complete** — all queries migrated from old `rabbi_profiles`/`rabbis` tables to new `person_profiles`/`affiliations` tables; old code commented out for rollback reference
+- **Chazzan support** — full support for chazzan as a distinct person type; chazzanim get slugs and profile pages; can convert rabbi → chazzan via `EditAffiliationButton`; admin interface handles chazzan proposal types
+- **Lay leader + staff addition** — `AddLayLeaderButton` and `AddStaffButton` components for adding non-clergy affiliations to synagogues via proposal workflow
+- **Edit affiliations** — `EditAffiliationButton` allows editors to modify any existing affiliation including rabbi→chazzan conversion; shows in all leadership sections
+- **Leadership filter buttons** — filter UI on synagogue detail page to show all / clergy only / lay leaders / staff
+- **Migration verification dashboard** — `/admin/migration` page with data integrity checks: old vs new table counts, person type breakdowns, affiliation category counts, slug consistency
+- **Admin interface for all clergy types** — proposal review queue (`AdminClient.tsx`) handles all new proposal types with correct field labels and display
+
 ### Session ending 2026-03-22
 
 - **Mobile navigation header** — `AppHeader.tsx` with responsive hamburger menu (Escape to close, body scroll lock); replaces per-page nav in all layouts
-- **Sorting on detail pages** — sortable history timeline and rabbi lists on synagogue detail pages
-- **Data model refactoring (Steps 3A+3B)** — `lib/types/leadership.ts` defines new `PersonProfile` and `Affiliation` types; `lib/types/database.types.ts` auto-generated from Supabase schema; DB migration and UI cutover pending
+- **Sorting on detail pages** — sortable history timeline and leader lists on synagogue detail pages
+- **Data model types (Steps 3A+3B)** — `lib/types/leadership.ts` defines `PersonProfile` and `Affiliation` types; `lib/types/database.types.ts` auto-generated from Supabase schema
 - **Organizational relationships** — `AddRelationshipButton.tsx` allows editors to propose typed links between synagogues (merged_into, split_into, predecessor, parent_organization); stored in `synagogue_relationships` table; deletable via `DeleteRelationshipModal.tsx`
 - **External links** — `AddLinkButton.tsx` allows editors to propose external URLs for synagogues and rabbis; stored in `links` table; rendered via `LinksSection.tsx`
 - **Google Maps AdvancedMarkerElement migration** — `MapClient.tsx` and `MiniMap.tsx` migrated from deprecated `google.maps.Marker` to `google.maps.marker.AdvancedMarkerElement`; various performance improvements
-- **Maps performance fixes** — reduced unnecessary re-renders and improved marker lifecycle management
-- **Rabbi affiliation modals** — new UI for linking a rabbi profile to a synagogue and vice versa (`AddRabbiAffiliationButton`, `AddSynagogueAffiliationButton`)
+- **Rabbi affiliation modals** — new UI for linking a clergy profile to a synagogue and vice versa (`AddRabbiAffiliationButton`, `AddSynagogueAffiliationButton`)
 - **Merge/split for rabbis and synagogues** — full proposal workflows for merging two records or splitting one into two
 - **Delete synagogue / rabbi** — soft-delete with role guard; deleted records hidden from browse and map
 - **Create new synagogue / rabbi** — editors can create net-new records via modal forms; neighborhood auto-detected from address via Google Maps Geocoding API
@@ -362,8 +459,8 @@ Multiple synagogues at the same primary address are offset into a small circle s
 
 All committed to `master` and deployed to Vercel:
 
-- **Map sidebar** — search by name/rabbi, neighborhood dropdown, results list, `SynagoguePanel` detail view with Street View link
+- **Map sidebar** — search by name/leader, neighborhood dropdown, results list, `SynagoguePanel` detail view with Street View link
 - **Sidebar collapse** — desktop open by default, mobile closed by default with hamburger toggle and backdrop
 - **Dual-range year filter** — replaced single slider; shows synagogues active during any overlap with selected range
 - **MiniMap on detail page** — non-interactive Google Maps preview in hero box, links to full map
-- **Rabbis on map** — `app/map/page.tsx` now fetches `rabbis(name, title)` from Supabase so rabbi search works on the map sidebar
+- **Leaders on map** — `app/map/page.tsx` fetches leader data from Supabase so leader search works on the map sidebar

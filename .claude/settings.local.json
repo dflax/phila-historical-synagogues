@@ -32,7 +32,8 @@
       "WebSearch",
       "Bash(curl:*)",
       "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && grep -n \"link_new\\\\|links\\\\|synagogue_links\\\\|rabbi_profile_links\" app/api/proposals/\\\\[id\\\\]/approve/route.ts | head -20)",
-      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && grep -n \"synagogue_relationship_new\" app/api/proposals/\\\\[id\\\\]/approve/route.ts | head -5)"
+      "Bash(cd \"/Users/dflax/Library/Mobile Documents/com~apple~CloudDocs/Source/phila-historical-synagogues\" && grep -n \"synagogue_relationship_new\" app/api/proposals/\\\\[id\\\\]/approve/route.ts | head -5)",
+      "Bash(git:*)"
     ]
   }
 }

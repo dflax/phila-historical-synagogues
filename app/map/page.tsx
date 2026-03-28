@@ -36,7 +36,12 @@ export default async function MapPage() {
         longitude,
         geocode_quality
       ),
-      rabbis (name, title)
+      affiliations (
+        affiliation_category,
+        person_profiles (
+          canonical_name
+        )
+      )
     `)
     .order('name')
 
@@ -80,8 +85,11 @@ export default async function MapPage() {
         is_current: null,
         address_order: null,
       })),
-      rabbis: Array.isArray(syn.rabbis)
-        ? (syn.rabbis as any[]).map((r: any) => r.name).filter(Boolean)
+      clergy: Array.isArray((syn as any).affiliations)
+        ? ((syn as any).affiliations as any[])
+            .filter((a: any) => a.affiliation_category === 'clergy')
+            .map((a: any) => a.person_profiles?.canonical_name)
+            .filter(Boolean)
         : [],
     }))
 

@@ -27,7 +27,7 @@ interface Synagogue {
   founded_year: number | null;
   closed_year: number | null;
   addresses: Address[];
-  rabbis: string[];
+  clergy: string[];
 }
 
 interface MapClientProps {
@@ -181,8 +181,8 @@ function SynagoguePanel({
   const streetViewUrl =
     lat && lng ? `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}` : null;
 
-  const displayRabbis = syn.rabbis.slice(0, 5);
-  const extraRabbis = syn.rabbis.length - displayRabbis.length;
+  const displayClergy = syn.clergy.slice(0, 5);
+  const extraClergy = syn.clergy.length - displayClergy.length;
 
   return (
     <div className="p-4 flex flex-col gap-3">
@@ -215,16 +215,16 @@ function SynagoguePanel({
         </div>
       )}
 
-      {syn.rabbis.length > 0 && (
+      {syn.clergy.length > 0 && (
         <div className="text-sm">
-          <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Rabbis</p>
+          <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Clergy</p>
           <ul className="text-gray-600 dark:text-gray-400 space-y-0.5">
-            {displayRabbis.map((r, i) => (
+            {displayClergy.map((r, i) => (
               <li key={i} className="truncate">{r}</li>
             ))}
           </ul>
-          {extraRabbis > 0 && (
-            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">+ {extraRabbis} more</p>
+          {extraClergy > 0 && (
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">+ {extraClergy} more</p>
           )}
         </div>
       )}
@@ -359,8 +359,8 @@ function MapClientInner({ synagogues }: MapClientProps) {
       }
 
       const nameMatch = s.name.toLowerCase().includes(q);
-      const rabbiMatch = s.rabbis.some(r => r.toLowerCase().includes(q));
-      if (nameMatch || rabbiMatch) {
+      const clergyMatch = s.clergy.some(r => r.toLowerCase().includes(q));
+      if (nameMatch || clergyMatch) {
         ids.add(s.id);
       }
     });
@@ -660,7 +660,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
           </div>
           <input
             type="text"
-            placeholder="Search by name or rabbi..."
+            placeholder="Search by name or clergy..."
             value={searchQuery}
             onChange={e => {
               setSearchQuery(e.target.value);
@@ -746,7 +746,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
             </div>
           ) : (
             <div className="px-4 py-8 text-center text-gray-400 dark:text-gray-500">
-              <p className="text-sm">Search by name or rabbi, or filter by neighborhood.</p>
+              <p className="text-sm">Search by name or clergy, or filter by neighborhood.</p>
               <p className="text-xs mt-2">Or click any marker on the map.</p>
             </div>
           )}

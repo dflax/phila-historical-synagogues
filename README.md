@@ -1,6 +1,6 @@
 # Philadelphia Historical Synagogues
 
-An interactive web application documenting **562 synagogues** in the Philadelphia area, spanning from 1745 to the present day. Built to preserve and explore Jewish heritage through interactive mapping, temporal filtering, detailed historical records, rabbi profiles, and community-contributed content.
+An interactive web application documenting **562 synagogues** in the Philadelphia area, spanning from 1745 to the present day. Built to preserve and explore Jewish heritage through interactive mapping, temporal filtering, detailed historical records, leader profiles, and community-contributed content.
 
 **Live site:** [phila-historical-synagogues.vercel.app](https://phila-historical-synagogues.vercel.app)
 
@@ -11,10 +11,10 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 ### Interactive Map (`/map`)
 - **Full-screen Google Map** with color-coded Star of David markers (green = active, red = closed, amber = merged, gray = unknown)
 - **Collapsible sidebar** — open by default on desktop, collapsed on mobile with a hamburger toggle
-  - Search by synagogue name or rabbi name
+  - Search by synagogue name or leader name
   - Filter by neighborhood (dropdown)
   - Results list with status badges — click any result to pan and zoom to its marker
-  - Detail panel showing status, founded/closed years, address, rabbi list, Street View link, and link to full history page
+  - Detail panel showing status, founded/closed years, address, leader list, Street View link, and link to full history page
 - **Dual-range year filter** — drag two thumbs to set a start and end year; the map shows all synagogues active during any part of that range
 - **Street View** — drag the pegman onto any street, or use the Street View link in the detail panel
 - **Marker infowindows** — click any marker for a quick summary with a "View Details in Sidebar" button
@@ -33,24 +33,25 @@ An interactive web application documenting **562 synagogues** in the Philadelphi
 - Hero section with name, status badge, founding/closing years, and neighborhood
 - **Mini-map** — non-interactive Google Maps preview in the hero box, links to full map
 - All historical addresses with years at each location
-- Full rabbi list with tenures, linking to individual rabbi profiles
+- **Leadership sections** — separate sections for clergy (rabbis, chazzanim), lay leaders, and staff; each with role title, service years, notes, and links to individual profiles
 - Sortable history timeline (events, mergers, building notes, ethnic origin)
 - **Organizational relationships** — typed links to related synagogues (predecessor/successor, merged into, split from, parent/branch); proposed by editors, displayed on both sides
 - **External links** — curated links to Wikipedia, FindAGrave, JewishGen, and other resources; proposed by editors
-- Photo gallery (schema and upload workflow ready)
-- Authenticated users can suggest edits, add addresses, add rabbis, add history entries, or upload photos
+- Photo gallery (upload workflow live)
+- Authenticated users can suggest edits, add addresses, add leaders, add history entries, or upload photos
 - Admins can merge, split, or soft-delete records
 
-### Rabbi Directory (`/rabbis`)
-- Alphabetically grouped list of all rabbi profiles
+### Leadership Directory (`/rabbis` or `/leadership`)
+- Alphabetically grouped list of all clergy profiles (rabbis and chazzanim)
 - Search by name
-- Each entry shows the rabbi's lifespan (with circa flags) and number of synagogue affiliations
+- Each entry shows lifespan (with circa flags) and number of synagogue affiliations
 
-### Rabbi Profiles (`/rabbis/[slug]`)
-- Biography with birth/death years (circa-aware)
+### Leader Profiles (`/rabbis/[slug]` or `/leadership/[slug]`)
+- Biography with birth/death years (circa-aware), birthplace, denomination, seminary
 - All synagogue affiliations with title, service years, and notes
 - Photo gallery for portraits
 - **External links** — Wikipedia, FindAGrave, and other biographical resources; proposed by editors
+- Editors can add synagogue affiliations directly from the profile page
 
 ### Homepage (`/`)
 - Summary statistics: 562 synagogues, 83 active, 280+ year span
@@ -69,14 +70,42 @@ Users can register and log in via Supabase Auth (email/password). Roles control 
 | `admin` | Full admin dashboard access |
 | `super_admin` | User role management |
 
+All editing controls are hidden from unauthenticated visitors.
+
 ### My Contributions (`/contributions`)
 Authenticated users can review all edit proposals and photo uploads they have submitted, see their approval status, and read any reviewer notes.
 
 ### Admin Dashboard (`/admin`)
 Editors and admins have access to:
-- **Pending edit proposals** queue with diff view (proposed vs. current data) — approve or reject with optional notes
+- **Pending edit proposals** queue with diff view (proposed vs. current data) — approve or reject with optional notes; covers all proposal types including leadership, affiliations, synagogue edits, images, links, and relationships
 - **Pending image approvals** queue with image preview and metadata
 - **User management** (super_admin only) — view all users, promote or demote roles
+- **Migration verification** (`/admin/migration`) — data integrity dashboard showing old vs. new table counts, person type breakdowns, affiliation categories, and slug consistency checks
+
+---
+
+## Leadership Data Model
+
+The app uses a generalized leadership model that supports rabbis, chazzanim, lay leaders, and staff — not just rabbis.
+
+### Person Types
+| Type | Profile Page | Description |
+|------|-------------|-------------|
+| `rabbi` | Yes (`/rabbis/[slug]`) | Rabbi with biographical profile |
+| `chazzan` | Yes (`/rabbis/[slug]`) | Cantor/chazzan with biographical profile |
+| `lay_leader` | No | President, treasurer, committee chairs, etc. |
+| `staff` | No | Executive director, youth director, etc. |
+
+### Adding Leaders to Synagogues
+Editors can add leaders via the synagogue detail page:
+- **Clergy** — search existing profiles or create new ones; multi-step modal (search → affiliation details → submit)
+- **Lay leaders** — enter name, role (from predefined list), and years of service
+- **Staff** — enter name, position (from predefined list), and years of service
+
+All additions flow through the proposal workflow before appearing publicly.
+
+### Editing Affiliations
+Editors can modify existing affiliations, including converting a rabbi to a chazzan (updates the person type and regenerates the slug).
 
 ---
 
@@ -88,10 +117,8 @@ Editors and admins have access to:
 | Language | TypeScript |
 | Database | [Supabase](https://supabase.com) (PostgreSQL + RLS) |
 | Auth | Supabase Auth + `@supabase/auth-helpers-nextjs` |
-| Maps | Google Maps JavaScript API |
+| Maps | Google Maps JavaScript API (AdvancedMarkerElement) |
 | Styling | [Tailwind CSS](https://tailwindcss.com) (dark mode via OS preference) |
-| UI Components | Radix UI primitives |
-| Icons | Lucide React |
 | Hosting | [Vercel](https://vercel.com) (auto-deploys from GitHub) |
 | Font | Inter (Google Fonts) |
 
@@ -170,16 +197,16 @@ The app uses Supabase (PostgreSQL). All tables have Row Level Security (RLS) ena
 |-------|---------|-------------|
 | `synagogues` | 562 | Core records — name, status, founded/closed years |
 | `addresses` | 424 | Geocoded locations (lat/lng), multiple per synagogue |
-| `history_entries` | 325 | Timeline events, mergers, building notes, ethnic origins |
-| `rabbis` | 373 | Rabbi affiliations — name, title, tenures per synagogue |
-| `rabbi_profiles` | — | Canonical rabbi biographies (birth/death years, slug) |
+| `history_entries` | 325+ | Timeline events, mergers, building notes, ethnic origins |
+| `person_profiles` | — | Unified leader profiles (rabbis, chazzanim, lay leaders, staff) |
+| `affiliations` | — | Links person profiles to synagogues with role, years, and notes |
 | `synagogue_relationships` | — | Typed directional links between synagogues (merger, split, predecessor, parent/branch) |
-| `links` | — | External URLs attached to synagogues or rabbi profiles |
-| `images` | — | Photos — schema and upload workflow ready |
+| `links` | — | External URLs attached to synagogues or leader profiles |
+| `images` | — | Photos — upload workflow live |
 | `edit_proposals` | — | All contributions and admin operations — pending/approved/rejected |
 | `user_profiles` | — | Auth users with roles (contributor/editor/admin/super_admin) |
-| `person_profiles` | — | *(in migration)* Generalized leader profiles extending rabbi model to all leadership types |
-| `affiliations` | — | *(in migration)* Links person profiles to synagogues with role detail |
+| `rabbis` | 373 | Legacy rabbi affiliations (read-only; superseded by `affiliations`) |
+| `rabbi_profiles` | — | Legacy rabbi biographies (read-only; superseded by `person_profiles`) |
 
 ### Getting API Keys
 
@@ -208,9 +235,13 @@ app/
     [id]/
       page.tsx                  # Detail page
   rabbis/
-    page.tsx                    # Rabbi directory
+    page.tsx                    # Leadership directory
     [slug]/
-      page.tsx                  # Rabbi profile
+      page.tsx                  # Leader profile page
+  leadership/
+    page.tsx                    # Alias → /rabbis
+    [slug]/
+      page.tsx                  # Alias → /rabbis/[slug]
   contributions/
     page.tsx                    # My contributions (authenticated)
     ContributionsClient.tsx
@@ -220,6 +251,8 @@ app/
     users/
       page.tsx                  # User management (super_admin only)
       UsersClient.tsx
+    migration/
+      page.tsx                  # Migration verification dashboard
   api/
     synagogues/[id]/
       full-details/route.ts
@@ -235,6 +268,9 @@ app/
     users/[id]/
       promote/route.ts
       demote/route.ts
+    admin/
+      generate-slugs/route.ts
+      delete-test-data/route.ts
 
 components/
   layout/
@@ -244,7 +280,7 @@ components/
     MiniMap.tsx                 # Non-interactive mini-map for detail pages
   synagogues/
     SynagoguesClient.tsx        # Browse page search/filter UI
-    SynagogueDetail.tsx         # Detail page layout
+    SynagogueDetail.tsx         # Detail page with leadership sections
     HistoryList.tsx             # Sortable history timeline
   rabbis/
     RabbisClient.tsx            # Directory page with search
@@ -254,7 +290,7 @@ components/
     AuthModal.tsx               # Login/signup modal
     LoginForm.tsx               # Login form with password reset
     SignupForm.tsx              # Registration form
-  edit/                         # Suggestion/create/merge/split/delete buttons and forms
+  edit/                         # Proposal/create/merge/split/delete buttons and forms
     SuggestEdit{Button,Form}.tsx
     SuggestAddress{Button,Form}.tsx
     SuggestRabbi{Button,Form}.tsx
@@ -264,10 +300,13 @@ components/
     Merge{Synagogue,Rabbi}Button.tsx
     Split{Synagogue,Rabbi}Button.tsx
     Delete{Synagogue,Rabbi}Button.tsx
-    AddRabbiAffiliationButton.tsx
+    AddRabbiAffiliationButton.tsx   # Multi-step clergy affiliation modal
     AddSynagogueAffiliationButton.tsx
-    AddRelationshipButton.tsx   # Typed org relationships between synagogues
-    AddLinkButton.tsx           # External links for synagogues and rabbis
+    AddLayLeaderButton.tsx           # Add lay leader affiliation
+    AddStaffButton.tsx               # Add staff affiliation
+    EditAffiliationButton.tsx        # Edit affiliation; supports rabbi→chazzan conversion
+    AddRelationshipButton.tsx        # Typed org relationships between synagogues
+    AddLinkButton.tsx                # External links for synagogues and leaders
     DeleteRelationshipModal.tsx
   photos/
     PhotoUploadButton.tsx
@@ -278,11 +317,13 @@ components/
 
 lib/
   supabase/
-    client.ts                   # Shared client + TS types (used by legacy test pages)
+    client.ts                   # Shared client + TS types (legacy test pages only)
     server.ts                   # Server-side auth helpers
   types/
     database.types.ts           # Auto-generated Supabase TypeScript types
-    leadership.ts               # New person/affiliation data model types
+    leadership.ts               # PersonProfile and Affiliation types + role lists
+  queries/
+    leadership.ts               # Database queries for person_profiles and affiliations
   hooks/
     useUserRole.ts              # Role-checking hook
 
@@ -311,8 +352,8 @@ npm run type-check   # TypeScript check (no emit)
 
 - [ ] `/about` page
 - [ ] Full-text search using the `search_vector` tsvector column
-- [ ] Complete `person_profiles` / `affiliations` data model migration (DB migration + UI cutover from `rabbis` table)
 - [ ] Surface non-geocoded historical addresses as map markers
+- [ ] Public profile pages for lay leaders and staff
 - [ ] Enhanced bulk admin operations
 
 ---
