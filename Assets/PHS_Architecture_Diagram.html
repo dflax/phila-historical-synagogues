@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Philadelphia Historical Synagogues — Technical Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    padding: 32px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .page-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: -0.3px;
+  }
+  .page-header p {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .diagram-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+
+  .diagram-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 32px;
+  }
+  .legend h3 {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #475569;
+  }
+  .swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 8px;
+  }
+
+  @media print {
+    body { background: white; padding: 16px; }
+    .diagram-wrap { box-shadow: none; }
+    .legend { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Philadelphia Historical Synagogues — Technical Architecture</h1>
+  <p>Version 1.0 &nbsp;·&nbsp; System component diagram showing all layers, services, and data flows</p>
+</div>
+
+<!-- MAIN ARCHITECTURE DIAGRAM -->
+<div class="diagram-wrap">
+  <div class="diagram-title">Full System Architecture</div>
+  <div class="mermaid">
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor":       "#dbeafe",
+    "primaryTextColor":   "#1e3a5f",
+    "primaryBorderColor": "#3b82f6",
+    "lineColor":          "#64748b",
+    "secondaryColor":     "#f0fdf4",
+    "tertiaryColor":      "#fef3c7",
+    "background":         "#ffffff",
+    "mainBkg":            "#ffffff",
+    "nodeBorder":         "#94a3b8",
+    "clusterBkg":         "#f8fafc",
+    "clusterBorder":      "#cbd5e1",
+    "titleColor":         "#1e40af",
+    "edgeLabelBackground":"#ffffff",
+    "fontFamily":         "Segoe UI, system-ui, sans-serif",
+    "fontSize":           "13px"
+  }
+}}%%
+
+graph TB
+  %% ── CLIENTS ──────────────────────────────────────────────────────────────
+  subgraph CLIENTS["🌐  Client Layer"]
+    direction LR
+    BROWSER["🖥️  Web Browser\n────────────────\nReact 18 Client Components\nNext.js App Router hydration\nTailwind CSS  ·  Dark mode\nGoogle Maps JS API"]
+    MOBILE["📱  Mobile Browser\n────────────────\nSame React bundle\nResponsive / hamburger nav\nTouch-optimised UI"]
+  end
+
+  %% ── CDN ──────────────────────────────────────────────────────────────────
+  subgraph CDN["⚡  Edge / CDN  (Vercel)"]
+    EDGE["Vercel Edge Network\n────────────────\nStatic assets · JS chunks · CSS\nGlobal POP distribution\nAutomatic HTTPS"]
+  end
+
+  %% ── APP LAYER ────────────────────────────────────────────────────────────
+  subgraph APP["🚀  Application Layer  (Vercel Serverless)"]
+    direction TB
+
+    subgraph NEXTJS["Next.js 14  —  App Router"]
+      direction LR
+
+      subgraph PAGES["Server Components  (RSC)"]
+        P_HOME["/ Homepage"]
+        P_MAP["/map"]
+        P_SYN["/synagogues\n/synagogues/[id]"]
+        P_RAB["/rabbis\n/rabbis/[slug]"]
+        P_ADM["/admin\n/admin/users\n/admin/migration"]
+        P_CON["/contributions"]
+      end
+
+      subgraph API["API Route Handlers"]
+        API_EXPORT["GET /api/admin/export\n(ExcelJS workbook)"]
+        API_APPROVE["POST /api/proposals/[id]/approve\n(22 proposal types)"]
+        API_USERS["POST /api/users/[id]/{promote,demote}"]
+        API_MISC["addresses · history · images\nrabbis · synagogues\nadmin/generate-slugs"]
+      end
+
+      MW["middleware.ts\n────────────\nSession refresh\non every request"]
+    end
+
+    subgraph COMPONENTS["React Component Library"]
+      C_MAP["MapClient.tsx\nMiniMap.tsx\n(Google Maps)"]
+      C_DETAIL["SynagogueDetail\nRabbiDetail\nHistoryList"]
+      C_EDIT["28× Edit / Proposal\nComponents"]
+      C_AUTH["NavAuth  ·  AuthModal\nLoginForm  ·  SignupForm"]
+      C_ADMIN["AdminClient\nExportDataModal\nMigrationDashboard"]
+      C_HDR["AppHeader\n(responsive nav)"]
+    end
+
+    subgraph LIBS["Library Layer"]
+      L_TYPES["lib/types/\ndatabase.types.ts\nleadership.ts"]
+      L_QUERIES["lib/queries/\nleadership.ts"]
+      L_HOOKS["hooks/\nuseUserRole.ts"]
+      L_GEO["lib/geocoding.ts\n(Maps Geocoding API)"]
+      L_SB["lib/supabase/\nclient.ts  ·  server.ts"]
+    end
+  end
+
+  %% ── SUPABASE ─────────────────────────────────────────────────────────────
+  subgraph SUPABASE["🗄️  Supabase  (Managed Cloud)"]
+    direction TB
+
+    subgraph DB["PostgreSQL Database"]
+      direction LR
+
+      subgraph CORE["Core Tables"]
+        T_SYN[("synagogues\n562 records")]
+        T_ADR[("addresses\n424 geocoded")]
+        T_HIS[("history_entries\n325 records")]
+      end
+
+      subgraph PEOPLE["Leadership Tables  (active)"]
+        T_PP[("person_profiles\nrabbi · chazzan\nlay_leader · staff")]
+        T_AFF[("affiliations\ncategory · role\nstart/end year")]
+      end
+
+      subgraph CONTRIB["Contribution Tables"]
+        T_EP[("edit_proposals\n22 proposal types\npending·approved·rejected")]
+        T_IMG[("images")]
+        T_LNK[("links")]
+        T_REL[("synagogue_relationships")]
+      end
+
+      subgraph USERS["User Tables"]
+        T_UP[("user_profiles\nrole · full_name")]
+        T_SC[("storage_config\nbase URL lookup")]
+      end
+
+      subgraph LEGACY["Legacy Tables  (read-only)"]
+        T_RAB[("rabbis\n373 records")]
+        T_RP[("rabbi_profiles")]
+      end
+    end
+
+    SB_AUTH["Supabase Auth\n────────────────\nEmail + password\nSession cookies\nJWT tokens"]
+    SB_STOR["Supabase Storage\n────────────────\nPhoto uploads\nObject paths → public URLs"]
+    SB_RLS["Row Level Security\n────────────────\napproved = true\ndeleted = false\nWrite: authenticated only"]
+  end
+
+  %% ── EXTERNAL SERVICES ────────────────────────────────────────────────────
+  subgraph EXT["🔌  External Services"]
+    GMAPS["Google Maps Platform\n────────────────\nMaps JavaScript API\nGeocoding API\nAdvancedMarkerElement\nStreet View"]
+    GITHUB["GitHub\n────────────────\ngit repository\nauto-deploy trigger"]
+    VERCEL_CI["Vercel CI/CD\n────────────────\nnpm run build\ntype-check\npreview deploys"]
+  end
+
+  %% ── FLOWS ────────────────────────────────────────────────────────────────
+  BROWSER -->|"HTTPS request"| EDGE
+  MOBILE  -->|"HTTPS request"| EDGE
+  EDGE    -->|"SSR / API"| NEXTJS
+
+  MW      -.->|"cookie refresh"| SB_AUTH
+  PAGES   -->|"direct DB query\n(anon key + RLS)"| DB
+  API     -->|"service role key\n(RLS bypass)"| DB
+  API_APPROVE -->|"writes live tables"| DB
+  API_EXPORT  -->|"read all approved"| DB
+  API_USERS   -->|"update user_profiles"| T_UP
+
+  C_AUTH  -->|"sign in / sign up"| SB_AUTH
+  C_EDIT  -->|"fetch → API routes"| API
+  C_ADMIN -->|"fetch → API routes"| API
+  C_MAP   -->|"Maps JS API"| GMAPS
+  L_GEO   -->|"Geocoding API"| GMAPS
+
+  C_ADMIN -->|"photo upload"| SB_STOR
+  SB_STOR -.->|"storage_path → URL\nvia storage_config"| T_SC
+
+  SB_AUTH -->|"auth.users\nlinked to"| T_UP
+
+  GITHUB  -->|"git push → trigger"| VERCEL_CI
+  VERCEL_CI -->|"deploy build"| APP
+
+  T_PP  ---|"person_profile_id"| T_AFF
+  T_AFF ---|"synagogue_id"| T_SYN
+  T_ADR ---|"synagogue_id"| T_SYN
+  T_HIS ---|"synagogue_id"| T_SYN
+  T_EP  ---|"entity_id"| T_SYN
+
+  %% Styling
+  classDef client    fill:#eff6ff,stroke:#3b82f6,color:#1e3a5f
+  classDef server    fill:#f0fdf4,stroke:#22c55e,color:#14532d
+  classDef db        fill:#fdf4ff,stroke:#a855f7,color:#4a044e
+  classDef external  fill:#fff7ed,stroke:#f97316,color:#7c2d12
+  classDef auth      fill:#fef2f2,stroke:#ef4444,color:#7f1d1d
+  classDef legacy    fill:#f8fafc,stroke:#94a3b8,color:#475569
+
+  class BROWSER,MOBILE client
+  class P_HOME,P_MAP,P_SYN,P_RAB,P_ADM,P_CON,API_EXPORT,API_APPROVE,API_USERS,API_MISC,MW server
+  class T_SYN,T_ADR,T_HIS,T_PP,T_AFF,T_EP,T_IMG,T_LNK,T_REL,T_UP,T_SC db
+  class T_RAB,T_RP legacy
+  class GMAPS,GITHUB,VERCEL_CI external
+  class SB_AUTH,SB_RLS auth
+  </div>
+</div>
+
+<!-- DATA FLOW DIAGRAM -->
+<div class="diagram-wrap">
+  <div class="diagram-title">Proposal / Contribution Data Flow</div>
+  <div class="mermaid">
+%%{init: { "theme": "base", "themeVariables": { "primaryColor": "#dbeafe", "primaryBorderColor": "#3b82f6", "lineColor": "#64748b", "fontFamily": "Segoe UI, system-ui, sans-serif", "fontSize": "13px" } }}%%
+
+sequenceDiagram
+  participant U  as 👤 Contributor
+  participant UI as React Client
+  participant MW as Next.js Middleware
+  participant API as API Route Handler
+  participant DB  as Supabase DB
+  participant ED  as 🛡️ Editor
+
+  U->>UI: Fill in edit form
+  UI->>API: POST /api/.../approve or edit route
+  API->>API: Verify auth cookie (createRouteHandlerClient)
+  API->>DB: SELECT user_profiles WHERE id = user.id
+  DB-->>API: { role: 'contributor' }
+  API->>DB: INSERT edit_proposals { status: 'pending', ... }
+  DB-->>API: proposal created
+  API-->>UI: 201 Created
+  UI-->>U: "Proposal submitted for review"
+
+  Note over ED,DB: Later — Editor reviews dashboard
+
+  ED->>UI: Clicks Approve
+  UI->>API: POST /api/proposals/[id]/approve
+  API->>DB: SELECT user_profiles (role check: editor+)
+  DB-->>API: { role: 'editor' }
+  API->>DB: SELECT edit_proposals WHERE id = proposalId
+  DB-->>API: { proposal_type, proposed_data, ... }
+  API->>DB: UPDATE/INSERT live table (service role key)
+  API->>DB: UPDATE edit_proposals SET status = 'approved'
+  DB-->>API: OK
+  API-->>UI: 200 OK
+  UI-->>ED: Proposal list refreshes
+  </div>
+</div>
+
+<!-- AUTH FLOW -->
+<div class="diagram-wrap">
+  <div class="diagram-title">Authentication and Session Flow</div>
+  <div class="mermaid">
+%%{init: { "theme": "base", "themeVariables": { "primaryColor": "#f0fdf4", "primaryBorderColor": "#22c55e", "lineColor": "#64748b", "fontFamily": "Segoe UI, system-ui, sans-serif", "fontSize": "13px" } }}%%
+
+flowchart LR
+  A([User visits any page]) --> B{Session cookie\npresent?}
+  B -- No --> C[middleware: createMiddlewareClient\ngetSession → no session]
+  B -- Yes --> D[middleware: createMiddlewareClient\ngetSession → refreshes JWT]
+  C --> E[Page renders as anonymous\nNo edit UI shown]
+  D --> F[Server component reads\nrefreshed cookie]
+  F --> G{Need user role?}
+  G -- Yes\nAPI route --> H[createRouteHandlerClient\ngetUser → check user_profiles.role]
+  G -- Yes\nClient component --> I[useUserRole hook\nonAuthStateChange listener\ncheck user_profiles.role]
+  G -- No --> J[Render public content]
+  H --> K{Role sufficient?}
+  K -- No --> L[Return 401 / 403]
+  K -- Yes --> M[Execute operation]
+  I --> N[Show/hide UI elements\nbased on role flags]
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <h3>Layer Legend</h3>
+  <div class="legend-item"><div class="swatch" style="background:#eff6ff;border-color:#3b82f6"></div> Client Layer (Browser)</div>
+  <div class="legend-item"><div class="swatch" style="background:#f0fdf4;border-color:#22c55e"></div> Application Layer (Next.js / Vercel Serverless)</div>
+  <div class="legend-item"><div class="swatch" style="background:#fdf4ff;border-color:#a855f7"></div> Database Tables (Supabase PostgreSQL)</div>
+  <div class="legend-item"><div class="swatch" style="background:#fef2f2;border-color:#ef4444"></div> Auth & Security (Supabase Auth / RLS)</div>
+  <div class="legend-item"><div class="swatch" style="background:#fff7ed;border-color:#f97316"></div> External Services (Google Maps, GitHub, Vercel CI)</div>
+  <div class="legend-item"><div class="swatch" style="background:#f8fafc;border-color:#94a3b8"></div> Legacy Tables (read-only, superseded)</div>
+</div>
+
+<div class="footer">
+  Philadelphia Historical Synagogues &nbsp;·&nbsp; Technical Architecture Diagram &nbsp;·&nbsp; Version 1.0
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    flowchart: { curve: 'basis', padding: 20, nodeSpacing: 50, rankSpacing: 60 },
+    sequence:   { diagramMarginX: 20, diagramMarginY: 20, actorMargin: 60 }
+  });
+</script>
+</body>
+</html>
