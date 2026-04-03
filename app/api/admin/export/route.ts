@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import ExcelJS from 'exceljs'
 
-const EDITOR_ROLES = ['editor', 'admin', 'super_admin']
+const EDITOR_ROLES = ['contributor', 'editor', 'admin', 'super_admin']
 
 export async function GET(req: NextRequest) {
   // ── 1. Auth ───────────────────────────────────────────────────────────────
