@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import NavAuth from '@/components/auth/NavAuth'
+import ExportDataModal from '@/components/admin/ExportDataModal'
+import { useUserRole } from '@/hooks/useUserRole'
 
 const NAV_LINKS = [
   { href: '/',           label: 'Home' },
@@ -19,6 +21,8 @@ interface Props {
 export default function AppHeader({ sticky = false }: Props) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  const { isEditor } = useUserRole()
 
   // Close on Escape; lock body scroll while open
   useEffect(() => {
@@ -65,6 +69,17 @@ export default function AppHeader({ sticky = false }: Props) {
                   {label}
                 </Link>
               ))}
+              {isEditor && (
+                <button
+                  onClick={() => setExportOpen(true)}
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition flex items-center gap-1.5"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  Export Data
+                </button>
+              )}
               <NavAuth />
             </div>
 
@@ -128,6 +143,17 @@ export default function AppHeader({ sticky = false }: Props) {
                   {label}
                 </Link>
               ))}
+              {isEditor && (
+                <button
+                  onClick={() => { setOpen(false); setExportOpen(true) }}
+                  className="w-full flex items-center gap-2 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  Export Data
+                </button>
+              )}
             </nav>
 
             {/* Auth section at bottom */}
@@ -137,6 +163,8 @@ export default function AppHeader({ sticky = false }: Props) {
           </div>
         </>
       )}
+
+      <ExportDataModal isOpen={exportOpen} onClose={() => setExportOpen(false)} />
     </>
   )
 }

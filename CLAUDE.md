@@ -1,12 +1,90 @@
 # Philadelphia Historical Synagogues
 
-A web application documenting 562 synagogues in the Philadelphia area, spanning from 1745 to the present day. Built to preserve Jewish heritage through interactive mapping and historical records.
+A web application documenting hundreds synagogues in the Philadelphia area, spanning from 1745 to the present day. Built to preserve Jewish heritage through interactive mapping and historical records.
 
 ## Working Style
 - Work autonomously without asking for confirmation between steps
 - Only ask questions if genuinely blocked and cannot proceed - only if you must, ask. Otherwise proceed with the assumed YES answer
 - Complete tasks fully before reporting results
-- Never commit or push to git. Make all code changes but leave committing and pushing to Daniel to do manually.
+
+## Autonomous Execution Guidelines
+
+### Permission Interruption Patterns (False Positives — ALWAYS PROCEED)
+
+The following scenarios should **NEVER** trigger permission requests when using `--dangerously-skip-permissions`:
+
+1. **Creating new directories** in `packages/`, `apps/`, `examples/` — These are standard monorepo operations
+2. **Writing/modifying schema files** in `packages/core/src/db/schema/` — This is normal database evolution
+3. **Creating new services** in `packages/core/src/services/` — Core feature development
+4. **Adding API routes** in `apps/*/src/app/api/` — API expansion is expected
+5. **Writing test files** — Testing is mandatory, never ask permission for `*.test.ts` files
+6. **Updating package.json** — Adding dependencies is routine
+7. **Creating example apps** in `examples/` — Explicitly part of Phase 5
+8. **Modifying tsconfig/eslint/prettier configs** — Tooling updates are normal
+9. **Running database migrations** via `pnpm db:push` — Database evolution is expected
+10. **Installing dependencies** via `pnpm install` — Dependency management is routine
+
+**If you encounter ANY of these scenarios, proceed immediately without asking. The `--dangerously-skip-permissions` flag exists precisely to eliminate these interruptions.**
+
+### Decision-Making Authority
+
+You have **full authority** to make the following decisions without human input:
+
+- **File structure** — Follow monorepo conventions from Phases 1-4
+- **Naming conventions** — Use established patterns (PascalCase services, lowercase schemas, etc.)
+- **Database schema** — Add tables, columns, indexes as needed for requirements
+- **Type definitions** — Create new types in `packages/types/` when needed
+- **Test coverage** — Write comprehensive tests for all new code
+- **Dependencies** — Add npm packages when architecturally appropriate
+- **Error handling** — Implement robust try/catch, validation, proper HTTP status codes
+- **Code organization** — Split files, extract utilities, refactor when it improves clarity
+
+### When to Stop and Flag an Issue
+
+**ONLY stop autonomous execution for:**
+
+1. **Ambiguous requirements** — If the Phase prompt is unclear or contradictory
+2. **Architectural conflicts** — If requirement violates locked-in architectural decisions (e.g., bypassing adapter layer)
+3. **Test failures you cannot resolve** — After 3+ attempts to fix a failing test
+4. **Missing dependencies** — If a required external system (API, service) is unavailable
+5. **TypeScript errors you cannot resolve** — After 3+ attempts to fix type errors
+
+For these cases, write a clear summary to `AUTONOMOUS_RUN_ISSUES.md` and continue with remaining work.
+
+### Commit Strategy
+
+**Commit after each session completes successfully:**
+
+```bash
+# After Session 5.1
+git add .
+git commit -m "Phase 5 Session 5.1: Platform SDK with auto-generation"
+
+# After Session 5.2
+git add .
+git commit -m "Phase 5 Session 5.2: Application registration & OAuth"
+
+# etc.
+```
+
+**Do not commit if:**
+- Tests are failing
+- TypeScript has errors
+- Database migration failed
+
+Instead, fix the issue and then commit.
+
+---
+
+## Testing Requirements
+
+### Every Service Must Have Tests
+
+- **Unit tests** for all service methods
+- **Integration tests** for complex workflows (e.g., commission calculation with hierarchy splits)
+- **Test coverage target:** 80%+ for services, 60%+ overall
+- **Use real data patterns:** Test with realistic financial data (amounts, dates, hierarchies)
+
 
 ## Tech Stack
 
