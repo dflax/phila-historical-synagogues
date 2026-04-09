@@ -41,6 +41,7 @@ export default async function SynagoguesPage() {
       )
     `)
     .or('deleted.is.null,deleted.eq.false')
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'addresses' })
     .order('name'),
     supabase
       .from('addresses')

@@ -43,7 +43,7 @@ export default async function Home() {
             an interactive map of synagogues past and present
           </p>
 
-          <div className="flex gap-4 justify-center mb-12">
+          <div className="flex flex-wrap gap-4 justify-center mb-12">
             <Link
               href="/map"
               className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
@@ -54,7 +54,13 @@ export default async function Home() {
               href="/synagogues"
               className="bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 px-8 py-3 rounded-lg font-semibold border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
             >
-              📚 Browse List
+              📚 Browse Synagogues
+            </Link>
+            <Link
+              href="/leadership"
+              className="bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 px-8 py-3 rounded-lg font-semibold border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
+            >
+              👤 Browse Leadership
             </Link>
           </div>
 
