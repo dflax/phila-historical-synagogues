@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
-import RabbiDetail from '@/components/rabbis/RabbiDetail'
+import LeadershipDetail from '@/components/leadership/LeadershipDetail'
 import { getPersonProfileBySlug, getAffiliationsByPerson } from '@/lib/queries/leadership'
 
 export const dynamic = 'force-dynamic'
@@ -96,7 +96,7 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
   }>
 
   return (
-    <RabbiDetail
+    <LeadershipDetail
       profile={{
         id:              profile.id,
         slug:            profile.slug ?? '',

@@ -258,7 +258,7 @@ interface PendingDelete {
   remove: (id: string) => void
 }
 
-export default function RabbiDetail({ profile, affiliations: initialAffiliations, photos: initialPhotos, links }: Props) {
+export default function LeadershipDetail({ profile, affiliations: initialAffiliations, photos: initialPhotos, links }: Props) {
   const { isEditor, isAdmin, isContributor } = useUserRole()
 
   const [affiliations,  setAffiliations]  = useState<Affiliation[]>(initialAffiliations)

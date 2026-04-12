@@ -31,7 +31,7 @@ function formatLifespan(
   return `${b} – ${d}`
 }
 
-export default function RabbisClient({ rabbis }: Props) {
+export default function LeadershipClient({ rabbis }: Props) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -179,7 +179,7 @@ export default function RabbisClient({ rabbis }: Props) {
                   <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                 </div>
 
-                {/* Rabbi rows */}
+                {/* Person rows */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
                   {rows.map(r => {
                     const lifespan = formatLifespan(r.birth_year, r.death_year, r.circa_birth, r.circa_death)

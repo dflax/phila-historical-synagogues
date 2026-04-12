@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Suspense } from 'react'
-import RabbisClient from '@/components/rabbis/RabbisClient'
+import LeadershipClient from '@/components/leadership/LeadershipClient'
 import { getAllPersonProfiles } from '@/lib/queries/leadership'
 
 export const dynamic = 'force-dynamic'
@@ -63,7 +63,7 @@ export default async function RabbisPage() {
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
       </div>
     }>
-      <RabbisClient rabbis={rabbis} />
+      <LeadershipClient rabbis={rabbis} />
     </Suspense>
   )
 }
