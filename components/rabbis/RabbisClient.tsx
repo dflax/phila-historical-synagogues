@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import AppHeader from '@/components/layout/AppHeader'
@@ -74,6 +74,14 @@ export default function RabbisClient({ rabbis }: Props) {
 
   const totalVisible = groups.reduce((sum, [, rows]) => sum + rows.length, 0)
   const hasSearch = search.trim().length > 0
+
+  // Scroll to a person row when returning from a profile page via hash
+  useEffect(() => {
+    if (!window.location.hash) return
+    const id = window.location.hash.slice(1)
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-900">
@@ -178,6 +186,7 @@ export default function RabbisClient({ rabbis }: Props) {
                     return (
                       <Link
                         key={r.id}
+                        id={r.id}
                         href={`/leadership/${r.slug}`}
                         className="flex items-center gap-4 px-5 py-3.5 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition group"
                       >
