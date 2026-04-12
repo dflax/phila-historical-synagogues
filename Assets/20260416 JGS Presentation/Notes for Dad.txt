@@ -1,0 +1,5 @@
+1. [Slide 3] Need the names of the folks who provided the initial data sets
+2. [Slide 9] Should we add a field for Clergy academic affiliations? So we could see all of the Rabbis that trained at JTS? Or something like that?
+3. [Slide 18] What email address should they send questions or ideas about the site?
+
+We have to impress on them that they DO NOT email data corrections. They enter those right into the site itself. We can can't get into a situation where they are just emailing data fixes.

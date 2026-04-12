@@ -282,7 +282,7 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 mb-6">
-          <Link href="/synagogues" className="hover:text-blue-600 dark:hover:text-blue-400 transition">← Back to directory</Link>
+          <Link href={`/synagogues#${synagogue.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition">← Back to directory</Link>
         </div>
 
         {/* Hero header */}

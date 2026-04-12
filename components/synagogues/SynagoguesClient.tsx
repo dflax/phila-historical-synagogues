@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AppHeader from '@/components/layout/AppHeader'
@@ -104,6 +104,14 @@ export default function SynagoguesClient({ synagogues, neighborhoods }: Props) {
   const [neighborhoodFilter, setNeighborhoodFilter] = useState(searchParams.get('neighborhood') ?? '')
   const [yearStart,          setYearStart]          = useState(searchParams.get('yearStart')    ?? '')
   const [yearEnd,            setYearEnd]            = useState(searchParams.get('yearEnd')      ?? '')
+
+  // Scroll to a synagogue row when returning from a detail page via hash
+  useEffect(() => {
+    if (!window.location.hash) return
+    const id = window.location.hash.slice(1)
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
 
   // Push updated URL params without a page reload
   function applyUrlFilters(neighborhood: string, ys: string, ye: string) {
@@ -418,6 +426,7 @@ export default function SynagoguesClient({ synagogues, neighborhoods }: Props) {
               return (
                 <div
                   key={s.id}
+                  id={s.id}
                   className={`bg-white dark:bg-gray-800 rounded-xl border transition-all duration-150 overflow-hidden ${
                     isOpen
                       ? 'border-blue-200 dark:border-blue-700 shadow-md'

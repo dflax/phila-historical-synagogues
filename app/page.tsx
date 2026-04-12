@@ -12,9 +12,9 @@ async function getStats() {
   )
 
   const [totalResult, activeResult, earliestResult] = await Promise.all([
-    supabase.from('synagogues').select('*', { count: 'exact', head: true }).eq('approved', true),
-    supabase.from('synagogues').select('*', { count: 'exact', head: true }).eq('approved', true).eq('status', 'active'),
-    supabase.from('synagogues').select('founded_year').eq('approved', true).not('founded_year', 'is', null).order('founded_year', { ascending: true }).limit(1),
+    supabase.from('synagogues').select('*', { count: 'exact', head: true }).eq('approved', true).or('deleted.is.null,deleted.eq.false'),
+    supabase.from('synagogues').select('*', { count: 'exact', head: true }).eq('approved', true).eq('status', 'active').or('deleted.is.null,deleted.eq.false'),
+    supabase.from('synagogues').select('founded_year').eq('approved', true).or('deleted.is.null,deleted.eq.false').not('founded_year', 'is', null).order('founded_year', { ascending: true }).limit(1),
   ])
 
   const total = totalResult.count ?? 562
