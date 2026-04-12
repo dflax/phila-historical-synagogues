@@ -116,24 +116,22 @@ export default function AppHeader({ sticky = false }: Props) {
               </button>
             </div>
 
-            {/* Nav links */}
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-              {NAV_LINKS.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={mobileLinkClass(href)}
-                  onClick={() => setOpen(false)}
-                >
-                  {label}
-                </Link>
-              ))}
+            {/* Nav links + auth — all in one scrollable area */}
+            <nav className="flex-1 px-3 py-4 overflow-y-auto">
+              <div className="space-y-1">
+                {NAV_LINKS.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={mobileLinkClass(href)}
+                    onClick={() => setOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+              <NavAuth mobile />
             </nav>
-
-            {/* Auth section at bottom */}
-            <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-700">
-              <NavAuth />
-            </div>
           </div>
         </>
       )}
