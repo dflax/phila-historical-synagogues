@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface Props {
@@ -25,14 +25,49 @@ export default function SuggestAddressForm({ synagogueId, userId, onSuccess }: P
   const [error,             setError]             = useState<string | null>(null)
   const [loading,           setLoading]           = useState(false)
   const [detectingNeighbor, setDetectingNeighbor] = useState(false)
+  const [lookingUpZip,      setLookingUpZip]      = useState(false)
+
+  // Auto-lookup ZIP code whenever street address, city, and state are all filled in.
+  // Debounced 600 ms so we don't fire on every keystroke.
+  useEffect(() => {
+    const street = streetAddress.trim()
+    const c      = city.trim()
+    const s      = state.trim()
+    if (!street || !c || !s) return
+
+    const timer = setTimeout(async () => {
+      setLookingUpZip(true)
+      try {
+        const query = encodeURIComponent(`${street}, ${c}, ${s}`)
+        const key   = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        const res   = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${key}`,
+        )
+        const data = await res.json()
+        if (data.status === 'OK' && data.results?.[0]) {
+          const components: Array<{ types: string[]; long_name: string }> =
+            data.results[0].address_components ?? []
+          const zip     = components.find(c => c.types.includes('postal_code'))?.long_name
+          const suffix  = components.find(c => c.types.includes('postal_code_suffix'))?.long_name
+          if (zip) setZipCode(suffix ? `${zip}-${suffix}` : zip)
+        }
+      } catch {
+        // Silently fail — user can type manually
+      } finally {
+        setLookingUpZip(false)
+      }
+    }, 600)
+
+    return () => clearTimeout(timer)
+  }, [streetAddress, city, state])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    // Validate ZIP if provided
-    if (zipCode && !/^\d{5}$/.test(zipCode)) {
-      setError('ZIP code must be exactly 5 digits.')
+    // Validate ZIP if provided — accept 5-digit or ZIP+4 format
+    if (zipCode && !/^\d{5}(-\d{4})?$/.test(zipCode)) {
+      setError('ZIP code must be 5 digits or ZIP+4 format (e.g. 19122-1234).')
       return
     }
 
@@ -173,16 +208,26 @@ export default function SuggestAddressForm({ synagogueId, userId, onSuccess }: P
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="addr-zip" className={labelClass}>ZIP code</label>
-          <input
-            id="addr-zip"
-            type="text"
-            inputMode="numeric"
-            maxLength={5}
-            value={zipCode}
-            onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
-            className={inputClass}
-            placeholder="e.g. 19122"
-          />
+          <div className="relative">
+            <input
+              id="addr-zip"
+              type="text"
+              inputMode="numeric"
+              maxLength={10}
+              value={zipCode}
+              onChange={e => setZipCode(e.target.value.replace(/[^\d-]/g, ''))}
+              className={inputClass + (lookingUpZip ? ' pr-8' : '')}
+              placeholder={lookingUpZip ? '' : 'e.g. 19122'}
+            />
+            {lookingUpZip && (
+              <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none" aria-hidden="true">
+                <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              </div>
+            )}
+          </div>
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
