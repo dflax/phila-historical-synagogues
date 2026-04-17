@@ -2,7 +2,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { getNeighborhoodFromAddress } from '@/lib/geocoding'
+import { geocodeAddress } from '@/lib/geocoding'
 
 const ADMIN_ROLES = ['editor', 'admin', 'super_admin']
 
@@ -414,18 +414,25 @@ export async function POST(
     }
 
   } else if (proposal.proposal_type === 'address_new' && proposal.synagogue_id) {
-    // If no neighborhood was provided, try to infer it from the street address.
-    // Failure is non-fatal — the address is still created without a neighborhood.
+    // Geocode the address to get lat/lng + neighborhood in one API call.
+    // All fields are non-fatal — the address is still created if geocoding fails.
     let neighborhood = typeof proposed.neighborhood === 'string' && proposed.neighborhood.trim()
       ? proposed.neighborhood.trim()
       : null
+    let latitude:  number | null = null
+    let longitude: number | null = null
 
-    if (!neighborhood && proposed.street_address) {
-      neighborhood = await getNeighborhoodFromAddress(
+    if (proposed.street_address) {
+      const geo = await geocodeAddress(
         String(proposed.street_address),
         String(proposed.city  ?? 'Philadelphia'),
         String(proposed.state ?? 'PA'),
       )
+      if (geo) {
+        latitude  = geo.lat
+        longitude = geo.lng
+        if (!neighborhood) neighborhood = geo.neighborhood
+      }
     }
 
     const { error } = await supabase
@@ -437,6 +444,8 @@ export async function POST(
         state:          proposed.state          ?? null,
         zip_code:       proposed.zip_code       ?? null,
         neighborhood,
+        latitude,
+        longitude,
         start_year:     proposed.start_year     ?? null,
         end_year:       proposed.end_year       ?? null,
         is_current:     proposed.is_current     ?? false,

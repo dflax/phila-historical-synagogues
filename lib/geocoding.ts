@@ -45,6 +45,20 @@ export async function getNeighborhoodFromAddress(
   city = 'Philadelphia',
   state = 'PA',
 ): Promise<string | null> {
+  const result = await geocodeAddress(streetAddress, city, state)
+  return result?.neighborhood ?? null
+}
+
+/**
+ * Given a street address, return lat/lng coordinates and neighborhood in one
+ * API call. Returns null on any failure — callers should treat all fields as
+ * optional and continue without them.
+ */
+export async function geocodeAddress(
+  streetAddress: string,
+  city = 'Philadelphia',
+  state = 'PA',
+): Promise<{ lat: number; lng: number; neighborhood: string | null } | null> {
   try {
     const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
     if (!key) {
@@ -58,9 +72,16 @@ export async function getNeighborhoodFromAddress(
 
     if (data.status !== 'OK' || !data.results?.[0]) return null
 
-    return extractNeighborhood(data.results[0].address_components)
+    const location = data.results[0].geometry?.location
+    if (!location) return null
+
+    return {
+      lat:          location.lat,
+      lng:          location.lng,
+      neighborhood: extractNeighborhood(data.results[0].address_components),
+    }
   } catch (err) {
-    console.error('[geocoding] getNeighborhoodFromAddress error:', err)
+    console.error('[geocoding] geocodeAddress error:', err)
     return null
   }
 }
