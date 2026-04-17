@@ -56,13 +56,12 @@ export default async function MapPage() {
     )
   }
 
-  // Filter to only include synagogues with valid coordinates
+  // Filter to only include synagogues where at least one address has coordinates,
+  // then sort addresses so the geocoded one is first (MapClient always uses addresses[0]).
   const mappableSynagogues = (data ?? [])
     .filter(syn =>
       Array.isArray(syn.addresses) &&
-      syn.addresses.length > 0 &&
-      syn.addresses[0].latitude &&
-      syn.addresses[0].longitude
+      (syn.addresses as any[]).some((a: any) => a.latitude && a.longitude)
     )
     .map(syn => ({
       id: syn.id,
@@ -70,21 +69,27 @@ export default async function MapPage() {
       status: syn.status,
       founded_year: syn.founded_year,
       closed_year: syn.closed_year,
-      addresses: (syn.addresses as any[]).map(a => ({
-        id: a.id,
-        street_address: a.street_address,
-        neighborhood: a.neighborhood,
-        city: a.city,
-        state: a.state,
-        zip_code: a.zip_code,
-        latitude: Number(a.latitude),
-        longitude: Number(a.longitude),
-        geocode_quality: a.geocode_quality,
-        start_year: null,
-        end_year: null,
-        is_current: null,
-        address_order: null,
-      })),
+      addresses: (syn.addresses as any[])
+        .sort((a: any, b: any) => {
+          const aHasCoords = a.latitude && a.longitude ? 0 : 1
+          const bHasCoords = b.latitude && b.longitude ? 0 : 1
+          return aHasCoords - bHasCoords
+        })
+        .map((a: any) => ({
+          id: a.id,
+          street_address: a.street_address,
+          neighborhood: a.neighborhood,
+          city: a.city,
+          state: a.state,
+          zip_code: a.zip_code,
+          latitude: Number(a.latitude),
+          longitude: Number(a.longitude),
+          geocode_quality: a.geocode_quality,
+          start_year: null,
+          end_year: null,
+          is_current: null,
+          address_order: null,
+        })),
       clergy: Array.isArray((syn as any).affiliations)
         ? ((syn as any).affiliations as any[])
             .filter((a: any) => a.affiliation_category === 'clergy')

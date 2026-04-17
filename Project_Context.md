@@ -482,6 +482,7 @@ Import phases:
 
 ### 2026-04-17 (Most Recent Session)
 - **Geocode lat/lng on address approval** — `address_new` proposal approval now calls `geocodeAddress()` (single API call) to populate `latitude` and `longitude` on the inserted address row; without this, newly-added addresses had null coords and the mini-map fell back to a plain "View on Map" button; neighborhood is still derived from the same call, eliminating the prior duplicate geocoding API call
+- **Map page shows newly-created synagogues** — fixed `app/map/page.tsx` filter which checked `addresses[0].latitude` only; if the first returned address had null coords the whole synagogue was excluded; now uses `.some()` to check any address, and sorts geocoded addresses to index 0 so `MapClient` (which always uses `addresses[0]`) gets valid coords
 
 ### 2026-04-16
 - **Auto ZIP code lookup on address form** — `SuggestAddressForm.tsx` now auto-triggers a Google Geocoding API call (debounced 600 ms) whenever street address, city, and state are all populated; populates ZIP field with zip+4 if available; spinner shown inside the ZIP input during lookup; user can override freely; validation updated to accept `\d{5}` or `\d{5}-\d{4}` formats
@@ -527,7 +528,7 @@ Import phases:
 
 - **Branch**: `master` (main and only branch; Vercel deploys from here)
 - **Remote**: GitHub (auto-deploys to Vercel on push)
-- **Most recent commit**: `Phase 7 Session 7.3: Geocode lat/lng when approving new address proposals`
+- **Most recent commit**: `Phase 7 Session 7.3: Fix map page to show newly-created synagogues with any geocoded address`
 
 ---
 
