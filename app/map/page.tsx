@@ -34,7 +34,11 @@ export default async function MapPage() {
         zip_code,
         latitude,
         longitude,
-        geocode_quality
+        geocode_quality,
+        start_year,
+        end_year,
+        is_current,
+        address_order
       ),
       affiliations (
         affiliation_category,
@@ -56,8 +60,9 @@ export default async function MapPage() {
     )
   }
 
-  // Filter to only include synagogues where at least one address has coordinates,
-  // then sort addresses so the geocoded one is first (MapClient always uses addresses[0]).
+  // Include synagogues that have at least one geocoded address; pass ALL addresses
+  // (geocoded and not) so the sidebar panel can show the complete location history.
+  // buildMarkers() in MapClient skips non-geocoded entries when placing map markers.
   const mappableSynagogues = (data ?? [])
     .filter(syn =>
       Array.isArray(syn.addresses) &&
@@ -69,27 +74,21 @@ export default async function MapPage() {
       status: syn.status,
       founded_year: syn.founded_year,
       closed_year: syn.closed_year,
-      addresses: (syn.addresses as any[])
-        .sort((a: any, b: any) => {
-          const aHasCoords = a.latitude && a.longitude ? 0 : 1
-          const bHasCoords = b.latitude && b.longitude ? 0 : 1
-          return aHasCoords - bHasCoords
-        })
-        .map((a: any) => ({
-          id: a.id,
-          street_address: a.street_address,
-          neighborhood: a.neighborhood,
-          city: a.city,
-          state: a.state,
-          zip_code: a.zip_code,
-          latitude: Number(a.latitude),
-          longitude: Number(a.longitude),
-          geocode_quality: a.geocode_quality,
-          start_year: null,
-          end_year: null,
-          is_current: null,
-          address_order: null,
-        })),
+      addresses: (syn.addresses as any[]).map((a: any) => ({
+        id:             a.id,
+        street_address: a.street_address,
+        neighborhood:   a.neighborhood,
+        city:           a.city,
+        state:          a.state,
+        zip_code:       a.zip_code,
+        latitude:       a.latitude  != null ? Number(a.latitude)  : null,
+        longitude:      a.longitude != null ? Number(a.longitude) : null,
+        geocode_quality: a.geocode_quality,
+        start_year:     a.start_year   ?? null,
+        end_year:       a.end_year     ?? null,
+        is_current:     a.is_current   ?? null,
+        address_order:  a.address_order ?? null,
+      })),
       clergy: Array.isArray((syn as any).affiliations)
         ? ((syn as any).affiliations as any[])
             .filter((a: any) => a.affiliation_category === 'clergy')

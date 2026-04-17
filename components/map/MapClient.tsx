@@ -11,8 +11,8 @@ interface Address {
   city: string | null;
   state: string | null;
   zip_code: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;  // null for non-geocoded addresses
+  longitude: number | null; // null for non-geocoded addresses
   geocode_quality: string | null;
   start_year: number | null;
   end_year: number | null;
@@ -61,6 +61,13 @@ const STATUS_BADGE: Record<string, string> = {
   merged: 'text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/20',
   unknown: 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-700',
 };
+
+// ── Year-filter mode ──────────────────────────────────────────────────────────
+// 'synagogue': show ALL address markers for a synagogue if the synagogue's
+//              founded–closed range overlaps the selected year range.
+// 'address':   show only markers whose own start_year–end_year overlaps.
+// Change this one constant to switch behavior without touching the filter logic.
+const YEAR_FILTER_MODE: 'synagogue' | 'address' = 'synagogue'
 
 // Applied in both light and dark mode: suppress Google's POI and transit clutter
 // so synagogue markers read as the primary layer on the map.
@@ -112,42 +119,101 @@ function formatPopupAddress(addr: Address): string {
   return parts.join(', ');
 }
 
+/** "1920–1945", "1920–present", or null if no years on the address. */
+function formatAddressYears(addr: Address): string | null {
+  if (addr.start_year == null && addr.end_year == null) return null;
+  const start = addr.start_year != null ? String(addr.start_year) : '?';
+  const end   = addr.end_year   != null ? String(addr.end_year)   : 'present';
+  return `${start}–${end}`;
+}
+
+// ── Per-address marker helpers ────────────────────────────────────────────────
+
+/** Most-recent geocoded address: null end_year = still active (sorted highest). */
+function getPrimaryGeocodedAddress(syn: Synagogue): Address | undefined {
+  const geocoded = syn.addresses.filter(a => a.latitude != null && a.longitude != null);
+  if (geocoded.length === 0) return undefined;
+  return [...geocoded].sort((a, b) => {
+    const aEnd = a.end_year ?? Number.MAX_SAFE_INTEGER;
+    const bEnd = b.end_year ?? Number.MAX_SAFE_INTEGER;
+    if (bEnd !== aEnd) return bEnd - aEnd;
+    return (b.start_year ?? 0) - (a.start_year ?? 0);
+  })[0];
+}
+
+interface MarkerData {
+  key:       string;     // `${synagogueId}|${addressId}` — unique per address
+  synagogue: Synagogue;
+  address:   Address;
+  isPrimary: boolean;    // most-recent geocoded address → full opacity; others → 50%
+}
+
+/** Expand synagogues into one MarkerData per geocoded address. */
+function buildMarkers(synagogues: Synagogue[]): MarkerData[] {
+  const markers: MarkerData[] = [];
+  for (const syn of synagogues) {
+    const primary = getPrimaryGeocodedAddress(syn);
+    for (const addr of syn.addresses) {
+      if (addr.latitude == null || addr.longitude == null) continue;
+      markers.push({
+        key:       `${syn.id}|${addr.id}`,
+        synagogue: syn,
+        address:   addr,
+        isPrimary: primary?.id === addr.id,
+      });
+    }
+  }
+  return markers;
+}
+
+function markerPassesYearFilter(
+  marker: MarkerData,
+  startYear: number,
+  endYear: number,
+): boolean {
+  if (YEAR_FILTER_MODE === 'synagogue') {
+    const founded = marker.synagogue.founded_year ?? 0;
+    const closed  = marker.synagogue.closed_year  ?? 9999;
+    return founded <= endYear && closed >= startYear;
+  } else {
+    const addrStart = marker.address.start_year ?? marker.synagogue.founded_year ?? 0;
+    const addrEnd   = marker.address.end_year   ?? marker.synagogue.closed_year  ?? 9999;
+    return addrStart <= endYear && addrEnd >= startYear;
+  }
+}
+
 /**
- * For synagogues sharing the exact same primary address, distribute them in a
- * small circle (radius ≈ 33m) so each marker is at a unique position.
- * The focused synagogue stays at its original coordinates so the map centers correctly.
+ * For markers sharing the exact same lat/lng, distribute them in a small circle
+ * (radius ≈ 33m) so each is visually distinct when zoomed in.
+ * The primary marker for the focused synagogue stays at real coords.
  */
 function computeDisplayCoords(
-  synagogues: Synagogue[],
-  focusId: string | null
+  markers: MarkerData[],
+  focusSynId: string | null,
 ): Map<string, { lat: number; lng: number }> {
   const RADIUS = 0.0003; // ~33 metres — invisible at zoom ≤13, distinct at zoom 15+
-  const groupMap = new Map<string, string[]>(); // "lat,lng" → [id, ...]
+  const groupMap = new Map<string, string[]>(); // "lat,lng" → [markerKey, ...]
 
-  synagogues.forEach(s => {
-    const addr = s.addresses?.[0];
-    if (!addr) return;
-    const key = `${addr.latitude},${addr.longitude}`;
-    if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key)!.push(s.id);
+  markers.forEach(m => {
+    const coordKey = `${m.address.latitude},${m.address.longitude}`;
+    if (!groupMap.has(coordKey)) groupMap.set(coordKey, []);
+    groupMap.get(coordKey)!.push(m.key);
   });
 
   const displayCoords = new Map<string, { lat: number; lng: number }>();
-
-  synagogues.forEach(s => {
-    const addr = s.addresses?.[0];
-    if (!addr) return;
-    displayCoords.set(s.id, { lat: addr.latitude, lng: addr.longitude });
+  markers.forEach(m => {
+    displayCoords.set(m.key, { lat: m.address.latitude!, lng: m.address.longitude! });
   });
 
-  groupMap.forEach((ids, key) => {
-    if (ids.length <= 1) return;
-    const [lat, lng] = key.split(',').map(Number);
-    ids.forEach((id, i) => {
-      // Keep focused marker at original coords so the map centers correctly
-      if (id === focusId) return;
-      const angle = (i / ids.length) * 2 * Math.PI;
-      displayCoords.set(id, {
+  groupMap.forEach((keys, coordKey) => {
+    if (keys.length <= 1) return;
+    const [lat, lng] = coordKey.split(',').map(Number);
+    keys.forEach((key, i) => {
+      // Keep the primary marker for the focused synagogue at its real coords
+      const marker = markers.find(m => m.key === key);
+      if (marker?.isPrimary && marker.synagogue.id === focusSynId) return;
+      const angle = (i / keys.length) * 2 * Math.PI;
+      displayCoords.set(key, {
         lat: lat + RADIUS * Math.sin(angle),
         lng: lng + RADIUS * Math.cos(angle),
       });
@@ -168,26 +234,49 @@ function StatusBadge({ status }: { status: string | null }) {
   );
 }
 
+/** Google Street View pegman icon in Google yellow. */
+function PegmanIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18" aria-hidden="true">
+      <circle cx="7" cy="3.5" r="3"   fill="#FBBC04" />
+      <rect   x="3" y="8"    width="8" height="8" rx="2" fill="#FBBC04" />
+    </svg>
+  );
+}
+
 function SynagoguePanel({
   syn,
   onClose,
+  onAddressClick,
 }: {
   syn: Synagogue;
   onClose: () => void;
+  onAddressClick: (lat: number, lng: number) => void;
 }) {
-  const addr = syn.addresses[0];
-  const lat = addr?.latitude;
-  const lng = addr?.longitude;
-  const streetViewUrl =
-    lat && lng ? `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}` : null;
+  const primaryAddr = getPrimaryGeocodedAddress(syn);
+
+  // Sort addresses most-recent first (null end_year = active, treated as highest).
+  const sortedAddresses = [...syn.addresses].sort((a, b) => {
+    const aEnd = a.end_year ?? Number.MAX_SAFE_INTEGER;
+    const bEnd = b.end_year ?? Number.MAX_SAFE_INTEGER;
+    if (bEnd !== aEnd) return bEnd - aEnd;
+    return (b.start_year ?? 0) - (a.start_year ?? 0);
+  });
 
   const displayClergy = syn.clergy.slice(0, 5);
-  const extraClergy = syn.clergy.length - displayClergy.length;
+  const extraClergy   = syn.clergy.length - displayClergy.length;
 
   return (
     <div className="p-4 flex flex-col gap-3">
+      {/* Header */}
       <div className="flex items-start justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white leading-snug">{syn.name}</h2>
+        {/* Clicking the name zooms to the most-recent geocoded address */}
+        <button
+          onClick={() => primaryAddr && onAddressClick(primaryAddr.latitude!, primaryAddr.longitude!)}
+          className="text-base font-semibold text-gray-900 dark:text-white leading-snug text-left hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          {syn.name}
+        </button>
         <button
           onClick={onClose}
           className="flex-shrink-0 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl leading-none mt-0.5"
@@ -208,10 +297,54 @@ function SynagoguePanel({
         )}
       </div>
 
-      {addr && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          {addr.street_address && <p>{addr.street_address}</p>}
-          {addr.neighborhood && <p className="text-gray-500 dark:text-gray-500">{addr.neighborhood}</p>}
+      {/* Addresses — each geocoded address is a clickable zoom link */}
+      {sortedAddresses.length > 0 && (
+        <div className="text-sm space-y-2">
+          <p className="font-medium text-gray-700 dark:text-gray-300">
+            {sortedAddresses.length === 1 ? 'Location' : 'Locations'}
+          </p>
+          {sortedAddresses.map(addr => {
+            const hasCoords  = addr.latitude != null && addr.longitude != null;
+            const streetViewUrl = hasCoords
+              ? `https://www.google.com/maps?q=&layer=c&cbll=${addr.latitude},${addr.longitude}`
+              : null;
+            const yearRange  = formatAddressYears(addr);
+            const addrText   = formatPopupAddress(addr);
+
+            return (
+              <div key={addr.id} className="flex items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  {hasCoords ? (
+                    <button
+                      onClick={() => onAddressClick(addr.latitude!, addr.longitude!)}
+                      className="text-blue-600 dark:text-blue-400 hover:underline text-left leading-snug"
+                    >
+                      {addrText}
+                    </button>
+                  ) : (
+                    <span className="text-gray-600 dark:text-gray-400 leading-snug">{addrText}</span>
+                  )}
+                  {addr.neighborhood && (
+                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">{addr.neighborhood}</div>
+                  )}
+                  {yearRange && (
+                    <div className="text-xs text-gray-400 dark:text-gray-500">{yearRange}</div>
+                  )}
+                </div>
+                {streetViewUrl && (
+                  <a
+                    href={streetViewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Street View"
+                    className="flex-shrink-0 mt-0.5 hover:opacity-70 transition-opacity"
+                  >
+                    <PegmanIcon />
+                  </a>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -229,17 +362,7 @@ function SynagoguePanel({
         </div>
       )}
 
-      <div className="flex flex-col gap-2 pt-1">
-        {streetViewUrl && (
-          <a
-            href={streetViewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
-          >
-            Street View ↗
-          </a>
-        )}
+      <div className="pt-1">
         <Link
           href={`/synagogues/${syn.id}`}
           className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
@@ -304,53 +427,57 @@ function RangeSlider({
 }
 
 function MapClientInner({ synagogues }: MapClientProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const mapRef          = useRef<HTMLDivElement>(null);
+  const mapInstanceRef  = useRef<google.maps.Map | null>(null);
+  const markersRef      = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const infoWindowRef   = useRef<google.maps.InfoWindow | null>(null);
 
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [startYear, setStartYear] = useState<number>(1745);
-  const [endYear, setEndYear] = useState<number>(2024);
-  const [visibleCount, setVisibleCount] = useState(0);
+  const [isLoaded,       setIsLoaded]       = useState(false);
+  const [loadError,      setLoadError]      = useState<string | null>(null);
+  const [startYear,      setStartYear]      = useState<number>(1745);
+  const [endYear,        setEndYear]        = useState<number>(2024);
+  const [visibleCount,   setVisibleCount]   = useState(0);
   const [hiddenStatuses, setHiddenStatuses] = useState<Set<string>>(new Set());
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey       = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const searchParams = useSearchParams();
-  const focusLat = searchParams ? parseFloat(searchParams.get('lat') || '') : NaN;
-  const focusLng = searchParams ? parseFloat(searchParams.get('lng') || '') : NaN;
-  const focusId = searchParams ? (searchParams.get('id') || null) : null;
-  const hasFocus = !isNaN(focusLat) && !isNaN(focusLng);
+  const focusLat  = searchParams ? parseFloat(searchParams.get('lat') || '') : NaN;
+  const focusLng  = searchParams ? parseFloat(searchParams.get('lng') || '') : NaN;
+  const focusId   = searchParams ? (searchParams.get('id') || null) : null;
+  const hasFocus  = !isNaN(focusLat) && !isNaN(focusLng);
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 640 : true
   );
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery,       setSearchQuery]       = useState('');
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(focusId);
+  const [selectedId,         setSelectedId]         = useState<string | null>(focusId);
 
-  // Unique sorted neighborhoods
+  // Flat list of one MarkerData per geocoded address across all synagogues
+  const allMarkers = useMemo(() => buildMarkers(synagogues), [synagogues]);
+
+  // Unique sorted neighborhoods collected from all addresses (not just primary)
   const neighborhoods = useMemo(() => {
     const set = new Set<string>();
-    synagogues.forEach(s => {
-      const n = s.addresses[0]?.neighborhood;
-      if (n) set.add(n);
+    synagogues.forEach(syn => {
+      syn.addresses.forEach(a => { if (a.neighborhood) set.add(a.neighborhood); });
     });
     return Array.from(set).sort();
   }, [synagogues]);
 
-  // Filter matching IDs — null means "show all"
+  // Filter matching synagogue IDs — null means "show all"
+  // Neighborhood: synagogue appears if ANY of its addresses is in the selected neighborhood.
   const filteredIds = useMemo(() => {
-    const hasSearch = searchQuery.trim().length > 0;
+    const hasSearch       = searchQuery.trim().length > 0;
     const hasNeighborhood = neighborhoodFilter !== null;
     if (!hasSearch && !hasNeighborhood) return null;
 
-    const q = searchQuery.trim().toLowerCase();
+    const q   = searchQuery.trim().toLowerCase();
     const ids = new Set<string>();
     synagogues.forEach(s => {
       const neighborhoodMatch =
-        !hasNeighborhood || s.addresses[0]?.neighborhood === neighborhoodFilter;
+        !hasNeighborhood ||
+        s.addresses.some(a => a.neighborhood === neighborhoodFilter);
       if (!neighborhoodMatch) return;
 
       if (!hasSearch) {
@@ -358,11 +485,9 @@ function MapClientInner({ synagogues }: MapClientProps) {
         return;
       }
 
-      const nameMatch = s.name.toLowerCase().includes(q);
+      const nameMatch   = s.name.toLowerCase().includes(q);
       const clergyMatch = s.clergy.some(r => r.toLowerCase().includes(q));
-      if (nameMatch || clergyMatch) {
-        ids.add(s.id);
-      }
+      if (nameMatch || clergyMatch) ids.add(s.id);
     });
     return ids;
   }, [searchQuery, neighborhoodFilter, synagogues]);
@@ -386,9 +511,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
       setSidebarOpen(true);
       infoWindowRef.current?.close();
     };
-    return () => {
-      delete (window as any).__selectSynagogue;
-    };
+    return () => { delete (window as any).__selectSynagogue; };
   }, []);
 
   // Load Google Maps script
@@ -400,17 +523,11 @@ function MapClientInner({ synagogues }: MapClientProps) {
       return;
     }
 
-    if (window.google?.maps) {
-      setIsLoaded(true);
-      return;
-    }
+    if (window.google?.maps) { setIsLoaded(true); return; }
 
     if (document.getElementById('google-maps-script')) {
       const checkLoaded = setInterval(() => {
-        if (window.google?.maps) {
-          setIsLoaded(true);
-          clearInterval(checkLoaded);
-        }
+        if (window.google?.maps) { setIsLoaded(true); clearInterval(checkLoaded); }
       }, 100);
       return () => clearInterval(checkLoaded);
     }
@@ -419,29 +536,21 @@ function MapClientInner({ synagogues }: MapClientProps) {
     // It requires a &callback parameter — the callback fires once all libraries
     // are fully initialised (unlike onload, which fires before sub-modules are ready).
     ;(window as any).__mapsCallback = () => {
-      setIsLoaded(true)
-      delete (window as any).__mapsCallback
-    }
+      setIsLoaded(true);
+      delete (window as any).__mapsCallback;
+    };
 
     const script = document.createElement('script');
-    script.id = 'google-maps-script';
+    script.id  = 'google-maps-script';
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=marker&loading=async&callback=__mapsCallback`;
     script.async = true;
-
     script.onerror = () => {
-      delete (window as any).__mapsCallback
-      setLoadError(
-        'Failed to load Google Maps script. Check your API key and network connection.'
-      )
-    }
-
+      delete (window as any).__mapsCallback;
+      setLoadError('Failed to load Google Maps script. Check your API key and network connection.');
+    };
     document.head.appendChild(script);
 
-    return () => {
-      // Clean up callback if component unmounts before the script fires it.
-      // The script stays in the DOM so other components can still use it.
-      delete (window as any).__mapsCallback
-    };
+    return () => { delete (window as any).__mapsCallback; };
   }, [apiKey]);
 
   // Initialize map once script is loaded
@@ -456,93 +565,96 @@ function MapClientInner({ synagogues }: MapClientProps) {
       streetViewControl: true,
       fullscreenControl: true,
       // mapId is required for AdvancedMarkerElement.
-      // Set NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID in Vercel env vars for production.
-      // Note: styles cannot be set when mapId is present — configure dark mode
-      // and POI suppression via Cloud Styling in the Google Cloud Console.
       mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? 'DEMO_MAP_ID',
     });
 
     infoWindowRef.current = new window.google.maps.InfoWindow();
   }, [isLoaded]);
 
-  // Update markers when map is ready, year filter, or search filter changes
+  // Render markers whenever map, data, or filters change
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    markersRef.current.forEach(m => { m.map = null });
+    // Clear existing markers
+    markersRef.current.forEach(m => { m.map = null; });
     markersRef.current = [];
 
-    const filtered = synagogues.filter(s => {
-      const addr = s.addresses?.[0];
-      if (!addr) return false;
-      if (filteredIds !== null && !filteredIds.has(s.id)) return false;
-      if (hiddenStatuses.has(s.status ?? 'unknown')) return false;
-      const founded = s.founded_year ?? 0;
-      const closed = s.closed_year ?? 9999;
-      // Show synagogues whose operational period overlaps with [startYear, endYear]
-      return founded <= endYear && closed >= startYear;
+    // Apply all filters to produce the set of markers to render.
+    // Neighbourhood filter is applied per-marker (point 5): only show the specific
+    // address markers that match, even if the synagogue has other addresses elsewhere.
+    const visibleMarkers = allMarkers.filter(m => {
+      if (filteredIds !== null && !filteredIds.has(m.synagogue.id)) return false;
+      if (hiddenStatuses.has(m.synagogue.status ?? 'unknown'))       return false;
+      if (!markerPassesYearFilter(m, startYear, endYear))            return false;
+      if (neighborhoodFilter !== null && m.address.neighborhood !== neighborhoodFilter) return false;
+      return true;
     });
 
-    // Compute display coords — slightly offsets duplicate-location markers
-    const displayCoords = computeDisplayCoords(filtered, focusId);
+    // Compute display coords — offsets markers sharing the exact same lat/lng
+    const displayCoords = computeDisplayCoords(visibleMarkers, focusId);
 
-    filtered.forEach(s => {
-      const addr = s.addresses?.[0];
-      if (!addr) return;
+    // Inject bounce-animation CSS once
+    if (!document.getElementById('gm-marker-styles')) {
+      const style = document.createElement('style');
+      style.id = 'gm-marker-styles';
+      style.textContent = `
+        @keyframes gm-bounce {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-10px); }
+        }
+        .gm-marker-bounce { animation: gm-bounce 0.6s ease-in-out infinite; }
+      `;
+      document.head.appendChild(style);
+    }
 
-      const status = s.status ?? 'unknown';
-      const color = STATUS_COLORS[status] ?? STATUS_COLORS.unknown;
+    visibleMarkers.forEach(m => {
+      const { synagogue: s, address: addr, isPrimary } = m;
+      const status      = s.status ?? 'unknown';
+      const color       = STATUS_COLORS[status]        ?? STATUS_COLORS.unknown;
       const borderColor = STATUS_BORDER_COLORS[status] ?? STATUS_BORDER_COLORS.unknown;
-      const isFocused = focusId ? s.id === focusId : false;
-      const display = displayCoords.get(s.id) ?? { lat: addr.latitude, lng: addr.longitude };
+      // Bounce only the primary (most-recent) marker for the focused synagogue
+      const isFocused   = focusId ? (s.id === focusId && isPrimary) : false;
+      const display     = displayCoords.get(m.key) ?? { lat: addr.latitude!, lng: addr.longitude! };
 
-      // Inject bounce-animation CSS once
-      if (!document.getElementById('gm-marker-styles')) {
-        const style = document.createElement('style')
-        style.id = 'gm-marker-styles'
-        style.textContent = `
-          @keyframes gm-bounce {
-            0%, 100% { transform: translateY(0); }
-            50%       { transform: translateY(-10px); }
-          }
-          .gm-marker-bounce { animation: gm-bounce 0.6s ease-in-out infinite; }
-        `
-        document.head.appendChild(style)
-      }
+      const markerEl = document.createElement('div');
+      markerEl.style.cursor = 'pointer';
 
-      // Build SVG content element for the marker
-      const markerEl = document.createElement('div')
-      markerEl.style.cursor = 'pointer'
       if (isFocused) {
         markerEl.innerHTML =
           `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">` +
           `<circle cx="24" cy="24" r="22" fill="#facc15" stroke="#92400e" stroke-width="3"/>` +
           `<text x="24" y="24" font-size="20" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
-          `</svg>`
-        markerEl.classList.add('gm-marker-bounce')
+          `</svg>`;
+        markerEl.classList.add('gm-marker-bounce');
       } else {
+        // Historical (non-primary) markers render at 50% opacity
+        const opacity = isPrimary ? '1' : '0.5';
+        markerEl.style.opacity = opacity;
         markerEl.innerHTML =
           `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">` +
           `<defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%">` +
           `<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.35"/></filter></defs>` +
           `<circle cx="18" cy="18" r="15" fill="${color}" stroke="${borderColor}" stroke-width="2.5" filter="url(#s)"/>` +
           `<text x="18" y="18" font-size="12" text-anchor="middle" dominant-baseline="central" font-family="sans-serif">✡️</text>` +
-          `</svg>`
+          `</svg>`;
       }
 
       const marker = new window.google.maps.marker.AdvancedMarkerElement({
-        position: display,
-        map: mapInstanceRef.current!,
-        title: s.name,
-        content: markerEl,
-        zIndex: isFocused ? 9999 : 1,
+        position:     display,
+        map:          mapInstanceRef.current!,
+        title:        s.name,
+        content:      markerEl,
+        zIndex:       isFocused ? 9999 : (isPrimary ? 2 : 1),
         gmpClickable: true,
       });
 
+      const addrLine  = formatPopupAddress(addr);
+      const yearRange = formatAddressYears(addr);
       const infoContent = `
         <div style="max-width:220px;font-family:sans-serif;color:#111;">
           <h3 style="margin:0 0 4px;font-size:14px;font-weight:600;color:#111;">${s.name}</h3>
-          ${formatPopupAddress(addr) ? `<p style="margin:0 0 4px;font-size:12px;color:#555;">${formatPopupAddress(addr)}</p>` : ''}
+          ${addrLine  ? `<p style="margin:0 0 2px;font-size:12px;color:#555;">${addrLine}</p>` : ''}
+          ${yearRange ? `<p style="margin:0 0 4px;font-size:11px;color:#888;">${yearRange}</p>` : ''}
           <p style="margin:0;font-size:12px;color:#333;">
             ${s.founded_year ? `Founded: ${s.founded_year}` : ''}
             ${s.founded_year && s.closed_year ? ' · ' : ''}
@@ -576,8 +688,10 @@ function MapClientInner({ synagogues }: MapClientProps) {
       markersRef.current.push(marker);
     });
 
-    setVisibleCount(filtered.length);
-  }, [isLoaded, synagogues, startYear, endYear, filteredIds, hiddenStatuses]);
+    // Count unique synagogues with visible markers
+    const uniqueSynIds = new Set(visibleMarkers.map(m => m.synagogue.id));
+    setVisibleCount(uniqueSynIds.size);
+  }, [isLoaded, allMarkers, startYear, endYear, filteredIds, hiddenStatuses, neighborhoodFilter]);
 
   function toggleStatus(status: string) {
     setHiddenStatuses(prev => {
@@ -588,11 +702,18 @@ function MapClientInner({ synagogues }: MapClientProps) {
     });
   }
 
+  /** Pan/zoom the map to a specific lat/lng (used by address-row clicks in the panel). */
+  function focusOnAddress(lat: number, lng: number) {
+    if (!mapInstanceRef.current) return;
+    mapInstanceRef.current.panTo({ lat, lng });
+    mapInstanceRef.current.setZoom(16);
+  }
+
+  /** Pan to the most-recent geocoded address for a synagogue (used by search result clicks). */
   function focusOnSynagogue(syn: Synagogue) {
-    const addr = syn.addresses[0];
-    if (!addr || !mapInstanceRef.current) return;
-    // Always pan to real coordinates, not the display offset
-    mapInstanceRef.current.panTo({ lat: addr.latitude, lng: addr.longitude });
+    const primary = getPrimaryGeocodedAddress(syn);
+    if (!primary || !mapInstanceRef.current) return;
+    mapInstanceRef.current.panTo({ lat: primary.latitude!, lng: primary.longitude! });
     mapInstanceRef.current.setZoom(16);
   }
 
@@ -645,7 +766,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
       >
         {/* Fixed header: search + neighborhood filter */}
         <div className="p-3 border-b border-gray-100 dark:border-gray-700 space-y-2 flex-shrink-0">
-          {/* Mobile-only close button — sits inside the sidebar so it's always reachable */}
+          {/* Mobile-only close button */}
           <div className="flex items-center justify-between sm:hidden">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Search</span>
             <button
@@ -662,18 +783,12 @@ function MapClientInner({ synagogues }: MapClientProps) {
             type="text"
             placeholder="Search by name or clergy..."
             value={searchQuery}
-            onChange={e => {
-              setSearchQuery(e.target.value);
-              setSelectedId(null);
-            }}
+            onChange={e => { setSearchQuery(e.target.value); setSelectedId(null); }}
             className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           />
           <select
             value={neighborhoodFilter ?? ''}
-            onChange={e => {
-              setNeighborhoodFilter(e.target.value || null);
-              setSelectedId(null);
-            }}
+            onChange={e => { setNeighborhoodFilter(e.target.value || null); setSelectedId(null); }}
             className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">All neighborhoods</option>
@@ -683,11 +798,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
           </select>
           {hasFilters && (
             <button
-              onClick={() => {
-                setSearchQuery('');
-                setNeighborhoodFilter(null);
-                setSelectedId(null);
-              }}
+              onClick={() => { setSearchQuery(''); setNeighborhoodFilter(null); setSelectedId(null); }}
               className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
             >
               Clear filters
@@ -701,6 +812,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
             <SynagoguePanel
               syn={selectedSynagogue}
               onClose={() => setSelectedId(null)}
+              onAddressClick={focusOnAddress}
             />
           ) : hasFilters && filteredSynagogues.length > 0 ? (
             <div>
@@ -708,37 +820,34 @@ function MapClientInner({ synagogues }: MapClientProps) {
                 {filteredSynagogues.length} result{filteredSynagogues.length !== 1 ? 's' : ''}
               </p>
               <ul>
-                {filteredSynagogues.map(s => (
-                  <li key={s.id}>
-                    <button
-                      onClick={() => {
-                        setSelectedId(s.id);
-                        focusOnSynagogue(s);
-                      }}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors"
-                    >
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{s.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <StatusBadge status={s.status} />
-                        {s.addresses[0]?.neighborhood && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {s.addresses[0].neighborhood}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                {filteredSynagogues.map(s => {
+                  const primary = getPrimaryGeocodedAddress(s);
+                  return (
+                    <li key={s.id}>
+                      <button
+                        onClick={() => { setSelectedId(s.id); focusOnSynagogue(s); }}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-colors"
+                      >
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{s.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <StatusBadge status={s.status} />
+                          {primary?.neighborhood && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {primary.neighborhood}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ) : hasFilters && filteredSynagogues.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <p className="text-gray-500 dark:text-gray-400 text-sm">No synagogues match your search.</p>
               <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setNeighborhoodFilter(null);
-                }}
+                onClick={() => { setSearchQuery(''); setNeighborhoodFilter(null); }}
                 className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
               >
                 Clear filters
