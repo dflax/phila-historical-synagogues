@@ -53,12 +53,12 @@ For these cases, write a clear summary to `AUTONOMOUS_RUN_ISSUES.md` and continu
 
 ### Commit, Push, and Update Docs After Every Build
 
-After completing any unit of work (feature, fix, refactor, or doc update), always do **all four steps** without asking for confirmation — pushing is part of completing a task:
+After completing any unit of work (feature, fix, refactor, or doc update), always do these steps **in a single commit** — do not make a separate commit for `Project_Context.md`:
 
-1. **Stage all files:** `git add .`
-2. **Commit** with the message convention below
-3. **Push to origin master:** `git push origin master`
-4. **Update `Project_Context.md`** to reflect any relevant changes from that commit — new pages, changed structure, updated directories, new dependencies, phase log entry, etc. Then commit and push that update as well.
+1. **Update `Project_Context.md`** first — add a phase log entry and reflect any relevant changes (new pages, changed structure, updated directories, new dependencies, etc.)
+2. **Stage all files:** `git add .`
+3. **Commit everything together** (code + docs) with the message convention below
+4. **Push to origin master:** `git push origin master`
 
 ### Commit Message Convention
 
@@ -66,14 +66,11 @@ After completing any unit of work (feature, fix, refactor, or doc update), alway
 Phase N Session N.M: Short description of what was done
 ```
 
-Examples:
+Example:
 ```bash
+# Update Project_Context.md, then:
 git add .
-git commit -m "Phase 5 Session 5.1: Platform SDK with auto-generation"
-git push origin master
-
-git add .
-git commit -m "Phase 6 Session 6.3: Fix mini-map address selection to use most recent end_year"
+git commit -m "Phase 7 Session 7.2: Auto-lookup ZIP code on address form with spinner and zip+4 support"
 git push origin master
 ```
 
