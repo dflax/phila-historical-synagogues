@@ -1,6 +1,6 @@
 # Philadelphia Historical Synagogues — Project Context
 
-> **Last updated**: 2026-04-03  
+> **Last updated**: 2026-04-16  
 > **Status**: Production (deployed to Vercel, auto-deploys from GitHub `master`)
 
 A web application documenting hundreds of synagogues in the Philadelphia area, spanning from 1745 to the present day. Built to preserve Jewish heritage through interactive mapping, community contributions, and detailed historical records.
@@ -480,7 +480,11 @@ Import phases:
 
 ## Recent Work History
 
-### 2026-03-27 (Most Recent Session)
+### 2026-04-16 (Most Recent Session)
+- **Mini-map address selection fixed** — `SynagogueDetail.tsx` now picks the most recent address by `end_year` (null = still active, sorted highest priority) with `start_year` as tiebreaker, replacing the old `is_current` flag heuristic
+- **CLAUDE.md updated** — added explicit "Commit, Push, and Update Docs After Every Build" workflow section with commit message convention
+
+### 2026-03-27
 - **Phase 6 cutover complete** — all queries migrated from `rabbi_profiles`/`rabbis` to `person_profiles`/`affiliations`
 - **Chazzan support** — distinct person_type; slug generation; profile pages; rabbi→chazzan conversion via `EditAffiliationButton`
 - **Lay leader + staff addition** — `AddLayLeaderButton` and `AddStaffButton` components
@@ -519,7 +523,7 @@ Import phases:
 
 - **Branch**: `master` (main and only branch; Vercel deploys from here)
 - **Remote**: GitHub (auto-deploys to Vercel on push)
-- **Current uncommitted change**: `CLAUDE.md` modified
+- **Most recent commit**: `Phase 7 Session 7.1: Fix mini-map to show most-recent-address by end_year; update CLAUDE.md commit workflow`
 
 ---
 
