@@ -47,6 +47,7 @@ export default async function MapPage() {
         )
       )
     `)
+    .or('deleted.is.null,deleted.eq.false', { foreignTable: 'addresses' })
     .order('name')
 
   if (error) {
