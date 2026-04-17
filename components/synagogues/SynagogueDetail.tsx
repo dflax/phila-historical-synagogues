@@ -265,8 +265,15 @@ export default function SynagogueDetail({ synagogue, addresses: initialAddresses
     setPendingDelete(null)
   }
 
-  // Prefer is_current for map/hero; addresses list is sorted by start_year (oldest first)
-  const primaryAddr = addresses.find(a => a.is_current) ?? addresses[addresses.length - 1] ?? null
+  // Pick the most recent address for the mini-map: null end_year means still active (treated
+  // as the present), so it sorts first. Ties broken by highest start_year.
+  const primaryAddr = addresses.length === 0 ? null :
+    [...addresses].sort((a, b) => {
+      const aEnd = a.end_year ?? Number.MAX_SAFE_INTEGER
+      const bEnd = b.end_year ?? Number.MAX_SAFE_INTEGER
+      if (bEnd !== aEnd) return bEnd - aEnd
+      return (b.start_year ?? 0) - (a.start_year ?? 0)
+    })[0]
   const mapUrl = primaryAddr?.latitude && primaryAddr?.longitude
     ? `/map?lat=${primaryAddr.latitude}&lng=${primaryAddr.longitude}&id=${synagogue.id}`
     : '/map'

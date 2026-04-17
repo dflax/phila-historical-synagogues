@@ -51,20 +51,30 @@ You have **full authority** to make the following decisions without human input:
 
 For these cases, write a clear summary to `AUTONOMOUS_RUN_ISSUES.md` and continue with remaining work.
 
-### Commit Strategy
+### Commit, Push, and Update Docs After Every Build
 
-**Commit after each session completes successfully:**
+After completing any unit of work (feature, fix, refactor, or doc update), always do **all four steps** without asking for confirmation — pushing is part of completing a task:
 
+1. **Stage all files:** `git add .`
+2. **Commit** with the message convention below
+3. **Push to origin master:** `git push origin master`
+4. **Update `Project_Context.md`** to reflect any relevant changes from that commit — new pages, changed structure, updated directories, new dependencies, phase log entry, etc. Then commit and push that update as well.
+
+### Commit Message Convention
+
+```
+Phase N Session N.M: Short description of what was done
+```
+
+Examples:
 ```bash
-# After Session 5.1
 git add .
 git commit -m "Phase 5 Session 5.1: Platform SDK with auto-generation"
+git push origin master
 
-# After Session 5.2
 git add .
-git commit -m "Phase 5 Session 5.2: Application registration & OAuth"
-
-# etc.
+git commit -m "Phase 6 Session 6.3: Fix mini-map address selection to use most recent end_year"
+git push origin master
 ```
 
 **Do not commit if:**
