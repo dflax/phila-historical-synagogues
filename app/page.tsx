@@ -87,7 +87,7 @@ export default async function Home() {
               <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Interactive Map</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Explore Philadelphia's synagogues on an interactive map. Filter by year
-                to see which synagogues existed at any point in history from 1745 to present.
+                to see which synagogues existed at any point in history from {earliestYear} to present.
               </p>
               <Link href="/map" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
                 View Map →

@@ -61,6 +61,14 @@ export default async function MapPage() {
     )
   }
 
+  // Compute year bounds from the data so the slider is always accurate
+  const currentYear = new Date().getFullYear()
+  const allFoundedYears = (data ?? [])
+    .map(s => s.founded_year)
+    .filter((y): y is number => typeof y === 'number')
+  const minYear = allFoundedYears.length > 0 ? Math.min(...allFoundedYears) : 1745
+  const maxYear = currentYear
+
   // Include synagogues that have at least one geocoded address; pass ALL addresses
   // (geocoded and not) so the sidebar panel can show the complete location history.
   // buildMarkers() in MapClient skips non-geocoded entries when placing map markers.
@@ -102,7 +110,7 @@ export default async function MapPage() {
     <div className="flex flex-col h-screen">
       <AppHeader />
       <div className="flex-1 min-h-0">
-        <MapClient synagogues={mappableSynagogues} />
+        <MapClient synagogues={mappableSynagogues} minYear={minYear} maxYear={maxYear} />
       </div>
     </div>
   )

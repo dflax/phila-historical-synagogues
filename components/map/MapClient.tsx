@@ -32,6 +32,8 @@ interface Synagogue {
 
 interface MapClientProps {
   synagogues: Synagogue[];
+  minYear: number;
+  maxYear: number;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -426,7 +428,7 @@ function RangeSlider({
   );
 }
 
-function MapClientInner({ synagogues }: MapClientProps) {
+function MapClientInner({ synagogues, minYear, maxYear }: MapClientProps) {
   const mapRef          = useRef<HTMLDivElement>(null);
   const mapInstanceRef  = useRef<google.maps.Map | null>(null);
   const markersRef      = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -434,8 +436,8 @@ function MapClientInner({ synagogues }: MapClientProps) {
 
   const [isLoaded,       setIsLoaded]       = useState(false);
   const [loadError,      setLoadError]      = useState<string | null>(null);
-  const [startYear,      setStartYear]      = useState<number>(1745);
-  const [endYear,        setEndYear]        = useState<number>(2024);
+  const [startYear,      setStartYear]      = useState<number>(minYear);
+  const [endYear,        setEndYear]        = useState<number>(maxYear);
   const [visibleCount,   setVisibleCount]   = useState(0);
   const [hiddenStatuses, setHiddenStatuses] = useState<Set<string>>(new Set());
 
@@ -891,16 +893,16 @@ function MapClientInner({ synagogues }: MapClientProps) {
             <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 tabular-nums">{endYear}</span>
           </div>
           <RangeSlider
-            min={1745}
-            max={2024}
+            min={minYear}
+            max={maxYear}
             start={startYear}
             end={endYear}
             onStartChange={setStartYear}
             onEndChange={setEndYear}
           />
           <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-2">
-            <span>1745</span>
-            <span>2024</span>
+            <span>{minYear}</span>
+            <span>{maxYear}</span>
           </div>
         </div>
 
@@ -940,7 +942,7 @@ function MapClientInner({ synagogues }: MapClientProps) {
   );
 }
 
-export default function MapClient({ synagogues }: MapClientProps) {
+export default function MapClient({ synagogues, minYear, maxYear }: MapClientProps) {
   return (
     <Suspense
       fallback={
@@ -950,7 +952,7 @@ export default function MapClient({ synagogues }: MapClientProps) {
         </div>
       }
     >
-      <MapClientInner synagogues={synagogues} />
+      <MapClientInner synagogues={synagogues} minYear={minYear} maxYear={maxYear} />
     </Suspense>
   );
 }
