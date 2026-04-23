@@ -277,13 +277,16 @@ Links person_profiles to synagogues. Replaces `rabbis` table.
 - `approved` (boolean)
 
 ### images
-Schema ready for photo uploads; upload workflow is live for rabbis and synagogues.
+Photo uploads; contributor uploads go through editorial approval via `edit_proposals` (`proposal_type: 'image_upload'`). Editors/admins auto-approve directly.
 - `synagogue_id` → synagogues.id
+- `person_profile_id` → person_profiles.id *(new — use this for leader photos)*
+- `rabbi_profile_id` → rabbi_profiles.id *(legacy — still present for old data; all queries match both columns)*
 - `url`, `caption`, `description`, `year`, `circa_year`
 - `is_primary`, `display_order`
 - `photographer`, `source`, `credit_line`
 - `people_names` (array), `people_metadata` (jsonb)
 - `approved` (boolean)
+- **DB constraint**: `images_entity_check` requires at least one of `synagogue_id`, `rabbi_profile_id`, or `person_profile_id` to be non-null
 
 ### links
 External links attached to any entity (synagogue or person profile). Added via proposal workflow.
@@ -520,6 +523,12 @@ Multiple synagogues at the same primary address are offset into a small circle s
 - **`ClergyCategorySelect` shared component** — `components/common/ClergyCategorySelect.tsx` is the **single source of truth** for clergy type options; exports `CLERGY_TYPE_OPTIONS` array and `ClergyPersonType` type; to add a new clergy category in the future, edit only this file — it will propagate to `EditAffiliationButton`, `CreateRabbiForm`, and `SuggestRabbiForm` automatically
 - **`EditAffiliationButton` redesigned** — replaced the one-way "convert to cantor" checkbox with a `ClergyCategorySelect` dropdown; supports conversion in both directions (rabbi→chazzan and chazzan→rabbi); shows an amber notice when the selected type differs from the current one; sends `new_person_type` in `proposed_data` (old `convert_to_cantor` boolean still handled for backward compat with queued proposals)
 - **Approval route generalized** — `affiliation_edit` handler reads `new_person_type` (preferred) with fallback to legacy `convert_to_cantor`; generates the correct slug prefix for each direction (`chazzan-<name>` or `<name>` with no prefix for rabbi)
+- **Photo upload approval workflow** — contributor uploads now queue as `edit_proposals` with `proposal_type: 'image_upload'`; file is uploaded to storage first, proposal holds the `storage_path`; on approval the approve route creates the `images` row; on rejection the orphaned storage file is deleted; editors/admins still auto-approve directly to `images`
+- **Admin Dashboard photo thumbnail** — `ProposalCard` renders a photo summary block for `image_upload` proposals: thumbnail, caption, entity name, photographer, dimensions, file size; `IMAGE_UPLOAD_HIDE_FIELDS` prevents raw metadata fields from also appearing in the generic diff table; `storageBaseUrl` flows from `admin/page.tsx` → `AdminClient` → `ProposalCard`
+- **`images` table: added `person_profile_id` column** — FK → `person_profiles`; required DB migration (`supabase/migrations/add_person_profile_id_to_images.sql`); also updates `images_entity_check` constraint to accept the new column; updates `edit_proposals.proposal_type` check constraint to include `image_upload` and all other newer types
+- **Leader photo display fixed** — `app/rabbis/[slug]/page.tsx` now queries images with `.or('rabbi_profile_id.eq.X,person_profile_id.eq.X')` so both legacy and new uploads appear on the leadership profile page
+- **Full legacy table migration completed** — all remaining `rabbi_profiles`/`rabbis` table references replaced with `person_profiles`/`affiliations`: `admin/page.tsx` name resolution, `MergeRabbiButton.tsx` candidate list, `rabbis/[id]/merge-suggestions/route.ts` scoring algorithm, `rabbis/[id]/route.ts` soft-delete, and all image operations (delete/merge/split) in `approve/route.ts`
+- **Success message wording fixed** — `PhotoUploadButton.tsx` now says "leadership page" instead of "rabbi page" for leader photo uploads
 
 ### Session ending 2026-03-27
 
@@ -561,5 +570,4 @@ All committed to `master` and deployed to Vercel:
 - **Dual-range year filter** — replaced single slider; shows synagogues active during any overlap with selected range
 - **MiniMap on detail page** — non-interactive Google Maps preview in hero box, links to full map
 - **Leaders on map** — `app/map/page.tsx` fetches leader data from Supabase so leader search works on the map sidebar
-- **Added photo upload approval workflow
 
