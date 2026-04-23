@@ -1302,6 +1302,8 @@ export async function POST(
     const affiliationId    = proposal.entity_id
     const convertToCantor  = proposed.convert_to_cantor  as boolean | undefined
     const personProfileId  = proposed.person_profile_id  as string | undefined
+    // new_person_type is the preferred field; convert_to_cantor is kept for backward compat
+    const newPersonType    = proposed.new_person_type as 'rabbi' | 'chazzan' | undefined
 
     // ── CUTOVER: Writing to new table only ─────────────────────────────────
     const { error: newAffUpdateError } = await supabaseAdmin
@@ -1331,21 +1333,17 @@ export async function POST(
     // // Update new affiliations table — non-fatal during transition
     // await supabaseAdmin.from('affiliations').update({ role_title: ..., ... }).eq('id', affiliationId)
 
-    // If converting to cantor, update the person profile
-    if (convertToCantor && personProfileId) {
+    // If changing person type (rabbi↔chazzan), update the profile and regenerate slug
+    // Supports new_person_type field; also handles legacy convert_to_cantor boolean
+    const effectiveNewType = newPersonType ?? (convertToCantor ? 'chazzan' : undefined)
+
+    if (effectiveNewType && personProfileId) {
       // ── CUTOVER: Look up name from new table only ───────────────────────
       const { data: currentProfile } = await supabaseAdmin
         .from('person_profiles')
         .select('canonical_name, slug')
         .eq('id', personProfileId)
         .maybeSingle()
-
-      // ── OLD CODE (name fetch) - Keep for rollback ────────────────────────
-      // const { data: currentProfile } = await supabase
-      //   .from('rabbi_profiles')
-      //   .select('canonical_name, slug')
-      //   .eq('id', personProfileId)
-      //   .maybeSingle()
 
       const baseName = (currentProfile?.canonical_name ?? '')
         .toLowerCase()
@@ -1354,7 +1352,9 @@ export async function POST(
         .replace(/-+/g, '-')
         .trim()
 
-      let newSlug = `chazzan-${baseName}`
+      // Slugs: chazzan → "chazzan-<name>", rabbi → "<name>" (no prefix)
+      const baseSlug = effectiveNewType === 'chazzan' ? `chazzan-${baseName}` : baseName
+      let newSlug = baseSlug
       let counter = 1
 
       // ── CUTOVER: Check uniqueness against new table only ────────────────
@@ -1366,34 +1366,15 @@ export async function POST(
           .neq('id', personProfileId)
           .maybeSingle()
         if (!existing) break
-        newSlug = `chazzan-${baseName}-${counter}`
+        newSlug = `${baseSlug}-${counter}`
         counter++
       }
-
-      // ── OLD CODE (slug check) - Keep for rollback ────────────────────────
-      // while (true) {
-      //   const { data: existing } = await supabase
-      //     .from('rabbi_profiles')
-      //     .select('id')
-      //     .eq('slug', newSlug)
-      //     .neq('id', personProfileId)
-      //     .maybeSingle()
-      //   if (!existing) break
-      //   newSlug = `chazzan-${baseName}-${counter}`
-      //   counter++
-      // }
 
       // ── CUTOVER: Update new table only ─────────────────────────────────
       await supabaseAdmin
         .from('person_profiles')
-        .update({ person_type: 'chazzan', slug: newSlug })
+        .update({ person_type: effectiveNewType, slug: newSlug })
         .eq('id', personProfileId)
-
-      // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────
-      // // Update old rabbi_profiles slug
-      // await supabase.from('rabbi_profiles').update({ slug: newSlug }).eq('id', personProfileId)
-      // // Update new person_profiles type + slug (non-fatal during transition)
-      // await supabaseAdmin.from('person_profiles').update({ person_type: 'chazzan', slug: newSlug }).eq('id', personProfileId)
     }
   } else if (proposal.proposal_type === 'synagogue_relationship_delete' && proposal.entity_id) {
     const relationshipId     = proposal.entity_id

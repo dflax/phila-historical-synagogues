@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import ClergyCategorySelect, { type ClergyPersonType } from '@/components/common/ClergyCategorySelect'
 
 interface EditAffiliationButtonProps {
   affiliation: {
@@ -30,11 +31,15 @@ export default function EditAffiliationButton({
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const [roleTitle, setRoleTitle] = useState(affiliation.role_title ?? '')
-  const [startYear, setStartYear] = useState(affiliation.start_year?.toString() ?? '')
-  const [endYear, setEndYear] = useState(affiliation.end_year?.toString() ?? '')
-  const [notes, setNotes] = useState(affiliation.notes ?? '')
-  const [convertToCantor, setConvertToCantor] = useState(false)
+  const [roleTitle,   setRoleTitle]   = useState(affiliation.role_title ?? '')
+  const [startYear,   setStartYear]   = useState(affiliation.start_year?.toString() ?? '')
+  const [endYear,     setEndYear]     = useState(affiliation.end_year?.toString() ?? '')
+  const [notes,       setNotes]       = useState(affiliation.notes ?? '')
+  // Only shown for clergy (rabbi/chazzan); initialized to the current type
+  const isClergy = personProfile.person_type === 'rabbi' || personProfile.person_type === 'chazzan'
+  const [personType, setPersonType] = useState<ClergyPersonType>(
+    isClergy ? (personProfile.person_type as ClergyPersonType) : 'rabbi'
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,10 +61,10 @@ export default function EditAffiliationButton({
         notes:      notes || null,
       }
 
-      if (convertToCantor) {
-        proposedData.convert_to_cantor  = true
-        proposedData.person_profile_id  = personProfile.id
-        proposedData.new_person_type    = 'chazzan'
+      // Include person type change if the user selected a different type
+      if (isClergy && personType !== personProfile.person_type) {
+        proposedData.person_profile_id = personProfile.id
+        proposedData.new_person_type   = personType
       }
 
       const { error } = await supabase
@@ -173,25 +178,22 @@ export default function EditAffiliationButton({
                   />
                 </div>
 
-                {/* Convert to Cantor — only for rabbis */}
-                {personProfile.person_type === 'rabbi' && (
+                {/* Person type — only shown for clergy (rabbi / chazzan) */}
+                {isClergy && (
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={convertToCantor}
-                        onChange={e => setConvertToCantor(e.target.checked)}
-                        className="mt-0.5"
-                      />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          This person is a Cantor / Chazzan
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          Updates their profile type and changes the URL slug from <code>rabbi-…</code> to <code>chazzan-…</code>
-                        </div>
-                      </div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Leader type
                     </label>
+                    <ClergyCategorySelect
+                      id="edit-aff-person-type"
+                      value={personType}
+                      onChange={setPersonType}
+                    />
+                    {personType !== personProfile.person_type && (
+                      <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                        This will update their profile type and regenerate their URL slug.
+                      </p>
+                    )}
                   </div>
                 )}
 

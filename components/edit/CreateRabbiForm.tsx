@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import ClergyCategorySelect, { type ClergyPersonType } from '@/components/common/ClergyCategorySelect'
 
 interface Props {
   userId: string
@@ -12,7 +13,7 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
   const supabase = createClientComponentClient()
 
   const [fullName,    setFullName]    = useState('')
-  const [personType,  setPersonType]  = useState<'rabbi' | 'chazzan'>('rabbi')
+  const [personType,  setPersonType]  = useState<ClergyPersonType>('rabbi')
   const [birthYear,   setBirthYear]   = useState('')
   const [circaBirth,  setCircaBirth]  = useState(false)
   const [deathYear,   setDeathYear]   = useState('')
@@ -124,19 +125,16 @@ export default function CreateRabbiForm({ userId, onSuccess }: Props) {
       {/* Person Type */}
       <div>
         <label htmlFor="new-rabbi-type" className={labelClass}>
-          Person Type{' '}
+          Leader type{' '}
           <span className="text-red-500" aria-hidden="true">*</span>
         </label>
-        <select
+        <ClergyCategorySelect
           id="new-rabbi-type"
           value={personType}
-          onChange={e => setPersonType(e.target.value as 'rabbi' | 'chazzan')}
-          className={inputClass}
+          onChange={setPersonType}
           required
-        >
-          <option value="rabbi">Rabbi</option>
-          <option value="chazzan">Cantor / Chazzan</option>
-        </select>
+          className={inputClass}
+        />
       </div>
 
       {/* Birth year + circa */}

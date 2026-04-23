@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import ClergyCategorySelect, { type ClergyPersonType } from '@/components/common/ClergyCategorySelect'
 
 interface Props {
   synagogueId: string
@@ -13,7 +14,7 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
   const supabase = createClientComponentClient()
 
   const [canonicalName,   setCanonicalName]   = useState('')
-  const [personType,      setPersonType]      = useState<'rabbi' | 'chazzan'>('rabbi')
+  const [personType,      setPersonType]      = useState<ClergyPersonType>('rabbi')
   const [affTitle,        setAffTitle]        = useState('')
   const [startYear,       setStartYear]       = useState('')
   const [endYear,         setEndYear]         = useState('')
@@ -116,16 +117,13 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
         <label htmlFor="leader-person-type" className={labelClass}>
           Type of leader <span className="text-red-500" aria-hidden="true">*</span>
         </label>
-        <select
+        <ClergyCategorySelect
           id="leader-person-type"
           value={personType}
-          onChange={e => setPersonType(e.target.value as 'rabbi' | 'chazzan')}
-          className={inputClass}
+          onChange={setPersonType}
           required
-        >
-          <option value="rabbi">Rabbi</option>
-          <option value="chazzan">Cantor / Chazzan</option>
-        </select>
+          className={inputClass}
+        />
       </div>
 
       {/* Role title */}
