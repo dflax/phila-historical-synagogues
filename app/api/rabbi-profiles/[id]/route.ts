@@ -39,7 +39,7 @@ export async function GET(
   const { count: photosCount } = await supabase
     .from('images')
     .select('*', { count: 'exact', head: true })
-    .eq('rabbi_profile_id', params.id)
+    .or(`rabbi_profile_id.eq.${params.id},person_profile_id.eq.${params.id}`)
     .eq('approved', true)
 
   return NextResponse.json({

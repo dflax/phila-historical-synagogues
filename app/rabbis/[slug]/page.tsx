@@ -51,7 +51,7 @@ export default async function RabbiPage({ params }: { params: { slug: string } }
       width, height, is_primary, display_order,
       source, credit_line, approved
     `)
-    .eq('rabbi_profile_id', profile.id)
+    .or(`rabbi_profile_id.eq.${profile.id},person_profile_id.eq.${profile.id}`)
     .or('deleted.is.null,deleted.eq.false')
 
   const rawImages: any[] = (rawImagesData ?? [])
