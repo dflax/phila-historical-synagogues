@@ -14,7 +14,7 @@ export interface PendingProposal {
   entity_id: string | null
   rabbi_name: string | null
   synagogue_name: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split' | 'link_new' | 'link_edit' | 'link_delete' | 'synagogue_relationship_new' | 'synagogue_relationship_delete'
+  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'synagogue_delete' | 'synagogue_merge' | 'synagogue_split' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'rabbi_affiliation_new' | 'history_edit' | 'history_new' | 'photo_upload' | 'image_upload' | 'rabbi_profile_edit' | 'rabbi_profile_new' | 'rabbi_profile_delete' | 'rabbi_profile_merge' | 'rabbi_profile_split' | 'link_new' | 'link_edit' | 'link_delete' | 'synagogue_relationship_new' | 'synagogue_relationship_delete'
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
@@ -44,6 +44,7 @@ interface Props {
   proposals: PendingProposal[]
   images: PendingImage[]
   userId: string
+  storageBaseUrl: string
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -121,6 +122,7 @@ const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   history_edit:           'Edit history',
   history_new:         'New history entry',
   photo_upload:        'Photo upload',
+  image_upload:        'Photo upload (proposal)',
   rabbi_profile_edit:   'Edit rabbi profile',
   rabbi_profile_new:    'New leader profile',
   rabbi_profile_delete: 'Delete rabbi',
@@ -147,6 +149,7 @@ const PROPOSAL_TYPE_COLORS: Record<string, string> = {
   history_edit:           'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   history_new:         'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   photo_upload:        'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+  image_upload:        'text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
   rabbi_profile_edit:   'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
   rabbi_profile_new:    'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
   rabbi_profile_delete: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
@@ -222,6 +225,20 @@ function groupProposals(proposals: PendingProposal[]): ProposalGroup[] {
           items: [],
         })
       }
+    } else if (p.proposal_type === 'image_upload' && p.entity_id) {
+      // Rabbi photo upload — group by entity_id (rabbi)
+      key = `rabbi__${p.entity_id}`
+      const entityName = typeof p.proposed_data?.entity_name === 'string'
+        ? p.proposed_data.entity_name : 'Unknown Leader'
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          entity_type:  'rabbi',
+          entity_id:    p.entity_id,
+          display_name: entityName,
+          items: [],
+        })
+      }
     } else if (p.proposal_type === 'synagogue_new') {
       // Each new-synagogue proposal gets its own group keyed by proposal id,
       // showing the proposed name so reviewers can distinguish them at a glance.
@@ -273,7 +290,7 @@ const ROLE_BADGE: Record<string, { label: string; className: string }> = {
   },
 }
 
-export default function AdminClient({ proposals: initialProposals, images: initialImages, userId }: Props) {
+export default function AdminClient({ proposals: initialProposals, images: initialImages, userId, storageBaseUrl }: Props) {
   const supabase = createClientComponentClient()
   const { role, isAdmin } = useUserRole()
 
@@ -320,17 +337,30 @@ export default function AdminClient({ proposals: initialProposals, images: initi
   async function rejectProposal(id: string) {
     addProcessing(id)
     setError(null)
+
+    // Find the proposal before marking it rejected so we can read its data
+    const proposal = pendingProposals.find(p => p.id === id)
+
     const { error: err } = await supabase
       .from('edit_proposals')
       .update({
-        status:         'rejected',
+        status:       'rejected',
         review_notes: rejectNotes.trim() || null,
-        reviewed_by:    userId,
-        reviewed_at:    new Date().toISOString(),
+        reviewed_by:  userId,
+        reviewed_at:  new Date().toISOString(),
       })
       .eq('id', id)
     removeProcessing(id)
     if (err) { setError(err.message); return }
+
+    // For image_upload proposals, clean up the orphaned storage file
+    if (proposal?.proposal_type === 'image_upload') {
+      const storagePath = proposal.proposed_data?.storage_path as string | undefined
+      if (storagePath) {
+        supabase.storage.from('synagogue-images').remove([storagePath]).catch(() => {})
+      }
+    }
+
     setPendingProposals(prev => prev.filter(p => p.id !== id))
     setRejectingId(null)
     setRejectNotes('')
@@ -566,6 +596,7 @@ export default function AdminClient({ proposals: initialProposals, images: initi
                             onStartReject={() => { setRejectingId(proposal.id); setRejectNotes('') }}
                             onConfirmReject={() => rejectProposal(proposal.id)}
                             onCancelReject={() => { setRejectingId(null); setRejectNotes('') }}
+                            storageBaseUrl={storageBaseUrl}
                           />
                         ))}
                       </div>
@@ -640,11 +671,13 @@ interface ProposalCardProps {
   onStartReject: () => void
   onConfirmReject: () => void
   onCancelReject: () => void
+  storageBaseUrl: string
 }
 
 function ProposalCard({
   proposal, processing, isRejecting, rejectNotes,
   onRejectNoteChange, onApprove, onStartReject, onConfirmReject, onCancelReject,
+  storageBaseUrl,
 }: ProposalCardProps) {
   // For affiliation proposals, hide UUID fields from the diff table (shown in summary instead)
   const UUID_FIELDS_FOR_AFFILIATION = new Set(['rabbi_profile_id', 'synagogue_id'])
@@ -653,6 +686,8 @@ function ProposalCard({
   // For relationship proposals: show only notes in the diff table; everything else is in the summary block
   const RELATIONSHIP_HIDE_FIELDS = new Set(['synagogue_id', 'related_synagogue_id', 'relationship_type', 'relationship_year', 'reverse_relationship_type'])
   const RELATIONSHIP_DELETE_HIDE_FIELDS = new Set(['relationship_id', 'synagogue_id', 'related_synagogue_id', 'relationship_type', 'reverse_relationship_type'])
+  // For image uploads: all metadata shown in the photo summary block; diff table is redundant
+  const IMAGE_UPLOAD_HIDE_FIELDS = new Set(['entity_type', 'entity_id', 'entity_name', 'storage_path', 'storage_provider', 'caption', 'description', 'photographer', 'date_taken', 'year', 'original_filename', 'file_size', 'mime_type', 'width', 'height'])
   const changedFields = Object.keys(proposal.proposed_data).filter(f => {
     if (proposal.proposal_type === 'rabbi_affiliation_new' && UUID_FIELDS_FOR_AFFILIATION.has(f)) return false
     // link_new and link_delete: all fields shown in summary block, nothing in diff table
@@ -663,8 +698,15 @@ function ProposalCard({
     if (proposal.proposal_type === 'synagogue_relationship_new' && RELATIONSHIP_HIDE_FIELDS.has(f)) return false
     // relationship_delete: all structural fields shown in summary block; nothing in diff table
     if (proposal.proposal_type === 'synagogue_relationship_delete' && RELATIONSHIP_DELETE_HIDE_FIELDS.has(f)) return false
+    // image_upload: all fields shown in photo summary block; nothing in diff table
+    if (proposal.proposal_type === 'image_upload' && IMAGE_UPLOAD_HIDE_FIELDS.has(f)) return false
     return true
   })
+
+  const isImageUpload = proposal.proposal_type === 'image_upload'
+  const imageThumbUrl = isImageUpload && proposal.proposed_data?.storage_path
+    ? `${storageBaseUrl}/${proposal.proposed_data.storage_path as string}`
+    : null
   const isNewLeaderProfile = proposal.proposal_type === 'rabbi_profile_new'
   const personType = isNewLeaderProfile ? (proposal.proposed_data?.person_type as string | undefined) : undefined
   const isCantor = personType === 'chazzan'
@@ -711,6 +753,87 @@ function ProposalCard({
         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-lg px-3 py-2">
           <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">Reason given</p>
           <p className="text-sm text-amber-900 dark:text-amber-200">{proposal.submitter_note}</p>
+        </div>
+      )}
+
+      {/* Image upload summary */}
+      {isImageUpload && (
+        <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-purple-200 dark:border-purple-700">
+            <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide">
+              Proposed Photo Upload
+            </h4>
+          </div>
+          {imageThumbUrl && (
+            <div className="bg-gray-50 dark:bg-gray-800 border-b border-purple-200 dark:border-purple-700">
+              <img
+                src={imageThumbUrl}
+                alt={proposal.proposed_data?.caption as string ?? 'Proposed photo'}
+                className="w-full max-h-56 object-contain"
+              />
+            </div>
+          )}
+          <div className="px-4 py-3 space-y-2 text-sm">
+            {proposal.proposed_data?.caption && (
+              <div>
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Caption: </span>
+                <span className="text-gray-900 dark:text-white">{proposal.proposed_data.caption as string}</span>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {proposal.proposed_data?.entity_name && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">For: </span>
+                  <span className="font-medium text-gray-900 dark:text-white">{proposal.proposed_data.entity_name as string}</span>
+                  {proposal.proposed_data?.entity_type && (
+                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-1 capitalize">
+                      ({proposal.proposed_data.entity_type as string})
+                    </span>
+                  )}
+                </div>
+              )}
+              {proposal.proposed_data?.photographer && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Photographer: </span>
+                  <span className="font-medium text-gray-900 dark:text-white">{proposal.proposed_data.photographer as string}</span>
+                </div>
+              )}
+              {proposal.proposed_data?.date_taken && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Date: </span>
+                  <span className="text-gray-900 dark:text-white">{formatDate(proposal.proposed_data.date_taken as string)}</span>
+                </div>
+              )}
+              {proposal.proposed_data?.width && proposal.proposed_data?.height && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Dimensions: </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {proposal.proposed_data.width as number} × {proposal.proposed_data.height as number}px
+                  </span>
+                </div>
+              )}
+              {proposal.proposed_data?.file_size && (
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Size: </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {((proposal.proposed_data.file_size as number) / 1024).toFixed(0)} KB
+                  </span>
+                </div>
+              )}
+              {proposal.proposed_data?.original_filename && (
+                <div className="col-span-2">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">File: </span>
+                  <span className="text-gray-900 dark:text-white text-xs font-mono">{proposal.proposed_data.original_filename as string}</span>
+                </div>
+              )}
+            </div>
+            {proposal.proposed_data?.description && (
+              <div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Description: </span>
+                <span className="text-gray-700 dark:text-gray-300">{proposal.proposed_data.description as string}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

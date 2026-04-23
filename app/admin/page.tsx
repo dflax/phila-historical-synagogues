@@ -136,5 +136,5 @@ export default async function AdminPage() {
     height:            img.height ?? null,
   }))
 
-  return <AdminClient proposals={proposals} images={images} userId={user.id} />
+  return <AdminClient proposals={proposals} images={images} userId={user.id} storageBaseUrl={storageBaseUrl} />
 }

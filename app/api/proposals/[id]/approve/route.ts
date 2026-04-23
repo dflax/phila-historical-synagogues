@@ -1427,6 +1427,52 @@ export async function POST(
         }
       }
     }
+  } else if (proposal.proposal_type === 'image_upload') {
+    // Photo upload submitted by a contributor — create the images row now
+    const entityType     = proposed.entity_type     as 'synagogue' | 'rabbi' | undefined
+    const entityId       = proposed.entity_id       as string | undefined
+    const storagePath    = proposed.storage_path    as string | undefined
+
+    if (!entityType || !entityId || !storagePath) {
+      return NextResponse.json(
+        { error: 'Missing required photo proposal data (entity_type, entity_id, storage_path)' },
+        { status: 400 },
+      )
+    }
+
+    const { error: imgInsertError } = await supabaseAdmin
+      .from('images')
+      .insert({
+        synagogue_id:      entityType === 'synagogue' ? entityId : null,
+        rabbi_profile_id:  entityType === 'rabbi'     ? entityId : null,
+        source_type:       'hosted',
+        url:               '',
+        storage_path:      storagePath,
+        storage_provider:  (proposed.storage_provider as string | undefined) ?? 'supabase',
+        caption:           (proposed.caption          as string)  ?? '',
+        description:       (proposed.description      as string | null | undefined) ?? null,
+        photographer:      (proposed.photographer     as string | null | undefined) ?? null,
+        date_taken:        (proposed.date_taken       as string | null | undefined) ?? null,
+        year:              (proposed.year             as number | null | undefined) ?? null,
+        original_filename: (proposed.original_filename as string | null | undefined) ?? null,
+        file_size:         (proposed.file_size        as number | null | undefined) ?? null,
+        mime_type:         (proposed.mime_type        as string | null | undefined) ?? null,
+        width:             (proposed.width            as number | null | undefined) ?? null,
+        height:            (proposed.height           as number | null | undefined) ?? null,
+        is_primary:        false,
+        display_order:     0,
+        uploaded_by:       proposal.created_by,
+        approved:          true,
+        approved_by:       user.id,
+        approved_at:       now,
+      })
+
+    if (imgInsertError) {
+      return NextResponse.json(
+        { error: `Failed to create image record: ${imgInsertError.message}` },
+        { status: 500 },
+      )
+    }
   }
   // No-op for unknown proposal_type — we still mark it approved below
   // so it doesn't stay stuck in the review queue.

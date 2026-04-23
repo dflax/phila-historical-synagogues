@@ -115,67 +115,108 @@ export default function PhotoUploadForm({ entityType, entityId, entityName, user
 
     setProgress(92)
 
-    // ── 2. Fetch user role to determine approval status ─────────────────────
+    // ── 2. Fetch user role to determine whether to auto-approve ─────────────
     const { data: userRow } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', userId)
       .maybeSingle()
 
-    const approved = userRow ? AUTO_APPROVE_ROLES.includes(userRow.role) : false
+    const autoApprove = userRow ? AUTO_APPROVE_ROLES.includes(userRow.role) : false
 
     setProgress(96)
 
-    // ── 3. Insert into images table ──────────────────────────────────────────
-    // storage_path holds the relative path; url is intentionally empty.
-    // The full URL is built at read-time from storage_config.base_url + storage_path.
     const yearFromDate = dateTaken ? parseInt(dateTaken.slice(0, 4)) : null
 
-    const { error: insertError } = await supabase
-      .from('images')
-      .insert({
-        synagogue_id:       entityType === 'synagogue' ? entityId : null,
-        rabbi_profile_id:   entityType === 'rabbi'     ? entityId : null,
-        source_type:       'hosted',
-        url:               '',             // intentionally blank — path is in storage_path
-        storage_path:      storagePath,
-        storage_provider:  'supabase',
-        caption:           caption.trim(),
-        description:       description.trim() || null,
-        photographer:      photographer.trim() || null,
-        date_taken:        dateTaken || null,
-        year:              yearFromDate,
-        original_filename: file.name,
-        file_size:         file.size,
-        mime_type:         file.type,
-        width:             dimensions?.w ?? null,
-        height:            dimensions?.h ?? null,
-        is_primary:        false,
-        display_order:     0,
-        uploaded_by:       userId,
-        approved,
-        ...(approved && {
-          approved_by: userId,
-          approved_at: new Date().toISOString(),
-        }),
-      })
+    if (autoApprove) {
+      // ── 3a. Editor/admin: insert directly with approved = true ─────────────
+      const { error: insertError } = await supabase
+        .from('images')
+        .insert({
+          synagogue_id:     entityType === 'synagogue' ? entityId : null,
+          rabbi_profile_id: entityType === 'rabbi'     ? entityId : null,
+          source_type:      'hosted',
+          url:              '',
+          storage_path:     storagePath,
+          storage_provider: 'supabase',
+          caption:          caption.trim(),
+          description:      description.trim() || null,
+          photographer:     photographer.trim() || null,
+          date_taken:       dateTaken || null,
+          year:             yearFromDate,
+          original_filename: file.name,
+          file_size:        file.size,
+          mime_type:        file.type,
+          width:            dimensions?.w ?? null,
+          height:           dimensions?.h ?? null,
+          is_primary:       false,
+          display_order:    0,
+          uploaded_by:      userId,
+          approved:         true,
+          approved_by:      userId,
+          approved_at:      new Date().toISOString(),
+        })
 
-    setProgress(100)
-    setLoading(false)
+      setProgress(100)
+      setLoading(false)
 
-    if (insertError) {
-      // If insert fails, clean up the uploaded file to avoid orphans
-      await supabase.storage.from('synagogue-images').remove([storagePath])
-    
-      if (insertError.code === '23503') {
-        setError('Your account profile is not fully set up. Please sign out and sign in again.')
-      } else {
-        setError(insertError.message)
+      if (insertError) {
+        await supabase.storage.from('synagogue-images').remove([storagePath])
+        if (insertError.code === '23503') {
+          setError('Your account profile is not fully set up. Please sign out and sign in again.')
+        } else {
+          setError(insertError.message)
+        }
+        return
       }
-      return
+    } else {
+      // ── 3b. Contributor: create an edit_proposals record for editor review ──
+      // The file is already in storage; the proposal holds the storage_path and
+      // all metadata. On approval the approve route inserts the images row.
+      const { error: proposalError } = await supabase
+        .from('edit_proposals')
+        .insert({
+          synagogue_id:   entityType === 'synagogue' ? entityId : null,
+          entity_id:      entityType === 'rabbi'     ? entityId : null,
+          proposal_type:  'image_upload',
+          proposed_data: {
+            entity_type:       entityType,
+            entity_id:         entityId,
+            entity_name:       entityName,
+            storage_path:      storagePath,
+            storage_provider:  'supabase',
+            caption:           caption.trim(),
+            description:       description.trim() || null,
+            photographer:      photographer.trim() || null,
+            date_taken:        dateTaken || null,
+            year:              yearFromDate,
+            original_filename: file.name,
+            file_size:         file.size,
+            mime_type:         file.type,
+            width:             dimensions?.w ?? null,
+            height:            dimensions?.h ?? null,
+          },
+          current_data: null,
+          created_by:   userId,
+          status:       'pending',
+        })
+
+      setProgress(100)
+      setLoading(false)
+
+      if (proposalError) {
+        // Clean up orphaned storage file if proposal insert fails
+        await supabase.storage.from('synagogue-images').remove([storagePath])
+        if (proposalError.code === '23503') {
+          setError('Your account profile is not fully set up. Please sign out and sign in again.')
+        } else {
+          setError(proposalError.message)
+        }
+        return
+      }
     }
 
-    onSuccess(approved)
+    onSuccess(autoApprove)
   }
 
   const inputClass =

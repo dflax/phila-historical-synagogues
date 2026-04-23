@@ -561,3 +561,5 @@ All committed to `master` and deployed to Vercel:
 - **Dual-range year filter** — replaced single slider; shows synagogues active during any overlap with selected range
 - **MiniMap on detail page** — non-interactive Google Maps preview in hero box, links to full map
 - **Leaders on map** — `app/map/page.tsx` fetches leader data from Supabase so leader search works on the map sidebar
+- **Added photo upload approval workflow
+
