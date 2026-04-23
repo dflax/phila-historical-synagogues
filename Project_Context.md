@@ -1,6 +1,6 @@
 # Philadelphia Historical Synagogues — Project Context
 
-> **Last updated**: 2026-04-17 (session 7.3)  
+> **Last updated**: 2026-04-23 (session 7.4)
 > **Status**: Production (deployed to Vercel, auto-deploys from GitHub `master`)
 
 A web application documenting hundreds of synagogues in the Philadelphia area, spanning from 1745 to the present day. Built to preserve Jewish heritage through interactive mapping, community contributions, and detailed historical records.
@@ -117,6 +117,7 @@ components/
     PhotoUploadButton.tsx / PhotoUploadForm.tsx
   common/
     ConfirmDialog.tsx / LinksSection.tsx
+    ClergyCategorySelect.tsx          # Reusable clergy type dropdown (rabbi/chazzan)
   admin/
     MigrationDashboard.tsx
 
@@ -259,7 +260,7 @@ All leadership changes go through `edit_proposals` before applying to live table
 | `rabbi_affiliation_new` | Add clergy affiliation to synagogue |
 | `lay_leader_affiliation_new` | Add lay leader to synagogue |
 | `staff_affiliation_new` | Add staff member to synagogue |
-| `affiliation_edit` | Modify existing affiliation (incl. rabbi→chazzan conversion) |
+| `affiliation_edit` | Modify existing affiliation; `new_person_type` field handles rabbi↔chazzan conversion in either direction |
 | `rabbi_profile_new` | Create new person profile |
 | `rabbi_profile_edit` | Modify person profile |
 | `rabbi_profile_delete` | Soft-delete person profile |
@@ -293,14 +294,14 @@ Editors approve/reject from `/admin`. Approved proposals write to the live table
 | `AddSynagogueAffiliationButton` | Add synagogue to clergy profile |
 | `AddLayLeaderButton` | Add lay leader to synagogue |
 | `AddStaffButton` | Add staff member to synagogue |
-| `EditAffiliationButton` | Edit existing affiliation; can convert rabbi → chazzan |
+| `EditAffiliationButton` | Edit existing affiliation; dropdown to change type (rabbi↔chazzan, both directions) |
 | `AddLinkButton` | Add external link to synagogue or rabbi profile |
 | `AddRelationshipButton` | Add typed relationship between synagogues |
 | `DeleteRelationshipModal` | Remove synagogue relationship |
 | `SuggestEditButton/Form` | Propose field edits to synagogue |
 | `SuggestAddressButton/Form` | Propose new address |
 | `SuggestHistoryButton/Form` | Propose history entry |
-| `SuggestRabbiButton/Form` | Propose rabbi addition (legacy flow) |
+| `SuggestRabbiButton/Form` | Propose new clergy leader from synagogue detail page; creates `rabbi_profile_new` proposal with affiliation pre-linked to that synagogue |
 | `SuggestRabbiProfileButton/Form` | Propose clergy profile edit |
 | `CreateRabbiButton/Form` | Create new clergy profile |
 | `CreateSynagogueButton/Form` | Create new synagogue |
@@ -480,7 +481,15 @@ Import phases:
 
 ## Recent Work History
 
-### 2026-04-17 (Most Recent Session)
+### 2026-04-23 (Most Recent Session)
+
+- **Fixed "Add New Leader" modal on Synagogue Detail page** — `SuggestRabbiForm` was using `proposal_type: 'rabbi_new'` which tried to write to the deleted `rabbis` table on approval; changed to `rabbi_profile_new`, renamed `name`→`canonical_name`, added person type dropdown, and included affiliation fields (`affiliation_title`, `affiliation_start_year`, `affiliation_end_year`, `affiliation_notes`) in `proposed_data`; fixed all "rabbi"-specific label text
+- **Approval route auto-creates affiliation** — when a `rabbi_profile_new` proposal includes `synagogue_id` (i.e., submitted from a synagogue detail page), the approval handler now pre-generates the person_profile UUID and immediately creates an `affiliations` record linking the new person to that synagogue
+- **`ClergyCategorySelect` reusable component** — `components/common/ClergyCategorySelect.tsx` is the single source of truth for clergy type options (rabbi/chazzan); exports `CLERGY_TYPE_OPTIONS` and `ClergyPersonType`; to add a new clergy category in the future, update only this file; used by `EditAffiliationButton`, `CreateRabbiForm`, and `SuggestRabbiForm`
+- **`EditAffiliationButton` type conversion redesigned** — replaced the "convert to cantor" checkbox with a `ClergyCategorySelect` dropdown; works in both directions (rabbi→chazzan and chazzan→rabbi); shows an amber warning when the type will change; uses `new_person_type` in `proposed_data` instead of the old `convert_to_cantor` boolean (backward compat preserved)
+- **Approval route generalized for type conversion** — `affiliation_edit` handler now reads `new_person_type` (preferred) with fallback to legacy `convert_to_cantor`; slug prefix logic handles both directions: `chazzan-<name>` for cantors, `<name>` (no prefix) for rabbis
+
+### 2026-04-17
 - **Geocode lat/lng on address approval** — `address_new` proposal approval now calls `geocodeAddress()` (single API call) to populate `latitude` and `longitude` on the inserted address row; without this, newly-added addresses had null coords and the mini-map fell back to a plain "View on Map" button; neighborhood is still derived from the same call, eliminating the prior duplicate geocoding API call
 - **Map page shows newly-created synagogues** — fixed `app/map/page.tsx` filter which checked `addresses[0].latitude` only; if the first returned address had null coords the whole synagogue was excluded; now uses `.some()` to check any address, and sorts geocoded addresses to index 0 so `MapClient` (which always uses `addresses[0]`) gets valid coords
 - **Multi-location map markers** — `MapClient.tsx` now places one marker per geocoded address (not one per synagogue); historical markers render at 50% opacity; year filter uses `YEAR_FILTER_MODE = 'synagogue'` constant (one-line switch to per-address filtering later); neighborhood filter now hides individual markers that don't match (not whole synagogues); `SynagoguePanel` lists all addresses with year ranges, geocoded addresses are clickable zoom links, each has a Street View pegman icon button, synagogue name click zooms to most-recent geocoded address; infowindow includes address + year range; `map/page.tsx` now fetches `start_year`, `end_year`, `is_current`, `address_order` and passes all addresses (not just geocoded) so sidebar can show complete location history
@@ -529,7 +538,7 @@ Import phases:
 
 - **Branch**: `master` (main and only branch; Vercel deploys from here)
 - **Remote**: GitHub (auto-deploys to Vercel on push)
-- **Most recent commit**: `Phase 7 Session 7.3: Multi-location map markers with per-address sidebar, opacity, pegman Street View`
+- **Most recent commit**: `Phase 7 Session 7.4: Replace rabbi/chazzan checkbox with reusable ClergyCategorySelect dropdown`
 
 ---
 

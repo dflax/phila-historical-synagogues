@@ -188,7 +188,9 @@ components/
     AddSynagogueAffiliationButton.tsx
     AddLayLeaderButton.tsx          # Add lay leader to synagogue
     AddStaffButton.tsx              # Add staff member to synagogue
-    EditAffiliationButton.tsx       # Edit existing affiliation; can convert rabbi → chazzan
+    EditAffiliationButton.tsx       # Edit existing affiliation; ClergyCategorySelect dropdown
+                                    # allows rabbi↔chazzan conversion in either direction;
+                                    # uses new_person_type in proposed_data (not convert_to_cantor)
     AddRelationshipButton.tsx       # Typed organizational relationships between synagogues
     AddLinkButton.tsx               # External links for synagogues and rabbi profiles
     DeleteRelationshipModal.tsx
@@ -198,6 +200,8 @@ components/
   common/
     ConfirmDialog.tsx
     LinksSection.tsx              # Renders approved links for any entity
+    ClergyCategorySelect.tsx      # Reusable clergy type dropdown — SINGLE SOURCE OF TRUTH
+                                  # for rabbi/chazzan options; add new types here only
 
 lib/
   supabase/
@@ -508,6 +512,14 @@ Multiple synagogues at the same primary address are offset into a small circle s
 | `/about` | Not yet built — no nav link yet |
 
 ## Recent Work
+
+### Session ending 2026-04-23
+
+- **Fixed "Add New Leader" modal** — `SuggestRabbiForm` was submitting `proposal_type: 'rabbi_new'`, which caused the approval route to write to the deleted `rabbis` table; changed to `rabbi_profile_new`, renamed `name`→`canonical_name`, added person type dropdown, added affiliation fields (`affiliation_title`, `affiliation_start_year/end_year/notes`) to `proposed_data`, updated all "rabbi"-specific label text to "leader"
+- **Auto-create affiliation on approval** — when a `rabbi_profile_new` proposal has a `synagogue_id` (submitted from a synagogue detail page), the approval handler pre-generates the person profile UUID and inserts a corresponding `affiliations` row in the same operation
+- **`ClergyCategorySelect` shared component** — `components/common/ClergyCategorySelect.tsx` is the **single source of truth** for clergy type options; exports `CLERGY_TYPE_OPTIONS` array and `ClergyPersonType` type; to add a new clergy category in the future, edit only this file — it will propagate to `EditAffiliationButton`, `CreateRabbiForm`, and `SuggestRabbiForm` automatically
+- **`EditAffiliationButton` redesigned** — replaced the one-way "convert to cantor" checkbox with a `ClergyCategorySelect` dropdown; supports conversion in both directions (rabbi→chazzan and chazzan→rabbi); shows an amber notice when the selected type differs from the current one; sends `new_person_type` in `proposed_data` (old `convert_to_cantor` boolean still handled for backward compat with queued proposals)
+- **Approval route generalized** — `affiliation_edit` handler reads `new_person_type` (preferred) with fallback to legacy `convert_to_cantor`; generates the correct slug prefix for each direction (`chazzan-<name>` or `<name>` with no prefix for rabbi)
 
 ### Session ending 2026-03-27
 
