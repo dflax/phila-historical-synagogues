@@ -547,16 +547,17 @@ export async function POST(
     // ])
 
     // 3. Delete linked images and attempt storage cleanup
+    //    Images may be linked via rabbi_profile_id (legacy) or person_profile_id (new)
     const { data: linkedImages } = await supabase
       .from('images')
       .select('id, storage_path')
-      .eq('rabbi_profile_id', proposal.entity_id)
+      .or(`rabbi_profile_id.eq.${proposal.entity_id},person_profile_id.eq.${proposal.entity_id}`)
 
     if (linkedImages?.length) {
       await supabase
         .from('images')
         .delete()
-        .eq('rabbi_profile_id', proposal.entity_id)
+        .in('id', linkedImages.map(i => i.id))
 
       const paths = linkedImages
         .map(i => i.storage_path)
@@ -807,11 +808,15 @@ export async function POST(
     //   supabaseAdmin.from('affiliations').update({ person_profile_id: mergeSourceId }).eq('person_profile_id', mergeTargetId),
     // ])
 
-    // 3. Move photos from target to source
+    // 3. Move photos from target to source (handle both legacy and new column)
     await supabase
       .from('images')
       .update({ rabbi_profile_id: mergeSourceId })
       .eq('rabbi_profile_id', mergeTargetId)
+    await supabase
+      .from('images')
+      .update({ person_profile_id: mergeSourceId })
+      .eq('person_profile_id', mergeTargetId)
 
     // 4. Move rabbi_relationships (if table exists) — errors returned in {error} field, non-fatal
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1003,13 +1008,16 @@ export async function POST(
     // 5. Process image assignments
     for (const [imgId, action] of Object.entries(assignments.images ?? {})) {
       if (action === 'new') {
-        await supabase.from('images').update({ rabbi_profile_id: newRabbiId }).eq('id', imgId)
+        // Update whichever column is set on this image (legacy or new)
+        await supabase.from('images').update({ rabbi_profile_id: newRabbiId }).eq('id', imgId).not('rabbi_profile_id', 'is', null)
+        await supabase.from('images').update({ person_profile_id: newRabbiId }).eq('id', imgId).not('person_profile_id', 'is', null)
       } else if (action === 'both') {
         const { data: row } = await supabase.from('images').select('*').eq('id', imgId).single()
         if (row) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id: _id, storage_path: _sp, ...rest } = row as Record<string, unknown>
-          await supabase.from('images').insert({ ...rest, rabbi_profile_id: newRabbiId })
+          // Use person_profile_id for the copy; clear rabbi_profile_id to avoid FK issues
+          await supabase.from('images').insert({ ...rest, rabbi_profile_id: null, person_profile_id: newRabbiId })
         }
       } else if (action === 'neither') {
         const { data: img } = await supabase.from('images').select('id, storage_path').eq('id', imgId).single()

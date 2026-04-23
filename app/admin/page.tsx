@@ -61,11 +61,11 @@ export default async function AdminPage() {
 
   const rabbiMap = new Map<string, string>()
   if (rabbiProfileIds.length > 0) {
-    const { data: rabbiProfiles } = await supabase
-      .from('rabbi_profiles')
+    const { data: personProfiles } = await supabase
+      .from('person_profiles')
       .select('id, canonical_name')
       .in('id', rabbiProfileIds)
-    for (const r of rabbiProfiles ?? []) {
+    for (const r of personProfiles ?? []) {
       rabbiMap.set(r.id as string, r.canonical_name as string)
     }
   }

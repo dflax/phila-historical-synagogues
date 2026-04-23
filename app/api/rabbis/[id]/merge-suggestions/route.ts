@@ -80,12 +80,12 @@ export async function GET(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
-  // Fetch the current rabbi's data
+  // Fetch the current leader's data
   const { data: current } = await supabase
-    .from('rabbi_profiles')
+    .from('person_profiles')
     .select(`
       id, canonical_name, birth_year, death_year, seminary, denomination,
-      rabbis!rabbi_profile_id (synagogue_id)
+      affiliations (synagogue_id)
     `)
     .eq('id', params.id)
     .eq('approved', true)
@@ -93,20 +93,20 @@ export async function GET(
     .maybeSingle()
 
   if (!current) {
-    return NextResponse.json({ error: 'Rabbi not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Leader not found' }, { status: 404 })
   }
 
   const currentSynIds = new Set(
-    (current.rabbis as { synagogue_id: string }[] ?? []).map(r => r.synagogue_id),
+    (current.affiliations as { synagogue_id: string }[] ?? []).map(r => r.synagogue_id),
   )
 
-  // Fetch all other approved, non-deleted rabbi profiles
+  // Fetch all other approved, non-deleted leader profiles
   const { data: others } = await supabase
-    .from('rabbi_profiles')
+    .from('person_profiles')
     .select(`
       id, canonical_name, birth_year, death_year, slug,
       seminary, denomination,
-      rabbis!rabbi_profile_id (synagogue_id)
+      affiliations (synagogue_id)
     `)
     .neq('id', params.id)
     .eq('approved', true)
@@ -126,7 +126,7 @@ export async function GET(
     reasons.push(...nameResult.reasons)
 
     // Shared synagogue affiliations
-    const othSynIds = (rabbi.rabbis as { synagogue_id: string }[] ?? []).map(r => r.synagogue_id)
+    const othSynIds = (rabbi.affiliations as { synagogue_id: string }[] ?? []).map(r => r.synagogue_id)
     const sharedCount = othSynIds.filter(id => currentSynIds.has(id)).length
     if (sharedCount > 0) {
       score += sharedCount * 20

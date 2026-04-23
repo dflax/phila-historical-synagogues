@@ -711,7 +711,7 @@ export default function MergeRabbiButton({ rabbiId, rabbiName }: Props) {
       const [suggestRes, rabbisRes] = await Promise.all([
         fetch(`/api/rabbis/${rabbiId}/merge-suggestions`),
         supabase
-          .from('rabbi_profiles')
+          .from('person_profiles')
           .select('id, canonical_name, birth_year, death_year')
           .eq('approved', true)
           .or('deleted.is.null,deleted.eq.false')

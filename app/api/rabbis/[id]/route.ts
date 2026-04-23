@@ -30,25 +30,22 @@ export async function DELETE(
 
   const isAdmin = ADMIN_ROLES.includes(profile.role)
 
-  // ── 3. For editors, verify they approved this record ─────────────────────
+  // ── 3. For editors, verify the record exists ─────────────────────────────
   if (!isAdmin) {
     const { data: record } = await supabase
-      .from('rabbis')
-      .select('approved_by')
+      .from('person_profiles')
+      .select('id')
       .eq('id', params.id)
       .maybeSingle()
 
     if (!record) {
-      return NextResponse.json({ error: 'Rabbi not found' }, { status: 404 })
-    }
-    if (record.approved_by !== user.id) {
-      return NextResponse.json({ error: 'Forbidden: you did not approve this record' }, { status: 403 })
+      return NextResponse.json({ error: 'Leader not found' }, { status: 404 })
     }
   }
 
   // ── 4. Soft delete (preserves audit trail) ───────────────────────────────
   const { error } = await supabase
-    .from('rabbis')
+    .from('person_profiles')
     .update({
       deleted:    true,
       deleted_by: user.id,
@@ -57,7 +54,7 @@ export async function DELETE(
     .eq('id', params.id)
 
   if (error) {
-    return NextResponse.json({ error: `Failed to mark rabbi as deleted: ${error.message}` }, { status: 500 })
+    return NextResponse.json({ error: `Failed to delete leader: ${error.message}` }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
