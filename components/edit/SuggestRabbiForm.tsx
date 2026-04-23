@@ -12,12 +12,13 @@ interface Props {
 export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Props) {
   const supabase = createClientComponentClient()
 
-  const [name,          setName]          = useState('')
-  const [title,         setTitle]         = useState('')
-  const [startYear,     setStartYear]     = useState('')
-  const [endYear,       setEndYear]       = useState('')
-  const [notes,         setNotes]         = useState('')
-  const [submitterNote, setSubmitterNote] = useState('')
+  const [canonicalName,   setCanonicalName]   = useState('')
+  const [personType,      setPersonType]      = useState<'rabbi' | 'chazzan'>('rabbi')
+  const [affTitle,        setAffTitle]        = useState('')
+  const [startYear,       setStartYear]       = useState('')
+  const [endYear,         setEndYear]         = useState('')
+  const [notes,           setNotes]           = useState('')
+  const [submitterNote,   setSubmitterNote]   = useState('')
 
   const [error,   setError]   = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -26,7 +27,11 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
     e.preventDefault()
     setError(null)
 
-    // Validate year ordering
+    if (canonicalName.trim().length < 2) {
+      setError('Full name must be at least 2 characters.')
+      return
+    }
+
     if (startYear && endYear && parseInt(endYear) < parseInt(startYear)) {
       setError('End year must be greater than or equal to start year.')
       return
@@ -44,23 +49,20 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
       return
     }
 
-    // ── Build proposed_data ───────────────────────────────────────────────────
-    const proposed: Record<string, unknown> = {
-      name: name.trim(),
-    }
-
-    if (title)     proposed.title      = title.trim()
-    if (startYear) proposed.start_year = parseInt(startYear)
-    if (endYear)   proposed.end_year   = parseInt(endYear)
-    if (notes)     proposed.notes      = notes.trim()
-
     // ── Submit to edit_proposals ──────────────────────────────────────────────
     const { error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:   synagogueId,
-        proposal_type:  'rabbi_new',
-        proposed_data:  proposed,
+        proposal_type:  'rabbi_profile_new',
+        proposed_data: {
+          canonical_name:          canonicalName.trim(),
+          person_type:             personType,
+          affiliation_title:       affTitle.trim() || null,
+          affiliation_start_year:  startYear ? parseInt(startYear) : null,
+          affiliation_end_year:    endYear   ? parseInt(endYear)   : null,
+          affiliation_notes:       notes.trim() || null,
+        },
         submitter_note: submitterNote.trim() || null,
         created_by:     userId,
         status:         'pending',
@@ -93,41 +95,58 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
         </div>
       )}
 
-      {/* Name */}
+      {/* Full name */}
       <div>
-        <label htmlFor="rabbi-name" className={labelClass}>
-          Name <span className="text-red-500" aria-hidden="true">*</span>
+        <label htmlFor="leader-name" className={labelClass}>
+          Full name <span className="text-red-500" aria-hidden="true">*</span>
         </label>
         <input
-          id="rabbi-name"
+          id="leader-name"
           type="text"
           required
-          value={name}
-          onChange={e => setName(e.target.value)}
+          value={canonicalName}
+          onChange={e => setCanonicalName(e.target.value)}
           className={inputClass}
           placeholder="e.g. Abraham Goldstein"
         />
       </div>
 
-      {/* Title */}
+      {/* Person type */}
       <div>
-        <label htmlFor="rabbi-title" className={labelClass}>Title</label>
-        <input
-          id="rabbi-title"
-          type="text"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
+        <label htmlFor="leader-person-type" className={labelClass}>
+          Type of leader <span className="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="leader-person-type"
+          value={personType}
+          onChange={e => setPersonType(e.target.value as 'rabbi' | 'chazzan')}
           className={inputClass}
-          placeholder="e.g. Rabbi, Assistant Rabbi, Cantor, Hazzan"
+          required
+        >
+          <option value="rabbi">Rabbi</option>
+          <option value="chazzan">Cantor / Chazzan</option>
+        </select>
+      </div>
+
+      {/* Role title */}
+      <div>
+        <label htmlFor="leader-title" className={labelClass}>Role title</label>
+        <input
+          id="leader-title"
+          type="text"
+          value={affTitle}
+          onChange={e => setAffTitle(e.target.value)}
+          className={inputClass}
+          placeholder="e.g. Senior Rabbi, Assistant Rabbi, Cantor"
         />
       </div>
 
-      {/* Years */}
+      {/* Years at this synagogue */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="rabbi-start-year" className={labelClass}>From year</label>
+          <label htmlFor="leader-start-year" className={labelClass}>Served from</label>
           <input
-            id="rabbi-start-year"
+            id="leader-start-year"
             type="number"
             min="1700"
             max={new Date().getFullYear()}
@@ -138,9 +157,9 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
           />
         </div>
         <div>
-          <label htmlFor="rabbi-end-year" className={labelClass}>To year</label>
+          <label htmlFor="leader-end-year" className={labelClass}>Served until</label>
           <input
-            id="rabbi-end-year"
+            id="leader-end-year"
             type="number"
             min="1700"
             max={new Date().getFullYear()}
@@ -154,22 +173,22 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
 
       {/* Notes */}
       <div>
-        <label htmlFor="rabbi-notes" className={labelClass}>Notes</label>
+        <label htmlFor="leader-notes" className={labelClass}>Notes</label>
         <textarea
-          id="rabbi-notes"
+          id="leader-notes"
           rows={2}
           value={notes}
           onChange={e => setNotes(e.target.value)}
           className={inputClass}
-          placeholder="Additional information about this rabbi"
+          placeholder="Additional information about this person's role"
         />
       </div>
 
       {/* Submitter note */}
       <div>
-        <label htmlFor="rabbi-submitter-note" className={labelClass}>Why are you adding this rabbi?</label>
+        <label htmlFor="leader-submitter-note" className={labelClass}>Why are you adding this person?</label>
         <textarea
-          id="rabbi-submitter-note"
+          id="leader-submitter-note"
           rows={2}
           value={submitterNote}
           onChange={e => setSubmitterNote(e.target.value)}
@@ -183,7 +202,7 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
         disabled={loading}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 px-4 rounded-lg font-medium text-sm transition"
       >
-        {loading ? 'Submitting…' : 'Submit rabbi proposal'}
+        {loading ? 'Submitting…' : 'Submit for review'}
       </button>
 
       <p className="text-xs text-gray-400 dark:text-gray-500 text-center">

@@ -615,8 +615,12 @@ export async function POST(
     // Use person_type from proposal data; fall back to slug-prefix inference
     const personType = proposedPersonType ?? (finalSlug.startsWith('chazzan-') ? 'chazzan' : 'rabbi')
 
+    // Pre-generate the ID so we can use it for the affiliation insert below
+    const newPersonProfileId = crypto.randomUUID()
+
     // ── CUTOVER: Writing to new table only ─────────────────────────────────
     const { error: newInsertError } = await supabaseAdmin.from('person_profiles').insert({
+      id:             newPersonProfileId,
       canonical_name: candidateName,
       person_type:    personType,
       slug:           finalSlug,
@@ -632,6 +636,22 @@ export async function POST(
         { error: `Failed to create person profile: ${newInsertError.message}` },
         { status: 500 },
       )
+    }
+
+    // ── If submitted from a synagogue detail page, also create the affiliation ─
+    if (proposal.synagogue_id) {
+      const affTitle = (proposed.affiliation_title as string | null | undefined) ?? null
+      await supabaseAdmin.from('affiliations').insert({
+        person_profile_id:    newPersonProfileId,
+        synagogue_id:         proposal.synagogue_id,
+        affiliation_category: 'clergy',
+        role_title:           affTitle || (personType === 'chazzan' ? 'Cantor' : 'Rabbi'),
+        start_year:           (proposed.affiliation_start_year as number | null | undefined) ?? null,
+        end_year:             (proposed.affiliation_end_year   as number | null | undefined) ?? null,
+        notes:                (proposed.affiliation_notes      as string | null | undefined) ?? null,
+        approved:             true,
+      })
+      // Non-fatal: affiliation failure does not roll back the profile creation
     }
 
     // ── OLD CODE (dual-write) - Keep for rollback ──────────────────────────

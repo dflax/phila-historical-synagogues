@@ -96,7 +96,7 @@ export default function SuggestRabbiButton({ synagogueId, synagogueName }: Props
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
-          aria-label="Add a rabbi"
+          aria-label="Add a new leader"
         >
           <div
             className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
@@ -130,7 +130,7 @@ export default function SuggestRabbiButton({ synagogueId, synagogueName }: Props
                   </div>
                   <p className="text-gray-900 dark:text-white font-semibold">Thank you!</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your rabbi proposal is pending review. Editors will evaluate and apply approved additions.
+                    Your proposal is pending review. Once approved by an editor, this leader will be added to the directory.
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">This window will close automatically…</p>
                 </div>
