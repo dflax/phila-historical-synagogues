@@ -142,7 +142,7 @@ export default function PhotoUploadButton({ entityType, entityId, entityName }: 
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {approved
-                      ? `Your photo is now visible on the ${entityType} page.`
+                      ? `Your photo is now visible on the ${entityType === 'rabbi' ? 'leadership' : 'synagogue'} page.`
                       : 'Your photo is pending approval from our editors.'}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">This window will close automatically…</p>
