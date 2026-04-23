@@ -6,6 +6,18 @@
 ALTER TABLE images
   ADD COLUMN IF NOT EXISTS person_profile_id UUID REFERENCES person_profiles(id) ON DELETE SET NULL;
 
+-- 2. Update images_entity_check to accept person_profile_id as a valid entity reference
+--    (original constraint only knew about synagogue_id and rabbi_profile_id)
+ALTER TABLE images
+  DROP CONSTRAINT IF EXISTS images_entity_check;
+
+ALTER TABLE images
+  ADD CONSTRAINT images_entity_check CHECK (
+    synagogue_id IS NOT NULL OR
+    rabbi_profile_id IS NOT NULL OR
+    person_profile_id IS NOT NULL
+  );
+
 -- 2. Add image_upload to the edit_proposals proposal_type check constraint
 ALTER TABLE edit_proposals
   DROP CONSTRAINT IF EXISTS edit_proposals_proposal_type_check;
