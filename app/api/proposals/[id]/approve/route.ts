@@ -1443,8 +1443,8 @@ export async function POST(
     const { error: imgInsertError } = await supabaseAdmin
       .from('images')
       .insert({
-        synagogue_id:      entityType === 'synagogue' ? entityId : null,
-        rabbi_profile_id:  entityType === 'rabbi'     ? entityId : null,
+        synagogue_id:       entityType === 'synagogue' ? entityId : null,
+        person_profile_id:  entityType === 'rabbi'     ? entityId : null,
         source_type:       'hosted',
         url:               '',
         storage_path:      storagePath,

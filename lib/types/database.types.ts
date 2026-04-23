@@ -736,6 +736,7 @@ export interface Database {
           deleted_by: string | null
           deleted_at: string | null
           rabbi_profile_id: string | null
+          person_profile_id: string | null
         }
         Insert: {
           id?: string
@@ -778,6 +779,7 @@ export interface Database {
           deleted_by?: string | null
           deleted_at?: string | null
           rabbi_profile_id?: string | null
+          person_profile_id?: string | null
         }
         Update: {
           id?: string
@@ -819,6 +821,7 @@ export interface Database {
           deleted_by?: string | null
           deleted_at?: string | null
           rabbi_profile_id?: string | null
+          person_profile_id?: string | null
         }
       }
 

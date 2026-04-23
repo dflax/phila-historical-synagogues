@@ -133,8 +133,8 @@ export default function PhotoUploadForm({ entityType, entityId, entityName, user
       const { error: insertError } = await supabase
         .from('images')
         .insert({
-          synagogue_id:     entityType === 'synagogue' ? entityId : null,
-          rabbi_profile_id: entityType === 'rabbi'     ? entityId : null,
+          synagogue_id:       entityType === 'synagogue' ? entityId : null,
+          person_profile_id:  entityType === 'rabbi'     ? entityId : null,
           source_type:      'hosted',
           url:              '',
           storage_path:     storagePath,
