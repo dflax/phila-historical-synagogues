@@ -48,7 +48,7 @@ export async function POST(
     return NextResponse.json({ ok: true, skipped: true })
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://philasynagogues.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://historicalsynagogues.org'
   const synagogueName = (proposal.synagogues as any)?.name ?? null
 
   try {

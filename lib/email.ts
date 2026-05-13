@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_ADDRESS = 'Philadelphia Historical Synagogues <contributions@philasynagogues.com>'
+const FROM_ADDRESS = 'Philadelphia Historical Synagogues <contributions@historicalsynagogues.org>'
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
   synagogue_edit:              'Edit synagogue details',
@@ -212,7 +212,7 @@ export async function sendProposalConfirmation({
       </div>
 
       <p style="margin:28px 0 0;font-size:12px;color:#9ca3af;line-height:1.6;">
-        You're receiving this because you submitted a contribution at philasynagogues.com.
+        You're receiving this because you submitted a contribution at historicalsynagogues.org.
         To withdraw this submission, click the button above (you must be signed in).
       </p>
     </div>
