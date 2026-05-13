@@ -10,7 +10,11 @@ export const metadata = {
   title: 'My Contributions - Philadelphia Historical Synagogues',
 }
 
-export default async function ContributionsPage() {
+export default async function ContributionsPage({
+  searchParams,
+}: {
+  searchParams: { withdraw?: string }
+}) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -76,5 +80,11 @@ export default async function ContributionsPage() {
     synagogue_name:    (img.synagogues as any)?.name ?? null,
   }))
 
-  return <ContributionsClient proposals={proposals} images={images} />
+  return (
+    <ContributionsClient
+      proposals={proposals}
+      images={images}
+      withdrawId={searchParams.withdraw}
+    />
+  )
 }

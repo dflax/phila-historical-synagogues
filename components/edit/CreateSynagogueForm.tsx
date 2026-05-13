@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 const STATUS_OPTIONS = [
   { value: 'active',  label: 'Active'  },
@@ -64,7 +65,7 @@ export default function CreateSynagogueForm({ userId, onSuccess }: Props) {
       return
     }
 
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:   null,
@@ -80,6 +81,8 @@ export default function CreateSynagogueForm({ userId, onSuccess }: Props) {
         created_by:     userId,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -92,6 +95,7 @@ export default function CreateSynagogueForm({ userId, onSuccess }: Props) {
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     onSuccess()
   }
 

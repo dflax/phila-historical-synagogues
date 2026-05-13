@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 interface Props {
   entityType: 'synagogue' | 'rabbi'
@@ -173,7 +174,7 @@ export default function PhotoUploadForm({ entityType, entityId, entityName, user
       // ── 3b. Contributor: create an edit_proposals record for editor review ──
       // The file is already in storage; the proposal holds the storage_path and
       // all metadata. On approval the approve route inserts the images row.
-      const { error: proposalError } = await supabase
+      const { data: insertData, error: proposalError } = await supabase
         .from('edit_proposals')
         .insert({
           synagogue_id:   entityType === 'synagogue' ? entityId : null,
@@ -200,6 +201,8 @@ export default function PhotoUploadForm({ entityType, entityId, entityName, user
           created_by:   userId,
           status:       'pending',
         })
+        .select('id')
+        .single()
 
       setProgress(100)
       setLoading(false)
@@ -214,6 +217,8 @@ export default function PhotoUploadForm({ entityType, entityId, entityName, user
         }
         return
       }
+
+      if (insertData?.id) notifyProposalSubmission(insertData.id)
     }
 
     onSuccess(autoApprove)

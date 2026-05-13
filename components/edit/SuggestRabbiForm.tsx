@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import ClergyCategorySelect, { type ClergyPersonType } from '@/components/common/ClergyCategorySelect'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 interface Props {
   synagogueId: string
@@ -51,7 +52,7 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
     }
 
     // ── Submit to edit_proposals ──────────────────────────────────────────────
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:   synagogueId,
@@ -68,6 +69,8 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
         created_by:     userId,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -80,6 +83,7 @@ export default function SuggestRabbiForm({ synagogueId, userId, onSuccess }: Pro
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     onSuccess()
   }
 

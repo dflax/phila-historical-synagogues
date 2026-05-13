@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import AuthModal from '@/components/auth/AuthModal'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -162,7 +163,7 @@ export default function AddLinkButton({ entityType, entityId, entityName }: Prop
       return
     }
 
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:  entityType === 'synagogue' ? entityId : null,
@@ -183,6 +184,8 @@ export default function AddLinkButton({ entityType, entityId, entityName }: Prop
         created_by:     user!.id,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -195,6 +198,7 @@ export default function AddLinkButton({ entityType, entityId, entityName }: Prop
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     setStep(2)
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 const BIO_MAX  = 10_000
 const LONG_MAX = 2_000
@@ -211,7 +212,7 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
     }
 
     // ── Submit to edit_proposals ────────────────────────────────────────────
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         entity_id:      profile.id,
@@ -238,6 +239,8 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
         created_by:     userId,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -250,6 +253,7 @@ export default function SuggestRabbiProfileForm({ profile, userId, onSuccess }: 
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     onSuccess()
   }
 

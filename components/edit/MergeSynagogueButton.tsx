@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import AuthModal from '@/components/auth/AuthModal'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -661,7 +662,7 @@ export default function MergeSynagogueButton({ synagogueId, synagogueName }: Pro
     const totalHistory   = (syn1Details?.history_count   ?? 0) + syn2Details.history_count
     const totalPhotos    = (syn1Details?.photos_count    ?? 0) + syn2Details.photos_count
 
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:  synagogueId,
@@ -689,6 +690,8 @@ export default function MergeSynagogueButton({ synagogueId, synagogueName }: Pro
         created_by:     user.id,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -701,6 +704,7 @@ export default function MergeSynagogueButton({ synagogueId, synagogueName }: Pro
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     setStep(3)
   }
 

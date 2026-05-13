@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 interface SynagogueSnapshot {
   id: string
@@ -89,7 +90,7 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
     }
 
     // ── Submit to edit_proposals ──────────────────────────────────────────────
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:   synagogue.id,
@@ -106,6 +107,8 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
         created_by:     userId,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -119,6 +122,7 @@ export default function SuggestEditForm({ synagogue, userId, onSuccess }: Props)
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     onSuccess()
   }
 

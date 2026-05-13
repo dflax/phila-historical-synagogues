@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import AuthModal from '@/components/auth/AuthModal'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -223,7 +224,7 @@ export default function AddRelationshipButton({ synagogueId, synagogueName }: Pr
       return
     }
 
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         synagogue_id:   synagogueId,
@@ -245,6 +246,8 @@ export default function AddRelationshipButton({ synagogueId, synagogueName }: Pr
         created_by:     user!.id,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -257,6 +260,7 @@ export default function AddRelationshipButton({ synagogueId, synagogueName }: Pr
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     setStep('success')
   }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { User } from '@supabase/supabase-js'
 import AuthModal from '@/components/auth/AuthModal'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -819,7 +820,7 @@ export default function MergeRabbiButton({ rabbiId, rabbiName }: Props) {
     const totalPhotos        = (rabbi1Details?.photos_count        ?? 0) + rabbi2Details.photos_count
     const totalRelationships = (rabbi1Details?.relationships_count ?? 0) + rabbi2Details.relationships_count
 
-    const { error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('edit_proposals')
       .insert({
         entity_id:     rabbiId,
@@ -856,6 +857,8 @@ export default function MergeRabbiButton({ rabbiId, rabbiName }: Props) {
         created_by:     user.id,
         status:         'pending',
       })
+      .select('id')
+      .single()
 
     setLoading(false)
 
@@ -868,6 +871,7 @@ export default function MergeRabbiButton({ rabbiId, rabbiName }: Props) {
       return
     }
 
+    if (insertData?.id) notifyProposalSubmission(insertData.id)
     setStep(3)
   }
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import ClergyCategorySelect, { type ClergyPersonType } from '@/components/common/ClergyCategorySelect'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 interface EditAffiliationButtonProps {
   affiliation: {
@@ -67,7 +68,7 @@ export default function EditAffiliationButton({
         proposedData.new_person_type   = personType
       }
 
-      const { error } = await supabase
+      const { data: insertData, error } = await supabase
         .from('edit_proposals')
         .insert({
           proposal_type: 'affiliation_edit',
@@ -84,9 +85,12 @@ export default function EditAffiliationButton({
           created_by: user.id,
           status:     'pending',
         })
+        .select('id')
+        .single()
 
       if (error) throw error
 
+      if (insertData?.id) notifyProposalSubmission(insertData.id)
       setShowSuccess(true)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)

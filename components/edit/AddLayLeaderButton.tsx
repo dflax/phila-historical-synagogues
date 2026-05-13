@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { LAY_LEADER_ROLES } from '@/lib/types/leadership'
+import { notifyProposalSubmission } from '@/lib/proposals'
 
 interface Props {
   synagogueId: string
@@ -39,7 +40,7 @@ export default function AddLayLeaderButton({ synagogueId, synagogueName }: Props
         return
       }
 
-      const { error } = await supabase
+      const { data: insertData, error } = await supabase
         .from('edit_proposals')
         .insert({
           proposal_type: 'lay_leader_affiliation_new',
@@ -56,9 +57,12 @@ export default function AddLayLeaderButton({ synagogueId, synagogueName }: Props
           created_by: user.id,
           status:     'pending',
         })
+        .select('id')
+        .single()
 
       if (error) throw error
 
+      if (insertData?.id) notifyProposalSubmission(insertData.id)
       resetForm()
       setShowSuccess(true)
     } catch (err: unknown) {

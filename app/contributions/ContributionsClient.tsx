@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AppHeader from '@/components/layout/AppHeader'
 
@@ -9,11 +10,11 @@ import AppHeader from '@/components/layout/AppHeader'
 export interface EditProposal {
   id: string
   synagogue_id: string | null
-  proposal_type: 'synagogue_edit' | 'synagogue_new' | 'address_edit' | 'address_new' | 'rabbi_edit' | 'rabbi_new' | 'history_edit' | 'history_new' | 'photo_upload'
+  proposal_type: string
   proposed_data: Record<string, any>
   current_data: Record<string, any> | null
   submitter_note: string | null
-  status: 'pending' | 'approved' | 'rejected' | 'needs_revision'
+  status: 'pending' | 'approved' | 'rejected' | 'needs_revision' | 'withdrawn'
   review_notes: string | null
   created_at: string
   reviewed_at: string | null
@@ -41,6 +42,8 @@ export interface PhotoUpload {
 interface Props {
   proposals: EditProposal[]
   images: PhotoUpload[]
+  /** Proposal ID from ?withdraw= URL param — triggers a withdraw confirmation on load */
+  withdrawId?: string
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -50,18 +53,33 @@ const PROPOSAL_STATUS: Record<string, { label: string; text: string; bg: string;
   approved:       { label: 'Approved',       text: 'text-green-700 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20',  dot: 'bg-green-500' },
   rejected:       { label: 'Rejected',       text: 'text-red-700 dark:text-red-400',     bg: 'bg-red-50 dark:bg-red-900/20',      dot: 'bg-red-500' },
   needs_revision: { label: 'Needs Revision', text: 'text-blue-700 dark:text-blue-400',   bg: 'bg-blue-50 dark:bg-blue-900/20',    dot: 'bg-blue-500' },
+  withdrawn:      { label: 'Withdrawn',      text: 'text-gray-500 dark:text-gray-400',   bg: 'bg-gray-50 dark:bg-gray-800',       dot: 'bg-gray-400' },
 }
 
 const PROPOSAL_TYPE_LABELS: Record<string, string> = {
-  synagogue_edit:  'Edit synagogue',
-  synagogue_new:   'New synagogue',
-  address_edit:    'Edit address',
-  address_new:     'New address',
-  rabbi_edit:      'Edit rabbi',
-  rabbi_new:       'New rabbi',
-  history_edit:    'Edit history',
-  history_new:     'New history entry',
-  photo_upload:    'Photo upload',
+  synagogue_edit:             'Edit synagogue',
+  synagogue_new:              'New synagogue',
+  synagogue_delete:           'Delete synagogue',
+  synagogue_merge:            'Merge synagogues',
+  synagogue_split:            'Split synagogue',
+  address_edit:               'Edit address',
+  address_new:                'New address',
+  rabbi_edit:                 'Edit leader',
+  rabbi_new:                  'New leader',
+  history_edit:               'Edit history',
+  history_new:                'New history entry',
+  rabbi_affiliation_new:      'Add clergy affiliation',
+  lay_leader_affiliation_new: 'Add lay leader',
+  staff_affiliation_new:      'Add staff member',
+  affiliation_edit:           'Edit affiliation',
+  rabbi_profile_new:          'New leader profile',
+  rabbi_profile_edit:         'Edit leader profile',
+  rabbi_profile_delete:       'Delete leader profile',
+  rabbi_profile_merge:        'Merge leader profiles',
+  rabbi_profile_split:        'Split leader profile',
+  image_upload:               'Photo upload',
+  link_add:                   'Add external link',
+  relationship_add:           'Add synagogue relationship',
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -101,16 +119,122 @@ function ApprovalBadge({ approved }: { approved: boolean }) {
       </span>
 }
 
+// ── Withdraw confirmation modal ───────────────────────────────────────────────
+
+function WithdrawConfirmModal({
+  proposal,
+  onClose,
+  onWithdrawn,
+}: {
+  proposal: EditProposal
+  onClose: () => void
+  onWithdrawn: (id: string) => void
+}) {
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState<string | null>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    cancelRef.current?.focus()
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  async function handleWithdraw() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/proposals/${proposal.id}/withdraw`, { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Failed to withdraw')
+      onWithdrawn(proposal.id)
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong')
+      setLoading(false)
+    }
+  }
+
+  const typeLabel = PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Withdraw submission?</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            This will withdraw your <strong>{typeLabel}</strong> proposal
+            {proposal.synagogue_name ? ` for ${proposal.synagogue_name}` : ''}.
+            It will no longer be reviewed.
+          </p>
+
+          {error && (
+            <div className="mt-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 pb-6 flex justify-end gap-3">
+          <button
+            ref={cancelRef}
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleWithdraw}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition disabled:opacity-50"
+          >
+            {loading ? 'Withdrawing…' : 'Yes, withdraw'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function ContributionsClient({ proposals, images }: Props) {
+export default function ContributionsClient({ proposals: initialProposals, images, withdrawId }: Props) {
+  const router = useRouter()
+
+  const [proposals,     setProposals]     = useState(initialProposals)
   const [activeTab,     setActiveTab]     = useState<'edits' | 'photos'>('edits')
   const [statusFilter,  setStatusFilter]  = useState('all')
   const [photoFilter,   setPhotoFilter]   = useState('all')
   const [selectedEdit,  setSelectedEdit]  = useState<EditProposal | null>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoUpload | null>(null)
+  const [withdrawTarget, setWithdrawTarget] = useState<EditProposal | null>(null)
+
+  // If ?withdraw=ID is in the URL, find the proposal and show the confirm modal
+  useEffect(() => {
+    if (!withdrawId) return
+    const target = proposals.find(p => p.id === withdrawId && p.status === 'pending')
+    if (target) setWithdrawTarget(target)
+    // Clean the URL so refreshing doesn't re-trigger
+    router.replace('/contributions', { scroll: false })
+  }, [withdrawId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleWithdrawn(id: string) {
+    setProposals(prev =>
+      prev.map(p => p.id === id ? { ...p, status: 'withdrawn' as const } : p)
+    )
+    setWithdrawTarget(null)
+  }
 
   // ── Derived values ─────────────────────────────────────────────────────────
+
+  const activeProposals = proposals.filter(p => p.status !== 'withdrawn')
 
   const statusCounts: Record<string, number> = {
     all:            proposals.length,
@@ -118,6 +242,7 @@ export default function ContributionsClient({ proposals, images }: Props) {
     approved:       proposals.filter(p => p.status === 'approved').length,
     rejected:       proposals.filter(p => p.status === 'rejected').length,
     needs_revision: proposals.filter(p => p.status === 'needs_revision').length,
+    withdrawn:      proposals.filter(p => p.status === 'withdrawn').length,
   }
 
   const filteredProposals = statusFilter === 'all'
@@ -149,7 +274,7 @@ export default function ContributionsClient({ proposals, images }: Props) {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Contributions</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {proposals.length} edit proposal{proposals.length !== 1 ? 's' : ''}
+            {activeProposals.length} edit proposal{activeProposals.length !== 1 ? 's' : ''}
             {' · '}
             {images.length} photo upload{images.length !== 1 ? 's' : ''}
           </p>
@@ -184,6 +309,7 @@ export default function ContributionsClient({ proposals, images }: Props) {
                   ['approved',       'Approved'],
                   ['rejected',       'Rejected'],
                   ['needs_revision', 'Needs Revision'],
+                  ['withdrawn',      'Withdrawn'],
                 ] as [string, string][]).map(([value, label]) => {
                   const count = statusCounts[value] ?? 0
                   if (value !== 'all' && count === 0) return null
@@ -227,13 +353,15 @@ export default function ContributionsClient({ proposals, images }: Props) {
             ) : (
               <div className="space-y-2">
                 {filteredProposals.map(proposal => (
-                  <button
+                  <div
                     key={proposal.id}
-                    onClick={() => setSelectedEdit(proposal)}
-                    className="w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition"
+                    className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
+                      <button
+                        onClick={() => setSelectedEdit(proposal)}
+                        className="min-w-0 flex-1 text-left"
+                      >
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-gray-900 dark:text-white">
                             {proposal.synagogue_name ?? 'New Synagogue'}
@@ -245,15 +373,30 @@ export default function ContributionsClient({ proposals, images }: Props) {
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                           Submitted {formatDate(proposal.created_at)}
                         </p>
-                      </div>
+                      </button>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <ProposalStatusBadge status={proposal.status} />
-                        <svg className="w-4 h-4 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
+                        {proposal.status === 'pending' && (
+                          <button
+                            onClick={() => setWithdrawTarget(proposal)}
+                            className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                            title="Withdraw this submission"
+                            aria-label="Withdraw"
+                          >
+                            Withdraw
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setSelectedEdit(proposal)}
+                          aria-label="View details"
+                        >
+                          <svg className="w-4 h-4 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -346,7 +489,7 @@ export default function ContributionsClient({ proposals, images }: Props) {
                       {/* Status + chevron */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <ApprovalBadge approved={photo.approved} />
-                        <svg className="w-4 h-4 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <svg className="w-4 h-4 text-gray-300 dark:text-gray-600" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
@@ -362,6 +505,13 @@ export default function ContributionsClient({ proposals, images }: Props) {
       {/* Modals */}
       {selectedEdit  && <EditDetailModal  proposal={selectedEdit}  onClose={() => setSelectedEdit(null)}  />}
       {selectedPhoto && <PhotoDetailModal photo={selectedPhoto}    onClose={() => setSelectedPhoto(null)} />}
+      {withdrawTarget && (
+        <WithdrawConfirmModal
+          proposal={withdrawTarget}
+          onClose={() => setWithdrawTarget(null)}
+          onWithdrawn={handleWithdrawn}
+        />
+      )}
     </div>
   )
 }
